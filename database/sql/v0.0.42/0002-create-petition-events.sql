@@ -1,0 +1,13 @@
+CREATE TABLE petition_events (
+    id SERIAL PRIMARY KEY,
+    petition_id uuid NOT NULL REFERENCES petitions(id) ON DELETE RESTRICT,
+    type VARCHAR(50) NOT NULL,
+    date DATE NOT NULL,
+    duration INTEGER NOT NULL,
+    extra_data JSONB,
+    created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE petition_events
+    OWNER TO "cts";

@@ -1,0 +1,1 @@
+ALTER TABLE "petition_types" ADD COLUMN "particularity_label" varchar(255) NULL;

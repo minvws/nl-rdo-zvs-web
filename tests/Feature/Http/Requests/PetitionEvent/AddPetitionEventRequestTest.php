@@ -1,0 +1,310 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Http\Requests\PetitionEvent;
+
+use App\Enums\Authorization\Permission;
+use App\Enums\PetitionEventType;
+use App\Enums\PetitionTypeType;
+use App\Enums\RouteName;
+use App\Enums\SuspensionType;
+use App\Models\Department;
+use App\Models\Petition;
+use App\Models\PetitionStatus;
+use App\Models\PetitionType;
+use App\Models\User;
+use Illuminate\Support\Facades\Session;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\Feature\FeatureTestCase;
+
+use function now;
+use function route;
+use function sprintf;
+
+final class AddPetitionEventRequestTest extends FeatureTestCase
+{
+    #[Test]
+    public function testEventDataIsRequired(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), []);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('type');
+    }
+
+    #[Test]
+    public function testEventTypeIsRequired(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'date' => now()->toDateString(),
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('type');
+    }
+
+    #[Test]
+    public function testEventDateIsRequired(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::PRIMARY_DECISION->value,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('date');
+    }
+
+    #[Test]
+    public function testValidEventDataPassesValidation(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::PRIMARY_DECISION->value,
+                'date' => now()->toDateString(),
+                'duration' => 42,
+            ]);
+
+        $response->assertRedirect();
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+    }
+
+    #[Test]
+    public function testEventValidatorIsCalledForValidEventType(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        // Try to add RECEIPT_OF_OBJECTION without PRIMARY_DECISION first
+        // This should fail the custom validation from ObjectionReceiptValidator
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::RECEIPT_OF_OBJECTION->value,
+                'date' => now()->toDateString(),
+                'duration' => 30,
+            ]);
+
+        $response->assertRedirect();
+        // Should have errors from the validator
+        $response->assertSessionHasErrors();
+    }
+
+    #[Test]
+    public function testWithValidatorSkipsCustomValidationWhenTypeIsInvalid(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        // Try to submit with an invalid type value that won't match any enum
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => 'invalid_type_that_does_not_exist',
+                'date' => now()->toDateString(),
+                'duration' => 30,
+            ]);
+
+        $response->assertRedirect();
+        // Should have errors from the basic validation rules, not from custom validator
+        $response->assertSessionHasErrors('type');
+    }
+
+    #[Test]
+    public function testPenaltiesWithMissingAmountAreFiltered(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+
+        // Empty array element is skipped by resolvePenalties
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::PRIMARY_DECISION->value,
+                'date' => now()->toDateString(),
+                'duration' => 42,
+                'penalties' => [
+                    [],
+                    ['amount' => 500, 'duration' => 10],
+                ],
+            ]);
+
+        $response->assertRedirect();
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+        $lastEvent = $events->last();
+        $this->assertCount(1, $lastEvent->penalties);
+        $this->assertSame(500, $lastEvent->penalties[0]->amount);
+    }
+
+    #[Test]
+    public function testPenaltiesWithNullValuesAreFiltered(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::PRIMARY_DECISION->value,
+                'date' => now()->toDateString(),
+                'duration' => 42,
+                'penalties' => [
+                    ['amount' => null, 'duration' => null],
+                    ['amount' => 500, 'duration' => 10],
+                ],
+            ]);
+
+        $response->assertRedirect();
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+        $lastEvent = $events->last();
+        $this->assertCount(1, $lastEvent->penalties);
+        $this->assertSame(500, $lastEvent->penalties[0]->amount);
+    }
+
+    #[Test]
+    public function testEventWithSuspensionTypeSavesCorrectly(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+
+        // First add required events (PRIMARY_DECISION and RECEIPT_OF_OBJECTION)
+        $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::PRIMARY_DECISION->value,
+                'date' => now()->subDays(10)->toDateString(),
+                'duration' => 42,
+            ]);
+
+        $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::RECEIPT_OF_OBJECTION->value,
+                'date' => now()->subDays(5)->toDateString(),
+                'duration' => 6,
+            ]);
+
+        // Now add the suspension event
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::LETTER_OF_SUSPENSION_SENT->value,
+                'date' => now()->toDateString(),
+                'duration' => 42,
+                'suspension_type' => SuspensionType::SUSPENSION->value,
+            ]);
+
+        $response->assertRedirect();
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+        $lastEvent = $events->last();
+        $this->assertSame(SuspensionType::SUSPENSION, $lastEvent->suspensionType);
+    }
+
+    /**
+     * @return array{department: Department, petition: Petition}
+     */
+    private function createPetitionSetup(): array
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionStatus = PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->create([
+            'petition_type_id' => $petitionType->id,
+            'petition_status_id' => $petitionStatus->id,
+        ]);
+
+        return [
+            'department' => $department,
+            'petition' => $petition,
+        ];
+    }
+}

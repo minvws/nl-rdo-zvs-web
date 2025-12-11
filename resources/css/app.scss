@@ -1,0 +1,30 @@
+// vendors
+@use "../../node_modules/open-color/open-color.css";
+
+// scss
+@use "scss/variables";
+@use "scss/theme";
+@use "scss/global";
+@use "scss/fonts";
+@use "scss/layout";
+@use "scss/utilities";
+
+// components
+@use "scss/components/alert";
+@use "scss/components/button";
+@use "scss/components/column-filter";
+@use "scss/components/contacts/contacts-show";
+@use "scss/components/contacts/contacts-attach";
+@use "scss/components/department-selector";
+@use "scss/components/header";
+@use "scss/components/petition/description-list";
+@use "scss/components/petition/petition-header";
+@use "scss/components/petition/petition-edit";
+@use "scss/components/petition/custom-petition-properties";
+@use "scss/components/filters";
+@use "scss/components/forms";
+@use "scss/components/timeline/timeline-actions";
+@use "scss/components/timeline/timeline-badge";
+@use "scss/components/timeline/timeline";
+@use "scss/components/pagination";
+@use "scss/components/password-strength";

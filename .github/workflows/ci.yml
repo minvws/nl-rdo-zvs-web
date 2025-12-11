@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  CI:
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: localhost
+      DB_PASSWORD: postgres
+      DB_USERNAME: postgres
+      DB_DATABASE: postgres
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432/tcp
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "18"
+          cache: "npm"
+          registry-url: "https://npm.pkg.github.com"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install npm dependencies
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN"  >> ~/.npmrc
+          npm ci --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.REPO_READ_ONLY_TOKEN }}
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: 8.4
+          extensions: pgsql
+          coverage: pcov
+
+      - name: Composer install
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.REPO_READ_ONLY_TOKEN }}"}}'
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Run build task
+        run: npm run build
+
+      - name: Prepare the application
+        run: |
+          php -r "file_exists('.env') || copy('.env.example', '.env');"
+          php artisan key:generate
+
+      - name: Clear Config
+        run: php artisan config:clear
+
+      - name: Run Migration
+        run: php artisan migrate:fresh
+        env:
+          DB_PORT: ${{ job.services.postgres.ports[5432] }}
+
+      - name: Prettier
+        run: npx prettier -c --config .prettierrc.json resources/views/
+
+      - name: Rector
+        run: vendor/bin/rector -n
+
+      - name: Phpcs
+        run: vendor/bin/phpcs -n
+
+      - name: Phpstan
+        run: |
+          set -o pipefail
+          mkdir -p reports
+          vendor/bin/phpstan analyse --error-format=blade --no-ansi | tee reports/phpstan.json
+
+      - name: Phpmd
+        run: vendor/bin/phpmd app github ./phpmd.xml
+
+      - name: Phpunit
+        run: php artisan test  --compact --coverage --min=100 --log-junit=reports/report-phpunit.xml --coverage-clover=reports/coverage-phpunit.xml
+        env:
+          DB_PORT: ${{ job.services.postgres.ports[5432] }}
+
+      - name: Run SonarQube scan
+        uses: minvws/action-sonarqube@v1
+        with:
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          project-base-dir: .

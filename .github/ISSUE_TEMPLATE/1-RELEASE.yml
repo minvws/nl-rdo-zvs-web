@@ -1,0 +1,88 @@
+name: Release ticket
+description: Create a release ticket for ZVS-WEB (in English).
+title: "Release [VUL TAG IN] naar PROD"
+labels: ["release"]
+projects: ["minvws/66"]
+body:
+  - type: input
+    attributes:
+      label: "Current version ZVS-WEB on PROD:"
+      placeholder: v1.6.0
+  - type: input
+    attributes:
+      label: "New version ZVS-WEB on PROD:"
+      placeholder: v1.6.1
+  - type: input
+    attributes:
+      label: "Current version ZVS_DB on PROD:"
+      placeholder: v0.0.34
+  - type: input
+    attributes:
+      label: "New version ZVS_DB on PROD:"
+      placeholder: v0.0.35
+  - type: checkboxes
+    id: general
+    attributes:
+      label: General
+      description: General checks for this release
+      options:
+        - label: Create release notes and a release summary
+        - label: 'Check: are there any changes that may have an effect on the DPIA or otherwise on privacy? If so: discuss with privacy and discuss changes/implications?'
+        - label: 'Check: will the release trigger additional cost? If so: confirm budget availability or request additional budget.'
+        - label: 'Check: are there any changes that may have an effect on security? If so: discuss with security and get **approval**'
+        - label: 'Check: have any new features been checked against accessibility guidelines?'
+  - type: checkboxes
+    id: communication
+    attributes:
+      label: Communication
+      description: Communication checks for this release
+      options:
+        - label: Notify relevant stakeholders
+        - label: 'Check: is any public notification needed? If so: communication requested?'
+        - label: Adjust the software manual
+        - label: Inform the helpdesk
+  - type: checkboxes
+    id: qa
+    attributes:
+      label: QA
+      description: QA checks for this release
+      options:
+        - label: 'Check: code coverage meets specifications'
+        - label: Test new logging items and inform SOC SIEM/CSIRT
+        - label: Discuss changes/issues with QA to ensure accurate/rapid testing
+        - label: Test report created ([See template](https://github.com/minvws/nl-rdo-quality-coordination/blob/main/Kwaliteitsmanagement/Kwaliteitsaanpak/Testrapport/Testrapport.md))
+        - label: Arrange any required post-release tests and/or monitoring.
+  - type: checkboxes
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Dependencies checks for this release
+      options:
+        - label: Make sure all Dependabot PR's are merged (to be sure of the latest versions)
+        - label: Calculate dependencies on other systems, are there any breaking changes down-/upstream?
+        - label: 'Check: any database changes required? If so: prepare database schema schedule release'
+        - label: 'Check: are there (certificate/specification) changes to (API) eindpoints? If so, notify clients'
+  - type: checkboxes
+    id: rollout
+    attributes:
+      label: Roll-out
+      description: Roll-out checks for this release
+      options:
+        - label: Rollback procedure present?
+        - label: Is a release date present?
+        - label: Are there any dependencies and/or is a specific release order required?
+        - label: '*Approval PO*'
+        - label: '*Approval IBMF*, add screenshot of checklist and explanation of any unchecked or striked out items'
+  - type: checkboxes
+    id: approvalleadqa
+    attributes:
+      label: Approval-Lead-QA
+      description: The procedure to request a production release is described in [Release-proces.md](https://github.com/minvws/nl-rdo-quality-coordination/blob/main/Kwaliteitsmanagement/Kwaliteitsaanpak/Release%20proces/Release-proces.md)
+      options:
+        - label: '*Approval QA Lead*, the QA Lead will check this release checklist and the test report and add a screenshot of this checklist to the Zammad ticket and move the request for installation to Operations.'
+  - type: textarea
+    attributes:
+      label: 'Actions required before, during or right after deployment:'
+  - type: textarea
+    attributes:
+      label: 'Tickets in release:'        

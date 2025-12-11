@@ -1,0 +1,1 @@
+ALTER TABLE "petition_types" ADD COLUMN "default_deadline_term" INTEGER NOT NULL DEFAULT 0;

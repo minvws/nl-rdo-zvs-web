@@ -1,0 +1,129 @@
+:root {
+  --table-background-color: transparent;
+  --table-cell-padding: 0.75rem 0.75rem;
+  --table-cell-border-color: var(--oc-gray-5);
+  --table-body-head-cell-font-weight: 400;
+  --table-body-head-cell-border-width: 0 0 1px 0;
+  --table-body-head-cell-border-color: var(--table-cell-border-color);
+  --max-line-length-word-break: break-all;
+}
+
+table {
+  caption-side: top;
+}
+
+table td,
+table th {
+  white-space: nowrap;
+  vertical-align: middle;
+  max-width: 32ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+table td:last-of-type {
+  text-align: right;
+}
+
+table td:only-child {
+  text-align: left;
+}
+
+table td.no-results {
+  text-align: center;
+}
+
+table td .button {
+  display: inline-flex;
+  align-self: flex-end;
+}
+
+table td .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2rem;
+}
+
+table .align-right {
+  text-align: right;
+}
+
+.sort-link {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-decoration: none;
+}
+
+[aria-sort="ascending"],
+[aria-sort="descending"] {
+  font-weight: 700;
+}
+
+.sort-icon {
+  svg {
+    display: none;
+  }
+  [aria-sort="none"] & {
+    svg.no-direction {
+      display: block;
+    }
+  }
+  [aria-sort="ascending"] & {
+    svg.asc {
+      display: block;
+    }
+  }
+  [aria-sort="descending"] & {
+    svg.desc {
+      display: block;
+    }
+  }
+}
+
+tr:has(+ tr.suspended),
+tr:has(+ tr.penalty) {
+  td {
+    border-style: dashed;
+    border-color: var(--oc-gray-3);
+  }
+}
+
+.table-row-clickable {
+  cursor: pointer;
+  position: relative;
+
+  .icon-only {
+    color: var(--oc-blue-9);
+  }
+
+  .icon-only:hover {
+    outline: 0;
+  }
+
+  a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--oc-blue-4);
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+  a:hover::after {
+    background-color: var(--oc-blue-4);
+    opacity: 0.2;
+  }
+  a:focus-visible::after {
+    background-color: var(--oc-blue-4);
+    opacity: 0.2;
+  }
+}
+
+.draft-term th,
+.draft-term td {
+  background-color: var(--oc-yellow-1);
+}
+
+.draft-term th:first-child {
+  padding-left: 0.5rem;
+}

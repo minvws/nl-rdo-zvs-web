@@ -1,0 +1,13 @@
+:root {
+  --table-base-caption-font-size: 1.125rem;
+}
+
+caption {
+  font-weight: 700;
+
+  span {
+    display: block;
+    font-weight: 400;
+    font-size: 1rem;
+  }
+}

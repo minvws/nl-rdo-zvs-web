@@ -1,0 +1,91 @@
+.filters {
+  display: flex;
+  justify-content: space-between;
+}
+
+.filters__form {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.filter__label {
+  display: block;
+  font-weight: 700;
+}
+
+button,
+.button {
+  .filters & {
+    align-self: flex-end;
+    margin-block-start: 0;
+    padding-block: 0.5rem;
+    white-space: nowrap;
+
+    &[aria-disabled="true"] {
+      cursor: not-allowed;
+      color: var(--oc-gray-6);
+
+      &:hover,
+      &:focus {
+        color: var(--oc-gray-6);
+        border-color: var(--oc-gray-3);
+      }
+    }
+  }
+}
+
+.dropdown-toggle {
+  font-weight: 400;
+  width: 200px;
+  display: flex;
+  justify-content: space-between;
+  padding-block: 0;
+  color: var(--oc-gray-6);
+}
+
+.dropdown-toggle::after {
+  display: none;
+}
+
+.dropdown-menu {
+  width: 100%;
+}
+
+.dropdown-item {
+  font-weight: 400;
+  padding-inline: 1rem;
+  > a {
+    text-decoration: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(oc-white);
+    background-color: var(--oc-gray-1);
+  }
+}
+
+.form-filter-group {
+  flex: 0 1 max-content;
+  gap: 0;
+
+  label {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  &.search {
+    flex: 1 1 max-content;
+    margin-inline-end: auto;
+    max-width: 600px;
+  }
+
+  &.form-filter-group--horizontal {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}

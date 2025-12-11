@@ -1,0 +1,42 @@
+.timeline-item__badge {
+  align-self: flex-start;
+  background-color: var(--oc-blue-9);
+  border-radius: 50%;
+  color: white;
+  display: grid;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  height: 2rem;
+  line-height: 0;
+  margin-inline-start: calc(-1rem + 1px);
+  place-items: center;
+  width: 2rem;
+
+  .timeline-item--occurrence & {
+    background-color: var(--oc-black);
+  }
+
+  .timeline-item--occurrence-assignment &,
+  .timeline-item--occurrence-edit & {
+    background-color: var(--oc-blue-9);
+  }
+
+  .timeline-item--occurrence-status & {
+    background-color: var(--oc-grape-6);
+  }
+
+  .timeline-item--occurrence-reference & {
+    background-color: var(--oc-green-6);
+  }
+
+  .timeline-item--occurrence-deletion & {
+    background-color: var(--oc-red-9);
+  }
+}
+
+.timeline-item__badge {
+  > svg {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+}

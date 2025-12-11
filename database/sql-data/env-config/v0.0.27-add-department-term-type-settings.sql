@@ -1,0 +1,117 @@
+DO $$
+
+DECLARE
+
+    dep_uuid_team_c UUID;
+    dep_uuid_team_a UUID;
+    dep_uuid_team_b UUID;
+    dep_uuid_wjz_bb UUID;
+
+BEGIN
+
+    SELECT "id" FROM "departments" WHERE "slug"='team-a' INTO dep_uuid_team_a;
+    SELECT "id" FROM "departments" WHERE "slug"='team-b' INTO dep_uuid_team_b;
+    SELECT "id" FROM "departments" WHERE "slug"='team-c' INTO dep_uuid_team_c;
+    SELECT "id" FROM "departments" WHERE "slug"='wjz-bb' INTO dep_uuid_wjz_bb;
+
+    TRUNCATE "department_term_type_settings";
+    INSERT INTO "department_term_type_settings" ("id", "department_id", "term_type", "field", "active", "default_value") VALUES
+    ('01959594-868b-714f-8bda-188274d033a3', dep_uuid_team_a, 'first', 'start_date', 't', '0'),
+    ('01959594-868b-714f-8bda-188275483b86', dep_uuid_team_a, 'first', 'duration_in_days', 't', '28'),
+    ('01959594-868b-714f-8bda-1882760f0545', dep_uuid_team_a, 'first', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-868b-714f-8bda-188276f63c84', dep_uuid_team_a, 'first', 'penalty_terms', 'f', NULL),
+    ('01959594-868c-73dc-b36b-b344486b71af', dep_uuid_team_a, 'second', 'start_date', 'f', NULL),
+    ('01959594-868c-73dc-b36b-b34448f37914', dep_uuid_team_a, 'second', 'duration_in_days', 't', '14'),
+    ('01959594-868c-73dc-b36b-b3444944b8f1', dep_uuid_team_a, 'second', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-868c-73dc-b36b-b344495a7dc9', dep_uuid_team_a, 'second', 'penalty_terms', 'f', NULL),
+    ('01959594-868c-73dc-b36b-b34449cd05b4', dep_uuid_team_a, 'appointment_with_applicant', 'start_date', 'f', NULL),
+    ('01959594-868c-73dc-b36b-b34449d2b338', dep_uuid_team_a, 'appointment_with_applicant', 'duration_in_days', 't', NULL),
+    ('01959594-868c-73dc-b36b-b3444a2f0280', dep_uuid_team_a, 'appointment_with_applicant', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-868c-73dc-b36b-b3444acf3289', dep_uuid_team_a, 'appointment_with_applicant', 'penalty_terms', 'f', NULL),
+    ('01959594-868d-73dc-a8d0-d7e33c031e07', dep_uuid_team_a, 'suspension', 'start_date', 't', '0'),
+    ('01959594-868d-73dc-a8d0-d7e33c10f5a6', dep_uuid_team_a, 'suspension', 'duration_in_days', 't', NULL),
+    ('01959594-868d-73dc-a8d0-d7e33cc2138a', dep_uuid_team_a, 'suspension', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-868d-73dc-a8d0-d7e33d00d44c', dep_uuid_team_a, 'suspension', 'penalty_terms', 'f', NULL),
+    ('01959594-868d-73dc-a8d0-d7e33d5ee6aa', dep_uuid_team_a, 'notice_of_default', 'start_date', 't', '0'),
+    ('01959594-868d-73dc-a8d0-d7e33dc0567a', dep_uuid_team_a, 'notice_of_default', 'duration_in_days', 't', '14'),
+    ('01959594-868d-73dc-a8d0-d7e33e2743d9', dep_uuid_team_a, 'notice_of_default', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-868e-732f-bc0c-0aae2685c654', dep_uuid_team_a, 'notice_of_default', 'penalty_terms', 'f', NULL),
+    ('01959594-868e-732f-bc0c-0aae272a09a7', dep_uuid_team_a, 'appeal_not_timely', 'start_date', 't', '0'),
+    ('01959594-868e-732f-bc0c-0aae2786f9fd', dep_uuid_team_a, 'appeal_not_timely', 'duration_in_days', 't', NULL),
+    ('01959594-868e-732f-bc0c-0aae28484e27', dep_uuid_team_a, 'appeal_not_timely', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-868e-732f-bc0c-0aae29263f7c', dep_uuid_team_a, 'appeal_not_timely', 'penalty_terms', 't', '[{"duration_in_days":150,"penalty_amount_in_euros":100}]'),
+    ('01959594-8df5-73c5-9613-a12a6d3df185', dep_uuid_team_b, 'first', 'start_date', 't', '0'),
+    ('01959594-8df5-73c5-9613-a12a6dbbade7', dep_uuid_team_b, 'first', 'duration_in_days', 't', '28'),
+    ('01959594-8df6-7260-bc91-c063d32a3be6', dep_uuid_team_b, 'first', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-8df6-7260-bc91-c063d4042348', dep_uuid_team_b, 'first', 'penalty_terms', 'f', NULL),
+    ('01959594-8df6-7260-bc91-c063d4a5d7c9', dep_uuid_team_b, 'second', 'start_date', 'f', NULL),
+    ('01959594-8df6-7260-bc91-c063d52b7ddd', dep_uuid_team_b, 'second', 'duration_in_days', 't', '14'),
+    ('01959594-8df6-7260-bc91-c063d5d17e65', dep_uuid_team_b, 'second', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-8df6-7260-bc91-c063d672cb09', dep_uuid_team_b, 'second', 'penalty_terms', 'f', NULL),
+    ('01959594-8df6-7260-bc91-c063d70363ad', dep_uuid_team_b, 'appointment_with_applicant', 'start_date', 'f', NULL),
+    ('01959594-8df7-739a-9270-efa4aac9bb8b', dep_uuid_team_b, 'appointment_with_applicant', 'duration_in_days', 't', NULL),
+    ('01959594-8df7-739a-9270-efa4abc9af93', dep_uuid_team_b, 'appointment_with_applicant', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-8df7-739a-9270-efa4ac6b3afa', dep_uuid_team_b, 'appointment_with_applicant', 'penalty_terms', 'f', NULL),
+    ('01959594-8df7-739a-9270-efa4ac798bf8', dep_uuid_team_b, 'suspension', 'start_date', 't', '0'),
+    ('01959594-8df7-739a-9270-efa4ac92deb3', dep_uuid_team_b, 'suspension', 'duration_in_days', 't', NULL),
+    ('01959594-8df7-739a-9270-efa4ad32f85d', dep_uuid_team_b, 'suspension', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-8df7-739a-9270-efa4ad857554', dep_uuid_team_b, 'suspension', 'penalty_terms', 'f', NULL),
+    ('01959594-8df7-739a-9270-efa4adc02164', dep_uuid_team_b, 'notice_of_default', 'start_date', 't', '0'),
+    ('01959594-8df8-7394-9416-022b48fc0a52', dep_uuid_team_b, 'notice_of_default', 'duration_in_days', 't', '14'),
+    ('01959594-8df8-7394-9416-022b498c4b3d', dep_uuid_team_b, 'notice_of_default', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-8df8-7394-9416-022b4a0e0970', dep_uuid_team_b, 'notice_of_default', 'penalty_terms', 'f', NULL),
+    ('01959594-8df8-7394-9416-022b4a1351c3', dep_uuid_team_b, 'appeal_not_timely', 'start_date', 't', '0'),
+    ('01959594-8df8-7394-9416-022b4b0fecf4', dep_uuid_team_b, 'appeal_not_timely', 'duration_in_days', 't', NULL),
+    ('01959594-8df8-7394-9416-022b4be79d7c', dep_uuid_team_b, 'appeal_not_timely', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-8df8-7394-9416-022b4c156f2e', dep_uuid_team_b, 'appeal_not_timely', 'penalty_terms', 't', '[{"duration_in_days":150,"penalty_amount_in_euros":100}]'),
+    ('01959594-9570-73cc-84ff-371fa6aad24c', dep_uuid_team_c, 'first', 'start_date', 't', '0'),
+    ('01959594-9570-73cc-84ff-371fa71b9c6f', dep_uuid_team_c, 'first', 'duration_in_days', 't', '14'),
+    ('01959594-9571-70c2-b045-2786470b52cb', dep_uuid_team_c, 'first', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9571-70c2-b045-2786479107f2', dep_uuid_team_c, 'first', 'penalty_terms', 'f', NULL),
+    ('01959594-9571-70c2-b045-278647c2179a', dep_uuid_team_c, 'second', 'start_date', 'f', NULL),
+    ('01959594-9571-70c2-b045-2786485ae195', dep_uuid_team_c, 'second', 'duration_in_days', 't', '14'),
+    ('01959594-9571-70c2-b045-278648be25ce', dep_uuid_team_c, 'second', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9571-70c2-b045-27864938b228', dep_uuid_team_c, 'second', 'penalty_terms', 'f', NULL),
+    ('01959594-9571-70c2-b045-278649935fa2', dep_uuid_team_c, 'appointment_with_applicant', 'start_date', 'f', NULL),
+    ('01959594-9571-70c2-b045-278649b82886', dep_uuid_team_c, 'appointment_with_applicant', 'duration_in_days', 't', NULL),
+    ('01959594-9572-7295-addd-3b12fced2400', dep_uuid_team_c, 'appointment_with_applicant', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9572-7295-addd-3b12fd7e9997', dep_uuid_team_c, 'appointment_with_applicant', 'penalty_terms', 'f', NULL),
+    ('01959594-9572-7295-addd-3b12fe797b0e', dep_uuid_team_c, 'suspension', 'start_date', 't', '0'),
+    ('01959594-9572-7295-addd-3b12ff3b574d', dep_uuid_team_c, 'suspension', 'duration_in_days', 't', NULL),
+    ('01959594-9572-7295-addd-3b12ffd03a19', dep_uuid_team_c, 'suspension', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9572-7295-addd-3b12ffea45d7', dep_uuid_team_c, 'suspension', 'penalty_terms', 'f', NULL),
+    ('01959594-9572-7295-addd-3b130090e782', dep_uuid_team_c, 'notice_of_default', 'start_date', 't', '0'),
+    ('01959594-9573-709b-a133-1c656cd75906', dep_uuid_team_c, 'notice_of_default', 'duration_in_days', 't', '14'),
+    ('01959594-9573-709b-a133-1c656d0ac476', dep_uuid_team_c, 'notice_of_default', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9573-709b-a133-1c656dfacbef', dep_uuid_team_c, 'notice_of_default', 'penalty_terms', 't', '[{"duration_in_days":14,"penalty_amount_in_euros":23},{"duration_in_days":14,"penalty_amount_in_euros":35},{"duration_in_days":14,"penalty_amount_in_euros":45}]'),
+    ('01959594-9573-709b-a133-1c656ed91479', dep_uuid_team_c, 'appeal_not_timely', 'start_date', 't', '0'),
+    ('01959594-9573-709b-a133-1c656fc56b01', dep_uuid_team_c, 'appeal_not_timely', 'duration_in_days', 't', NULL),
+    ('01959594-9573-709b-a133-1c6570bf50c4', dep_uuid_team_c, 'appeal_not_timely', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9573-709b-a133-1c6570f370b5', dep_uuid_team_c, 'appeal_not_timely', 'penalty_terms', 't', '[{"duration_in_days":150,"penalty_amount_in_euros":100}]'),
+    ('01959594-9c57-7119-9c0d-00ae55c4de6f', dep_uuid_wjz_bb, 'first', 'start_date', 't', '0'),
+    ('01959594-9c58-7123-87c1-ed152d2bf15f', dep_uuid_wjz_bb, 'first', 'duration_in_days', 't', '14'),
+    ('01959594-9c58-7123-87c1-ed152d56a5bb', dep_uuid_wjz_bb, 'first', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9c58-7123-87c1-ed152d95c882', dep_uuid_wjz_bb, 'first', 'penalty_terms', 'f', NULL),
+    ('01959594-9c58-7123-87c1-ed152e887ec4', dep_uuid_wjz_bb, 'second', 'start_date', 'f', NULL),
+    ('01959594-9c58-7123-87c1-ed152f386a18', dep_uuid_wjz_bb, 'second', 'duration_in_days', 't', '14'),
+    ('01959594-9c58-7123-87c1-ed152f86e28d', dep_uuid_wjz_bb, 'second', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9c58-7123-87c1-ed152fe9e119', dep_uuid_wjz_bb, 'second', 'penalty_terms', 'f', NULL),
+    ('01959594-9c59-72bf-b4c4-d15c42b8b810', dep_uuid_wjz_bb, 'appointment_with_applicant', 'start_date', 'f', NULL),
+    ('01959594-9c59-72bf-b4c4-d15c435a9416', dep_uuid_wjz_bb, 'appointment_with_applicant', 'duration_in_days', 't', NULL),
+    ('01959594-9c59-72bf-b4c4-d15c439a5881', dep_uuid_wjz_bb, 'appointment_with_applicant', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9c59-72bf-b4c4-d15c4419cf8f', dep_uuid_wjz_bb, 'appointment_with_applicant', 'penalty_terms', 'f', NULL),
+    ('01959594-9c59-72bf-b4c4-d15c44b9854f', dep_uuid_wjz_bb, 'suspension', 'start_date', 't', '0'),
+    ('01959594-9c59-72bf-b4c4-d15c457dede7', dep_uuid_wjz_bb, 'suspension', 'duration_in_days', 't', NULL),
+    ('01959594-9c59-72bf-b4c4-d15c459c83ce', dep_uuid_wjz_bb, 'suspension', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9c59-72bf-b4c4-d15c4618423b', dep_uuid_wjz_bb, 'suspension', 'penalty_terms', 'f', NULL),
+    ('01959594-9c5a-73f0-b0bc-4e2ff9d284a1', dep_uuid_wjz_bb, 'notice_of_default', 'start_date', 't', '0'),
+    ('01959594-9c5a-73f0-b0bc-4e2ffab6efab', dep_uuid_wjz_bb, 'notice_of_default', 'duration_in_days', 't', '14'),
+    ('01959594-9c5a-73f0-b0bc-4e2ffac4415f', dep_uuid_wjz_bb, 'notice_of_default', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9c5a-73f0-b0bc-4e2ffb702a8b', dep_uuid_wjz_bb, 'notice_of_default', 'penalty_terms', 't', '[{"duration_in_days":14,"penalty_amount_in_euros":23},{"duration_in_days":14,"penalty_amount_in_euros":35},{"duration_in_days":14,"penalty_amount_in_euros":45}]'),
+    ('01959594-9c5a-73f0-b0bc-4e2ffc6b919e', dep_uuid_wjz_bb, 'appeal_not_timely', 'start_date', 't', '0'),
+    ('01959594-9c5b-7308-abbd-f3f7dd0b3918', dep_uuid_wjz_bb, 'appeal_not_timely', 'duration_in_days', 't', NULL),
+    ('01959594-9c5b-7308-abbd-f3f7dd87144b', dep_uuid_wjz_bb, 'appeal_not_timely', 'penalty_amount_in_euros', 'f', NULL),
+    ('01959594-9c5b-7308-abbd-f3f7de22f4c3', dep_uuid_wjz_bb, 'appeal_not_timely', 'penalty_terms', 't', '[{"duration_in_days":150,"penalty_amount_in_euros":100}]');
+
+END $$
+

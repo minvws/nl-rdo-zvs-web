@@ -1,0 +1,15 @@
+/* Avatar */
+
+.avatar {
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+
+  &:hover,
+  &:focus-visible {
+    border-radius: 50%;
+    background-color: var(--oc-gray-1);
+    color: var(--oc-blue-8);
+    outline: 0;
+  }
+}

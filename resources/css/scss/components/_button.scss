@@ -1,0 +1,55 @@
+.btn-sm {
+  --bs-btn-padding-x: 0.5rem;
+  --bs-btn-padding-y: 0.25rem;
+  --bs-btn-font-size: 0.75rem;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
+.button-container--wrap {
+  flex-wrap: wrap;
+}
+
+.button--status-trigger {
+  --button-base-padding-top: 0;
+  --button-base-padding-right: 0.25rem;
+  --button-base-padding-bottom: 0;
+  --button-base-padding-left: 0;
+  --button-base-min-height: fit-content;
+  --button-base-gap: 0.25rem;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  > .tag {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.link-button {
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  margin-block-start: 0;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+    border: 0;
+  }
+}
+
+[aria-disabled="true"] {
+  cursor: not-allowed;
+  color: var(--oc-gray-6);
+
+  &:hover,
+  &:focus {
+    color: var(--oc-gray-6);
+    border-color: var(--oc-gray-3);
+  }
+}

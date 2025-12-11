@@ -1,0 +1,79 @@
+.petition-edit {
+  border-block-end: 1px solid var(--oc-gray-3);
+  padding-block-end: 1rem;
+}
+
+.petition-property__block + .petition-property__block {
+  margin-block-start: 1.5rem;
+}
+
+.petition-property__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-block-end: 1rem;
+}
+
+.petition-property__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+
+  .petition-property__block--active & {
+    color: var(--oc-blue-8);
+  }
+}
+
+.petition-property__edit,
+.petition-property__edit:visited {
+  --link-text-color: var(--oc-gray-6);
+  --link-visited-text-color: var(--oc-gray-6);
+  --link-visited-hover-text-color: var(--link-hover-text-color);
+
+  .petition-property__block--active & {
+    --link-text-color: var(--oc-blue-8);
+    --link-visited-text-color: var(--oc-blue-8);
+    --link-visited-hover-text-color: var(--oc-blue-8);
+  }
+}
+
+.petition-property__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.petition-property__content-group {
+  padding: 0.875rem;
+  border-radius: 0.5rem;
+  background-color: var(--oc-gray-3);
+
+  dt {
+    font-weight: 700;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+}
+
+.petition-property__content:has(form) {
+  background-color: var(--oc-white);
+  border: 1px solid var(--oc-gray-3);
+  padding: 1rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.petition-property__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background-color: var(--oc-white);
+  padding: 0.5rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.terms-ul {
+  list-style-type: none;
+}

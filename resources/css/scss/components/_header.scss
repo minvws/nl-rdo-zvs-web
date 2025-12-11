@@ -1,0 +1,56 @@
+.header {
+  background-color: var(--oc-black);
+  padding-block: 0.5rem;
+}
+
+nav > .container--main-nav {
+  display: grid;
+  grid-template-columns: 25rem 1fr max-content;
+  grid-template-areas: "selector main-nav actions";
+  column-gap: 1rem;
+  align-items: center;
+
+  > ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+  }
+  a {
+    text-decoration: none;
+    font-weight: 700;
+    color: var(--oc-white);
+  }
+}
+
+.department-selector {
+  grid-area: selector;
+}
+
+.main-nav__list {
+  grid-area: main-nav;
+  display: flex;
+  gap: 0.5rem;
+  height: 100%;
+
+  li {
+    display: flex;
+    align-items: center;
+  }
+
+  a {
+    padding: 1.25rem 1rem;
+    display: block;
+
+    &:hover,
+    &:focus,
+    &[aria-current="page"] {
+      background-color: var(--oc-gray-1);
+      border-radius: 8px;
+      color: var(--oc-blue-8);
+    }
+  }
+}
+
+.actions {
+  grid-area: actions;
+}

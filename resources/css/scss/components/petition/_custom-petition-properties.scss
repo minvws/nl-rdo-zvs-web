@@ -1,0 +1,7 @@
+.custom-petition-properties__content {
+  display: block;
+}
+
+.custom-petition-properties__option:has(+ .custom-petition-properties__subtitle) {
+  margin-block-end: 1rem;
+}

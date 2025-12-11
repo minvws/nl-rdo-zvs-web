@@ -1,0 +1,178 @@
+/* Theme overrides and extensions */
+/* These are changes that have been added within this repo but
+   Haven't been added to the iCore Theme yet. */
+
+@use "action-bar";
+@use "avatar";
+@use "block-notifications";
+@use "button";
+@use "button-cta";
+@use "form-checkbox";
+@use "filter";
+@use "form-fieldset";
+@use "header-navigation";
+@use "header-navigation-link-focus";
+@use "header-navigation-link-hover";
+@use "header-navigation-link-visited";
+@use "logout-button";
+@use "section";
+@use "section-header";
+@use "table";
+@use "table-caption";
+@use "tag";
+
+:root {
+  --application-base-text-color: var(--oc-black);
+  --skip-to-content-text-color: var(--oc-white);
+  --skip-to-content-width: max-content;
+  --footer-flex-direction: row;
+  --footer-justify-content: space-between;
+  --footer-content-max-width: 84rem;
+  --footer-min-height: auto;
+  --link-visited-text-color: var(--oc-blue-8);
+  --link-focus-font-weight: 400;
+  --link-hover-text-decoration: none;
+  --form-base-background-color: transparent;
+  --button-base-padding-top: 0.75rem;
+  --button-base-padding-bottom: 0.75rem;
+  --button-base-padding-left: 1rem;
+  --button-base-padding-right: 1rem;
+  --header-navigation-padding-right: 0;
+  --header-navigation-padding-left: 0;
+  --header-navigation-content-wrapper-padding-top: 0.5rem;
+  --header-navigation-content-wrapper-padding-bottom: 0.5rem;
+  --header-navigation-justify-content: flex-start;
+  --header-navigation-link-hover-background-color: var(--oc-gray-1);
+  --header-navigation-link-hover-text-color: var(--oc-blue-8);
+  --header-navigation-current-link-focus-background-color: var(--oc-gray-1);
+  --header-navigation-current-link-focus-text-color: var(--oc-blue-8);
+  --footer-padding-right: 0;
+  --footer-padding-left: 0;
+  --form-input-border-color: var(--oc-gray-3);
+  --form-fieldset-legend-font-weight: 400;
+  --form-base-font-weight: 400;
+  --form-button-font-weight: 700;
+  --border-radius-s: 0.5rem;
+  --button-base-min-width: auto;
+  --h2-font-size: 1.125rem;
+  --h3-font-size: 1rem;
+  --table-head-cell-font-weight: 700;
+  --table-foot-cell-font-weight: 400;
+  --table-foot-border-color: var(--oc-gray-3);
+  --table-foot-border-width: 1px 0 0 0;
+  --table-cell-padding: var(--spacing-050);
+  --table-cell-border-color: var(--oc-gray-3);
+  --table-head-cell-padding: var(--spacing-050);
+  --table-head-border-color: var(--oc-blue-9);
+  --button-base-focus-outline: 2px solid var(--oc-blue-8);
+  --max-line-length-max-width: unset;
+  --max-line-length-word-break: break-word;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body > footer > div {
+  display: flex;
+  flex-direction: var(--footer-flex-direction);
+  justify-content: var(--footer-justify-content);
+  max-width: var(--footer-content-max-width);
+  min-height: var(--footer-min-height);
+  margin: 0 auto;
+  padding-inline: 2rem;
+}
+
+.visually-grouped {
+  padding-block: var(--spacing-150);
+  display: flex;
+  flex-direction: column;
+
+  &.visually-grouped--horizontal {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+
+.x-scrollable-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.x-scrollable {
+  overflow-x: scroll;
+}
+
+.shadow {
+  position: absolute;
+  top: 0;
+  z-index: 100;
+  width: 4rem;
+  height: 100%;
+  background: red;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.shadow-left {
+  left: 0;
+  background: radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.1) 30%, transparent 100%);
+  opacity: 1;
+
+  .at-start & {
+    opacity: 0;
+  }
+}
+
+.shadow-right {
+  right: 0;
+  background: radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.1) 30%, transparent 100%);
+
+  .at-end & {
+    opacity: 0;
+  }
+}
+
+nav > .container ul li a:not([class]) {
+  border-radius: 8px;
+}
+
+body > header nav .actions {
+  display: flex;
+  align-items: center;
+}
+
+.skip-to-content:focus {
+  margin-inline: auto;
+}
+
+table tr:last-of-type td {
+  border: 0;
+}
+
+table .action-column {
+  width: 3rem;
+}
+
+.button-container a,
+.button-container button,
+.button-container .button {
+  margin-top: 0;
+}
+
+button,
+.button {
+  user-select: none;
+
+  &.cta {
+    border-width: var(--button-cta-hover-border-width);
+  }
+}

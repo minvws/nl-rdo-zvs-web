@@ -1,0 +1,31 @@
+{
+    "singleQuote": true,
+    "trailingComma": "all",
+    "tabWidth": 2,
+    "printWidth": 120,
+    "overrides": [
+        {
+            "files": ["*.css", "*.scss"],
+            "options": {
+                "singleQuote": false,
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": "*.json",
+            "options": {
+                "tabWidth": 4
+            }
+        },
+        {
+            "files": ["*.blade.php"],
+            "options": {
+                "parser": "blade",
+                "tabWidth": 4,
+                "bracketSameLine": true,
+                "singleAttributePerLine": true,
+                "plugins": ["prettier-plugin-blade"]
+            }
+        }
+    ]
+}

@@ -1,0 +1,2 @@
+ALTER TABLE contacts
+    ADD COLUMN archived_at TIMESTAMP(0) NULL DEFAULT NULL;

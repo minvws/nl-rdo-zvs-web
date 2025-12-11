@@ -1,0 +1,15 @@
+# IDE settings
+.idea/
+
+# Python
+.venv/
+__pycache__/
+
+# Logs and test reports
+log.html
+report.html
+output.xml
+
+# Browser / Playwright artifacts
+browser/
+playwright-log.txt

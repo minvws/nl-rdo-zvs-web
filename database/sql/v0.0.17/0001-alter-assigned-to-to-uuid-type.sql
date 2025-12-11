@@ -1,0 +1,1 @@
+ALTER TABLE petitions ALTER COLUMN assigned_to TYPE UUID USING assigned_to::UUID;

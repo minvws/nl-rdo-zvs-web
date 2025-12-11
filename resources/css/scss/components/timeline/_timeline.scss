@@ -1,0 +1,137 @@
+.timeline {
+  margin-block-start: 1.5rem;
+}
+
+.timeline-item {
+  margin-inline-start: 1rem;
+  padding: 1rem;
+  position: relative;
+
+  &::before {
+    background-color: var(--oc-gray-3);
+    bottom: 0;
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    width: 2px;
+    z-index: 0;
+  }
+}
+
+.timeline-item:first-child {
+  &::before {
+    background: linear-gradient(rgba(255,255,255,0), var(--oc-gray-3));
+  }
+}
+
+.timeline-item:last-child {
+  &::before {
+    background: linear-gradient(var(--oc-gray-3), rgba(255,255,255,0) 66%);
+  }
+}
+
+.timeline-item__wrapper {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.timeline-item__badge {
+  align-self: flex-start;
+  background-color: var(--oc-blue-9);
+  border-radius: 50%;
+  color: var(--oc-white);
+  display: grid;
+  flex-shrink: 0;
+  height: 2rem;
+  margin-inline-start: calc(-1rem + 1px);
+  place-items: center;
+  width: 2rem;
+}
+
+.timeline-item__content {
+  border: 1px solid var(--oc-gray-3);
+  border-radius: 0 1rem 1rem 1rem;
+  display: flex;
+  flex: 0 1 80%;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem 1rem 0;
+
+  .timeline-item--note &,
+  .timeline-item__form {
+    padding-inline-start: 1rem;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  span {
+    font-weight: 700;
+  }
+}
+
+.timeline-item__content {
+  .timeline-item--occurrence & {
+    border: 0;
+    padding-block: 0;
+  }
+
+  &.timeline-item__content--fallback {
+    color: var(--oc-red-4);
+    font-style: italic;
+  }
+}
+
+
+.timeline-item__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  legend {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-block-end: 0;
+  }
+
+  textarea {
+    border: 1px solid var(--oc-gray-3);
+    border-radius: 0.5rem;
+    field-sizing: content;
+    min-height: 5rem;
+    max-height: 20rem;
+    padding: 0.5rem;
+    resize: vertical;
+    width: 100%;
+  }
+
+  button {
+    align-self: flex-start;
+  }
+}
+
+.timeline-item__attachments-list {
+  padding: 0;
+  list-style: none;
+}
+
+.timeline-item__attachment-link {
+  color: var(--application-base-text-color);
+
+  &:hover {
+    color: inherit;
+  }
+}
+
+.timeline-item__meta {
+  color: var(--oc-gray-6);
+  font-size: 0.875rem;
+}
+
+#timeline-container {
+  margin-top: 0;
+}

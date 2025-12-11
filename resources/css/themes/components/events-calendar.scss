@@ -1,0 +1,145 @@
+div.objection-events-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+table.objection-events-calendar-table,
+table.objection-events-events-table {
+  tr {
+    &.deadline {
+      font-weight: 600;
+    }
+
+    &.date-range-row {
+      td {
+        font-size: 0.8rem;
+        background-color: var(--oc-gray-1);
+        color: var(--oc-gray-6);
+        text-align: left;
+        padding: 0 0.5rem;
+        border-top: 1px solid var(--oc-gray-4) !important;
+        border-bottom: 1px solid var(--oc-gray-4) !important;
+      }
+    }
+
+    &.no-change-row {
+      td {
+        height: 2px;
+        span {
+          display: none;
+        }
+      }
+    }
+
+    &.today-row {
+      td {
+        background-color: var(--oc-blue-3);
+        font-weight: 600;
+        color: #fff;
+        span {
+          display: block;
+        }
+      }
+    }
+
+  }
+
+  th,
+  td {
+    text-align: center;
+    padding: 0;
+  }
+
+  td {
+    border: 1px solid #fff !important;
+    border-right: 1px solid var(--oc-gray-4) !important;
+
+    &.date {
+      background-color: var(--oc-gray-2);
+      color: var(--oc-gray-7);
+      padding: 0 0.5rem;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    & > div.event-type {
+      font-weight: 600;
+      color: #fff;
+
+      &--primary_decision {
+        background-color: var(--oc-blue-9);
+      }
+
+      &--adjournment,
+      &--receipt_of_objection,
+      &--meeting_scheduled,
+      &--petition_received {
+        background-color: var(--oc-green-9);
+      }
+
+      &--letter_of_suspension_sent,
+      &--suspension_end,
+      &--unspecified_adjournment,
+      &--unspecified_adjournment_end {
+        background-color: var(--oc-green-7);
+      }
+
+      &--notice_of_default_received,
+      &--notice_of_default_withdrawn {
+        background-color: var(--oc-yellow-9);
+      }
+
+      &--appeal_decision_not_timely {
+        background-color: var(--oc-orange-9);
+      }
+
+      &--hearing_date {
+        background-color: var(--oc-cyan-9);
+      }
+
+      &--final_result,
+      &--actual_disclosure,
+      &--publication_date {
+        background-color: var(--oc-cyan-9);
+      }
+    }
+
+    &.term-type {
+      &--objection_period,
+      &--objection_period__suspended {
+        background-color: var(--oc-blue-2);
+        color: var(--oc-blue-9);
+      }
+
+      &--decision_period {
+        background-color: var(--oc-green-2);
+        color: var(--oc-green-9);
+      }
+
+      &--decision_period__suspended {
+        background-color: var(--oc-gray-2);
+        color: var(--oc-gray-6);
+      }
+
+      &--notice_of_default {
+        background-color: var(--oc-yellow-2);
+        color: var(--oc-yellow-9);
+      }
+
+      &--appeal_not_timely {
+        background-color: var(--oc-orange-2);
+        color: var(--oc-orange-9);
+      }
+
+      &--penalty_period {
+        background-color: var(--oc-red-1);
+        color: var(--oc-red-9);
+      }
+    }
+
+  }
+}

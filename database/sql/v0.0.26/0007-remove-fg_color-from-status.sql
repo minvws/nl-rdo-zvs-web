@@ -1,0 +1,1 @@
+ALTER TABLE petition_statuses DROP COLUMN fg_color;

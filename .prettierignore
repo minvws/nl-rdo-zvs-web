@@ -1,0 +1,13 @@
+# Ignore 3rd party files
+node_modules
+.github
+.vscode
+.idea
+
+# Package lock
+package-lock.json
+composer.lock
+
+# Ignore project files
+*.md
+*.yml

@@ -1,0 +1,193 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Api;
+
+use App\Models\ApiUser;
+use App\Models\CustomCost;
+use App\Models\CustomPetitionProperty;
+use App\Models\Decision;
+use App\Models\Petition;
+use App\Models\PetitionCustomDate;
+use App\Models\PetitionDeliverable;
+use App\Models\PetitionDraftTerm;
+use App\Models\PetitionExternalUrl;
+use App\Models\PetitionQuerysnapshot;
+use App\Models\PetitionStatus;
+use App\Models\PetitionType;
+use App\Models\PolicyDepartment;
+use App\Models\ProcessingStep;
+use App\Models\PublicHoliday;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Feature\FeatureTestCase;
+
+class GenericApiControllerTest extends FeatureTestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $apiUser = ApiUser::factory()->create();
+        Sanctum::actingAs($apiUser);
+    }
+
+    public function testIndexEndpointReturnsUsers(): void
+    {
+        User::factory()->count(3)->create();
+
+        $response = $this->getJson('/api/v1/users');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [],
+                'pagination' => [
+                    'current_page',
+                    'per_page',
+                    'total',
+                    'last_page',
+                    'from',
+                    'to',
+                ],
+                'meta' => [
+                    'available_fields',
+                ],
+            ]);
+    }
+
+    public function testFieldSelectionWorks(): void
+    {
+        User::factory()->create();
+
+        $response = $this->getJson('/api/v1/users?fields=id,name');
+
+        $response->assertStatus(200);
+
+        $userData = $response->json('data.0');
+        $this->assertArrayHasKey('id', $userData);
+        $this->assertArrayHasKey('name', $userData);
+        $this->assertArrayNotHasKey('email', $userData);
+    }
+
+    public function testPaginationWorks(): void
+    {
+        User::factory()->count(20)->create();
+
+        $response = $this->getJson('/api/v1/users?per_page=5');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('pagination.per_page', 5)
+            ->assertJsonPath('pagination.total', 20);
+    }
+
+    public function testInvalidModelReturns404(): void
+    {
+        $response = $this->getJson('/api/v1/invalid-model');
+
+        $response->assertStatus(404)
+            ->assertJsonPath('error', 'Table not found');
+    }
+
+    public function testFilteringByCreatedAfter(): void
+    {
+        User::factory()->create(['created_at' => '2023-01-01']);
+        $newUser = User::factory()->create(['created_at' => '2024-01-01']);
+
+        $response = $this->getJson('/api/v1/users?created_at_after=2023-06-01');
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals($newUser->id, $data[0]['id']);
+    }
+
+    public function testFilteringByCreatedAtAfter(): void
+    {
+        User::factory()->create(['created_at' => '2023-01-01']);
+        $newUser = User::factory()->create(['created_at' => '2024-01-01']);
+
+        $response = $this->getJson('/api/v1/users?created_at_after=2023-06-01');
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals($newUser->id, $data[0]['id']);
+    }
+
+    public function testFilteringByCreatedAtBefore(): void
+    {
+        $oldUser = User::factory()->create(['created_at' => '2023-01-01']);
+        User::factory()->create(['created_at' => '2024-01-01']);
+
+        $response = $this->getJson('/api/v1/users?created_at_before=2023-06-01');
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals($oldUser->id, $data[0]['id']);
+    }
+
+    public function testPetitionPetitionEndpointExists(): void
+    {
+        // This test just verifies the endpoint is configured and accessible
+        // It may return empty data, which is fine for testing the configuration
+        $response = $this->getJson('/api/v1/petition_petition');
+
+        // Should not return 404 (table not found), meaning it's properly configured
+        $this->assertNotEquals(404, $response->status());
+
+        // If it returns 200, verify the structure
+        if ($response->status() !== 200) {
+            return;
+        }
+
+        $response->assertJsonStructure([
+            'data',
+            'pagination',
+            'meta',
+        ]);
+    }
+
+    #[DataProvider('genericApiEndpoints')]
+    public function testPetitionEndpointsAccessible(string $endpoint, ?string $model = null): void
+    {
+        if ($model) {
+            $model::factory()->create();
+        }
+
+        $response = $this->getJson($endpoint)->assertOk();
+        $response->assertJsonStructure([
+            'data',
+            'pagination',
+            'meta',
+        ]);
+    }
+
+    /**
+     * @return array<int, array<int, string>>
+     */
+    public static function genericApiEndpoints(): array
+    {
+        return [
+            ['/api/v1/petition_deliverables', PetitionDeliverable::class],
+            ['/api/v1/petition_draft_terms', PetitionDraftTerm::class],
+            ['/api/v1/petition_statuses', PetitionStatus::class],
+            ['/api/v1/petitions', Petition::class],
+            ['/api/v1/petition_types', PetitionType::class],
+            ['/api/v1/petition_custom_properties', CustomPetitionProperty::class],
+            ['/api/v1/petition_custom_costs', CustomCost::class],
+            ['/api/v1/petition_custom_dates', PetitionCustomDate::class],
+            ['/api/v1/decision_petition'],
+            ['/api/v1/public_holidays', PublicHoliday::class],
+            ['/api/v1/processing_steps', ProcessingStep::class],
+            ['/api/v1/policy_departments', PolicyDepartment::class],
+            ['/api/v1/custom_petition_properties_definitions'],
+            ['/api/v1/petition_external_urls', PetitionExternalUrl::class],
+            ['/api/v1/petition_policy_department'],
+            ['/api/v1/petition_querysnapshots', PetitionQuerysnapshot::class],
+            ['/api/v1/decisions', Decision::class],
+        ];
+    }
+}

@@ -1,0 +1,14 @@
+/* Header navigation */
+
+:root {
+  --header-navigation-padding-right: 2rem;
+  --header-navigation-padding-left: 2rem;
+  --header-navigation-content-wrapper-max-width: 80rem;
+  --header-navigation-link-focus-font-weight: 700;
+}
+
+nav > .container--main-nav a.active-parent {
+    background: var(--oc-gray-1);
+    color: var(--oc-blue-8);
+    border-radius: 8px;
+}

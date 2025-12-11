@@ -1,0 +1,146 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'model_singular' => 'Termijn',
+    'model_plural' => 'Termijnen',
+
+    'overview' => 'Termijnenoverzicht',
+    'summary' => 'Termijnensamenvatting',
+    'deadline' => 'Deadline',
+    'total_days_of_suspensions' => 'Dagen opgeschort',
+    'penalty' => 'Dwangsom',
+    'penalties' => 'Dwangsommen',
+    'sum_of_penalties_per_date' => 'Dwangsom per dag',
+    'days_in_progress' => 'Dagen in behandeling',
+    'current_term' => 'Huidige termijn',
+    'current_terms' => 'Huidige termijnen',
+    'total_penalty' => 'Dwangsom maximum',
+    'penalty_to_date' => 'Dwangsom verbeurd',
+    'create' => ':term toevoegen',
+    'edit' => ':term bewerken',
+    'type' => 'Type',
+    'duration_in_days' => 'Duur',
+    'penalty_amount_in_euros' => 'Dwangsom per dag (€)',
+    'start_date' => 'Startdatum',
+    'end_date' => 'Einddatum',
+    'date_of_message' => 'Ontvangstdatum',
+    'no_records' => 'Er zijn nog geen termijnen ingevoerd.',
+    'manage_terms' => 'Beheer termijnen',
+    'delete_last' => 'Verwijder laatste stap',
+    'finalize' => 'Afronden',
+    'finish_store' => 'Opslaan en afronden',
+
+    // UI Strings for the objection events calendar
+    'add_term' => 'Gebeurtenissen en termijnen toevoegen',
+    'added_objection_events' => 'Toegevoegde gebeurtenissen',
+    'objection_events_calendar' => 'Gebeurtenissen en termijnen kalender',
+    'no_more_terms_can_be_added' => 'Er kunnen geen nieuwe gebeurtenissen of termijnen meer worden toegevoegd.',
+    'no_objection_events_calendar_items' => 'Er zijn geen gebeurtenissen of termijnen ingevoerd.',
+
+    // Table columns
+    'date' => 'Datum',
+    'term' => 'Termijn',
+    'actions' => 'Acties',
+    'event' => 'Gebeurtenis',
+    'suspended' => 'Opgeschort',
+    'particularities' => 'Bijzonderheden',
+
+    // Events
+    'actual_disclosure' => 'Feitelijke verstrekking',
+    'adjournment' => 'Verdagingsbrief verzonden',
+    'appeal_decision_not_timely' => 'Besluit BNT',
+    'final_result' => [
+        'final_decision' => 'Finaal besluit',
+        'forwarded' => 'Doorgezonden',
+        'withdrawn' => 'Ingetrokken',
+    ],
+    'hearing_date' => 'Hoorzitting',
+    'letter_of_suspension_sent' => [
+        'specified_adjournment' => 'Aanhoudingsbrief verzonden',
+        'suspension' => 'Opschortingbrief verzonden',
+        'specification' => 'Opschortingbrief verzonden (precisiering)',
+        'consultation' => 'Opschortingbrief verzonden (zienswijze)',
+    ],
+    'meeting_scheduled' => 'Meeting gepland',
+    'notice_of_default_received' => 'Ontvangst ingebrekestelling',
+    'notice_of_default_withdrawn' => 'Ingebrekestelling ingetrokken',
+    'petition_received' => 'Ontvangst Woo-verzoek',
+    'primary_decision' => 'Primair besluit',
+    'publication_date' => 'Publicatie',
+    'receipt_of_objection' => 'Ontvangst bezwaar',
+    'suspension_end' => 'Einde opschorting',
+    'unspecified_adjournment' => 'Ongespecificeerde aanhouding',
+    'unspecified_adjournment_end' => 'Gebeurtenis',
+
+    // Terms
+    'appeal_not_timely.default' => 'Behandeltermijn BNT',
+    'decision_period' => [
+        'default' => 'Beslistermijn',
+        'specified_adjournment' => 'Beslistermijn (aangehouden)',
+        'suspension' => 'Beslistermijn (opgeschort)',
+        'specification' => 'Beslistermijn (opgeschort)',
+        'consultation' => 'Beslistermijn (opgeschort)',
+    ],
+    'notice_of_default.default' => 'Behandeltermijn IGS',
+    'objection_period' => [
+        'default' => 'Bezwaartermijn',
+        'specified_adjournment' => 'Bezwaartermijn (aanhouding n.v.t.)',
+        'suspension' => 'Bezwaartermijn (opschorting n.v.t.)',
+    ],
+    'penalty_period.default' => 'Dwangsom',
+
+    // Particularities
+    'is_atw' => 'ATW toegepast',
+    'is_deadline-appeal_not_timely' => 'Laatste dag termijn BNT',
+    'is_deadline-decision_period' => 'Laatste dag beslistermijn',
+    'is_deadline-notice_of_default' => 'Laatste dag termijn IGS',
+    'is_deadline-objection_period' => 'Laatste dag bezwaartermijn',
+
+    // Term types
+    'term_type' => [
+        'first' => 'Standaard wettelijke termijn',
+        'second' => 'Verdagingsbrief verzonden',
+        'appointment_with_applicant' => 'Afspraak met verzoeker',
+        'suspension' => 'Opschorting',
+        'specified_adjournment' => 'Gespecificeerd aanhouden',
+        'notice_of_default' => 'Ingebrekestelling',
+        'appeal_not_timely' => 'Beroep niet tijdig',
+        'penalty' => 'Dwangsom',
+        'objection_period' => 'Bezwaartermijn',
+        'committee_hearing' => 'Commissiezitting',
+        'unspecified_adjournment_until_event' => 'Ongespecificeerd aanhouden tot gebeurtenis',
+        'unspecified_adjournment_until_withdrawal' => 'Ongespecificeerd aanhouden tot intrekking',
+        'pending_term_after_event' => 'Behandeltermijn na gebeurtenis',
+        'pending_term_after_withdrawal' => 'Behandeltermijn na intrekking',
+    ],
+    'term_type_start_date' => [
+        'first' => 'Startdatum wettelijke termijn',
+        'second' => 'Ontvangstdatum',
+        'appointment_with_applicant' => 'Ontvangstdatum',
+        'suspension' => 'Ontvangstdatum',
+        'notice_of_default' => 'Ontvangstdatum',
+        'appeal_not_timely' => 'Ontvangstdatum',
+        'penalty' => 'Startdatum',
+        'objection_period' => 'Startdatum bezwaartermijn',
+        'committee_hearing' => 'Startdatum commissiezitting',
+    ],
+
+    // Validation messages
+    'validation' => [
+        'common' => [
+            'date_must_be_latest_event' => 'De datum van :event moet de laatste gebeurtenis zijn',
+            'only_one_event_allowed' => 'Er kan maar één :event worden toegevoegd',
+            'event_requires_dependency' => ':event kan alleen worden toegevoegd na :required_event',
+            'event_requires_dependency_any' => ':event kan alleen worden toegevoegd als één van de volgende gebeurtenissen bestaat: :required_events',
+            'event_not_allowed_in_term_type' => ':event is niet toegestaan in dit termijntype',
+            'date_not_allowed_in_term' => ':event is niet toegestaan tijdens :term',
+            'date_must_be_in_term' => ':event moet binnen de toegestane termijnen vallen',
+            'date_already_in_suspension' => 'Er is al een actieve opschortingsperiode op deze datum',
+            'date_must_be_after_dependency' => 'De datum van :event moet na de datum van :dependency liggen',
+            'date_must_be_in_suspension' => 'De datum valt niet binnen een actieve opschortingsperiode',
+            'last_event_must_be_one_of' => 'De laatste gebeurtenis moet een van de volgende zijn: :events',
+        ],
+    ],
+];

@@ -1,0 +1,50 @@
+table.connected-contacts-table {
+  min-width: 1200px;
+
+  tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr 500px 150px;
+  }
+
+  th, td {
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    form {
+      width: 100%;
+
+      button {
+        margin-top: 0;
+      }
+    }
+  }
+}
+
+table.contacts-table {
+  min-width: 1200px;
+
+  tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr 650px;
+  }
+
+  th, td {
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .button-cell {
+    display: flex;
+    align-items: end;
+  }
+
+  .button-container {
+    width: 520px;
+  }
+}

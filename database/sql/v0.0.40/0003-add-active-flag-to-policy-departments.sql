@@ -1,0 +1,1 @@
+ALTER TABLE "policy_departments" ADD COLUMN "active" boolean NOT NULL DEFAULT true;

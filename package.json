@@ -1,0 +1,25 @@
+{
+    "name": "nl-rdo-zvs-web-private",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "watch": "vite build --watch"
+    },
+    "dependencies": {
+        "@minvws/manon": "^17.1.0",
+        "@minvws/manon-themes": "^17.1.0",
+        "@popperjs/core": "^2.11.8",
+        "htmx.org": "^2.0.8",
+        "zxcvbn": "^4.4.2"
+    },
+    "devDependencies": {
+        "laravel-vite-plugin": "^1.0",
+        "open-color": "^1.9.1",
+        "prettier": "3.3.2",
+        "prettier-plugin-blade": "^2.1.19",
+        "sass": "^1.77.6",
+        "vite": "^6.3"
+    }
+}

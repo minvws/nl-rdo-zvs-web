@@ -1,0 +1,119 @@
+:root {
+  --tag-padding: 0.25rem 0.5rem;
+  --tag-border-radius: 0.25rem;
+  --tag-font-size: 0.875rem;
+  --tag-font-weight: 700;
+}
+
+.tag {
+  align-self: flex-start;
+  background-color: var(--oc-gray-9);
+  color: var(--oc-black);
+}
+
+.tag--info {
+  background-color: var(--oc-blue-1);
+  color: var(--oc-blue-9);
+}
+
+.tag--success {
+  background-color: var(--oc-green-1);
+  color: var(--oc-green-9);
+}
+
+.tag--danger {
+  background-color: var(--oc-red-1);
+  color: var(--oc-red-9);
+}
+
+.tag--warning {
+  background-color: var(--oc-grape-1);
+  color: var(--oc-grape-9);
+}
+
+.tag--end_required,
+.tag--system_defined {
+  background-color: var(--oc-red-1);
+  color: var(--oc-red-9);
+}
+
+.tag--end_undefined {
+  background-color: var(--oc-gray-1);
+  color: var(--oc-gray-9);
+}
+
+.tag--intake {
+  background-color: var(--oc-gray-1);
+}
+
+.tag--pending {
+  background-color: var(--oc-blue-2);
+}
+
+.tag--finished {
+  background-color: var(--oc-yellow-4);
+}
+
+.tag--draft {
+  background-color: var(--oc-red-4);
+}
+
+.tag--closed {
+  background-color: var(--oc-green-4);
+}
+
+[data-status-color] {
+  color: var(--oc-black);
+}
+
+[data-status-color="#FFDEEB"] {
+  background-color: #ffdeeb;
+}
+
+[data-status-color="#FCC2D7"] {
+  background-color: #fcc2d7;
+}
+
+[data-status-color="#FAA2C1"] {
+  background-color: #faa2c1;
+}
+
+[data-status-color="#F8F0FC"] {
+  background-color: #f8f0fc;
+}
+
+[data-status-color="#F3D9FA"] {
+  background-color: #f3d9fa;
+}
+
+[data-status-color="#EEBEFA"] {
+  background-color: #eebefa;
+}
+
+[data-status-color="#FFE8CC"] {
+  background-color: #ffe8cc;
+}
+
+[data-status-color="#FFD8A8"] {
+  background-color: #ffd8a8;
+}
+
+[data-status-color="#D0EBFF"] {
+  background-color: #d0ebff;
+}
+
+[data-status-color="#A5D8FF"] {
+  background-color: #a5d8ff;
+}
+
+[data-status-color="#FFF3BF"] {
+  background-color: #fff3bf;
+}
+
+[data-status-color="#FFEC99"] {
+  background-color: #ffec99;
+}
+
+[data-status-color="#B2F2BB"] {
+  background-color: #b2f2bb;
+}

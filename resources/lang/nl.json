@@ -1,0 +1,8 @@
+{
+  "(and :count more error)": "(en nog :count extra fout)",
+  "(and :count more errors)": "(en nog :count extra fouten)",
+  "All rights reserved.": "Alle rechten voorbehouden.",
+  "De extensie is niet toegestaan. Toegestane extensies zijn invalid.": "De extensie is niet toegestaan. Toegestane extensies zijn ongeldig.",
+  "The bijlage field must be a file.": "Het bijlage veld moet een bestand zijn.",
+  "De extensie is niet toegestaan. Toegestane extensies zijn pdf, png, jpg, jpeg, webp, docx, odt, md, txt, eml, msg.": "De extensie is niet toegestaan. Toegestane extensies zijn pdf, png, jpg, jpeg, webp, docx, odt, md, txt, eml, msg."
+}

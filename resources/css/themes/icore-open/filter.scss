@@ -1,0 +1,9 @@
+.filters {
+  --section-content-wrapper-gap: 0.25rem;
+  --section-content-wrapper-justify-content: flex-end;
+  --section-content-wrapper-flex-direction: row;
+}
+
+.filter {
+  --section-content-wrapper-flex-direction: column;
+}

@@ -1,0 +1,1 @@
+CREATE INDEX contacts_ordering_idx ON contacts (last_name, organisation_name, id);

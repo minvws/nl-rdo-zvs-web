@@ -1,0 +1,16 @@
+/* QR code key */
+
+.qr-code-key {
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-size: var(--form-base-font-size);
+    margin-bottom: var(--form-group-gap);
+  }
+
+  .key {
+    word-break: break-all;
+  }
+}

@@ -1,0 +1,2 @@
+ALTER TABLE "petitions"
+    ALTER COLUMN name DROP NOT NULL;

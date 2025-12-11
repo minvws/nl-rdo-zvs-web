@@ -1,0 +1,31 @@
+.timeline-actions,
+.timeline-actions form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  > * {
+    flex-shrink: 0;
+  }
+}
+
+.timeline-actions {
+  gap: 2rem;
+}
+
+.timeline-actions form {
+  gap: 0.5rem;
+
+  label {
+    font-weight: bold;
+  }
+
+  select {
+    flex-shrink: 1;
+    width: auto;
+  }
+
+  & > button {
+    margin-top: 0;
+  }
+}

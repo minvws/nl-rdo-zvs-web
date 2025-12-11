@@ -1,0 +1,1 @@
+ALTER TABLE petitions ADD COLUMN custom_dates JSONB DEFAULT '[]'::JSONB NOT NULL;

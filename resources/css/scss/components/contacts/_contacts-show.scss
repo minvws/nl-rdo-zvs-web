@@ -1,0 +1,25 @@
+.contact-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 1rem;
+  min-width: 60%;
+
+  &__column {
+    flex: 1;
+    max-width: 50%;
+    padding: 0 1rem;
+
+    dl {
+      margin: 0;
+    }
+  }
+  &__label {
+    font-weight: normal;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+  &__value {
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+}

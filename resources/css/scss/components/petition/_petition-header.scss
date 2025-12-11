@@ -1,0 +1,40 @@
+.petition-header {
+  display: flex;
+  justify-content: space-between;
+
+  .btn {
+    align-self: flex-start;
+  }
+}
+
+.petition-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.petition-details__header {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  margin: 0;
+  max-width: 45ch;
+}
+
+.petition-details__title {
+  display: block;
+}
+
+.petition-details__number {
+  display: block;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.petition-details__link {
+  align-self: flex-start;
+
+  &:focus {
+    outline-offset: 2px;
+    outline-color: var(--oc-blue-7);
+  }
+}

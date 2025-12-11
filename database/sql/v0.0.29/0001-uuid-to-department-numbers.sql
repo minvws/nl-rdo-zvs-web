@@ -1,0 +1,2 @@
+ALTER TABLE "petition_number"
+    ADD COLUMN "id" SERIAL PRIMARY KEY;

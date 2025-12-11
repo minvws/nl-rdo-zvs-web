@@ -1,0 +1,26 @@
+.logout-button {
+  background-color: transparent;
+  border: 0;
+  border-radius: 8px !important;
+  color: white;
+  font-weight: 700;
+  height: 100%;
+  min-width: auto;
+  padding: 1.25rem 1rem;
+  width: auto;
+
+  &:hover, &:focus {
+    background-color: var(--oc-gray-1);
+    color: var(--oc-blue-8);
+    border-radius: inherit;
+    border: 0;
+  }
+
+  &:focus-visible {
+    background-color: var(--oc-gray-1);
+    color: var(--oc-blue-8);
+    border-radius: inherit;
+    outline: none;
+    border: 0;
+  }
+}

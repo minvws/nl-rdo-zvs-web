@@ -1,0 +1,97 @@
+name: Regression Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  regression-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "18"
+          cache: "npm"
+          registry-url: "https://npm.pkg.github.com"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install npm dependencies
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN"  >> ~/.npmrc
+          npm ci --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.REPO_READ_ONLY_TOKEN }}
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: 8.4
+          extensions: pgsql
+
+      - name: Composer install
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.REPO_READ_ONLY_TOKEN }}"}}'
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Run build task
+        run: npm run build
+
+      - name: Prepare the application
+        run: |
+          cp .env.robot.example .env
+          cp .env.robot.example .env.robot
+
+      - name: Generate an application key
+        id: app_key
+        run: |
+          APP_KEY=$(php artisan key:generate --show)
+          echo "app_key=$APP_KEY" >> $GITHUB_OUTPUT
+          echo "APP_KEY=$APP_KEY" >> .env.robot
+
+      - name: Clear Config
+        run: php artisan config:clear
+
+      - name: Setup Docker for Laravel/Sail
+        run: |
+          docker run --rm \
+          -u "$(id -u):$(id -g)" \
+          -v "$(pwd):/var/www/html" \
+          -w /var/www/html \
+          laravelsail/php84-composer:latest \
+          composer install --ignore-platform-reqs
+
+      - name: Run regression tests
+        env:
+          WWWGROUP: 1001
+          WWWUSER: 1001
+          APP_ENV: robot
+          APP_SERVICE: laravel.robot
+          APP_KEY: ${{ steps.app_key.outputs.app_key }}
+        run: |
+          ./vendor/bin/sail up \
+          --exit-code-from e2e-tests \
+          e2e-tests
+
+      - name: Dump Docker logs
+        if: always()
+        run: docker compose logs > docker-logs.txt
+
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: regression-test-results
+          path: |
+            robot/output.xml
+            robot/report.html
+            robot/log.html
+            robot/browser/
+            docker-logs.txt

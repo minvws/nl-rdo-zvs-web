@@ -1,0 +1,9 @@
+/* Section header */
+
+main {
+  section > header {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+}

@@ -1,0 +1,15 @@
+/* Form fieldset */
+
+form fieldset {
+  > .confirmation,
+  > .explanation,
+  > .error,
+  > .warning,
+  > .system {
+    margin-bottom: var(--form-base-gap);
+  }
+}
+
+legend {
+  font-size: var(--form-legend-font-size);
+}

@@ -1,0 +1,1 @@
+DELETE from user_roles where role != 'administrator';

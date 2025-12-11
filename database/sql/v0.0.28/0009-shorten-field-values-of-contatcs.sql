@@ -1,0 +1,5 @@
+ALTER TABLE contacts
+  ALTER COLUMN initials TYPE VARCHAR(20),
+  ALTER COLUMN phone_number TYPE VARCHAR(20),
+  ALTER COLUMN house_number TYPE VARCHAR(20),
+  ALTER COLUMN postal_code TYPE VARCHAR(20);

@@ -1,0 +1,36 @@
+includes:
+	- phpstan-baseline.neon
+
+parameters:
+    reportUnmatchedIgnoredErrors: true
+    ignoreErrors:
+        -
+            message: '#^Parameter \#1 \$value of function e expects BackedEnum\|float\|Illuminate\\Contracts\\Support\\DeferringDisplayableValue\|Illuminate\\Contracts\\Support\\Htmlable\|int\|string\|null, mixed given\.$#'
+            path: app/
+        -
+            message: '#^If condition is always (false|true)\.$#'
+            path: app/Http/Controllers/
+        -
+            identifier: missingType.checkedException
+            path: app/Http/Controllers/
+    paths:
+        - ./app
+        - ./database/factories
+        - ./routes
+    excludePaths:
+        - bootstrap/cache
+        - database/seeders
+        - public/
+        - utils/
+        - storage/
+        - tests/
+        - vendor/
+    level: max
+    exceptions:
+        check:
+            missingCheckedExceptionInThrows: true
+            tooWideThrowType: true
+        uncheckedExceptionClasses:
+            - 'LogicException'
+            - 'RuntimeException'
+    editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'
