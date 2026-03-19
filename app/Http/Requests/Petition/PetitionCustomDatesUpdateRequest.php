@@ -35,7 +35,7 @@ class PetitionCustomDatesUpdateRequest extends FormRequest
     }
 
     /**
-     * @return array<string, array<int, CalendarDateRule|string>>.
+     * @return array<string, array<int, CalendarDateRule|string>>
      */
     public function rules(): array
     {

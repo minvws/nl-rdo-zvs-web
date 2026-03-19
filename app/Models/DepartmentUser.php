@@ -10,6 +10,7 @@ use Database\Factories\DepartmentUserFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -30,6 +31,7 @@ class DepartmentUser extends Pivot
     /**
      * @return array<string, string>
      */
+    #[Override]
     public function casts(): array
     {
         return [

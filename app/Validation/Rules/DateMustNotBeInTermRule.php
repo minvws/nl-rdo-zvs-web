@@ -34,7 +34,7 @@ class DateMustNotBeInTermRule implements ValidationRuleInterface
             return new ValidationResult([
                 'date' => __('term.validation.common.date_not_allowed_in_term', [
                     'event' => $event->type->label(),
-                    'term' => __('term.term_type.' . $day->applicableTerm),
+                    'term' => __('term.' . $day->applicableTerm . '.default'),
                 ]),
             ]);
         }

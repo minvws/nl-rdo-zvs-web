@@ -47,6 +47,7 @@ class PetitionCategory extends EloquentModel implements DepartmentAwareInterface
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

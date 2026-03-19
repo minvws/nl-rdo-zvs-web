@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Override;
 
 /**
  * @property string $status
@@ -60,6 +61,7 @@ class PetitionStatus extends EloquentModel
         return $this->hasMany(PetitionStatusHistory::class, 'petition_status_id');
     }
 
+    #[Override]
     protected function casts(): array
     {
         return [

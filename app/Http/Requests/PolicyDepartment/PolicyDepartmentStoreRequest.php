@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\PolicyDepartment;
 
 use App\Http\Requests\FormRequest;
+use Override;
 
 class PolicyDepartmentStoreRequest extends FormRequest
 {
@@ -30,6 +31,7 @@ class PolicyDepartmentStoreRequest extends FormRequest
     /**
      * Prepare the data for validation.
      */
+    #[Override]
     protected function prepareForValidation(): void
     {
         if ($this->has('name')) {

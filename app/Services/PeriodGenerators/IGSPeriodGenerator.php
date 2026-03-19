@@ -80,6 +80,7 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
                 $calendar->upsertDay($currentDate, [
                     'applicableTerm' => TermType::PENALTY_PERIOD->value,
                     'penaltyTodayInEuros' => $penalty->amount,
+                    'penaltySourceTerm' => TermType::NOTICE_OF_DEFAULT->value,
                     'isBudgetDay' => false,
                     'isFirstDayOfBudget' => false,
                     'isLastDayOfBudget' => false,

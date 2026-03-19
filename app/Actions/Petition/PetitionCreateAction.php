@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Petition;
 
-use App\Actions\Petition\TermCreation\TermCreationStrategyResolver;
+use App\Actions\Petition\PetitionEventCreation\PetitionEventCreationStrategyResolver;
 use App\Enums\TimelineType;
 use App\Models\Department;
 use App\Models\Petition;
@@ -23,7 +23,7 @@ readonly class PetitionCreateAction
     public function __construct(
         private PetitionNumberGeneratorInterface $petitionNumberGenerator,
         private DatabaseManager $databaseManager,
-        private TermCreationStrategyResolver $termCreationStrategyResolver,
+        private PetitionEventCreationStrategyResolver $petitionEventCreationStrategyResolver,
     ) {
     }
 
@@ -49,7 +49,8 @@ readonly class PetitionCreateAction
                     'petition_status_id' => $this->getDefaultStatus($petitionType)->id,
                 ];
                 $petition = Petition::query()->create([...$attributes, ...$fixedAttributes]);
-                $this->createTerms($petition, $attributes, $user);
+
+                $this->createPetitionEvents($petition, $attributes, $user);
 
                 $petition->timelineItems()->create([
                     'user_id' => $user->id,
@@ -76,10 +77,10 @@ readonly class PetitionCreateAction
      *
      * @throws Throwable
      */
-    private function createTerms(Petition $petition, array $attributes, User $user): void
+    private function createPetitionEvents(Petition $petition, array $attributes, User $user): void
     {
-        $strategy = $this->termCreationStrategyResolver->resolve($petition->petitionType->type);
-        $strategy->createTerms($petition, $attributes, $user);
+        $strategy = $this->petitionEventCreationStrategyResolver->resolve($petition->petitionType->type);
+        $strategy->create($petition, $attributes, $user);
     }
 
     private function createPetitionStatusHistory(Petition $petition, User $user): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Petition;
 
 use App\Http\Requests\FormRequest;
+use Override;
 use Webmozart\Assert\Assert;
 
 use function array_filter;
@@ -26,6 +27,7 @@ class PetitionPolicyDepartmentUpdateRequest extends FormRequest
         ];
     }
 
+    #[Override]
     protected function prepareForValidation(): void
     {
         Assert::isArray($this->input('policy_department_ids', []));

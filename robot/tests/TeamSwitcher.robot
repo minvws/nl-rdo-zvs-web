@@ -48,7 +48,7 @@ Edit Case With Admin Rights And Read + Write Access For Team C
     Open First Case For Editing
     Get Element Count    div.button-container a    greater than    0
 
-    Click    text=Standaard wettelijke termijn
+    Evaluate JavaScript    div.button-container >> text=Standaard wettelijke termijn    (element) => element.click()
     Click    button >> text=Standaard wettelijke termijn toevoegen
     Check For Notification    Opgeslagen
 

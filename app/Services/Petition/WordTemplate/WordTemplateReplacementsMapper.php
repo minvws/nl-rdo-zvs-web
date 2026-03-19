@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services\Petition\WordTemplate;
 
+use App\Enums\CustomDateLabel;
 use App\Facades\DisplayDate;
 use App\Models\Contact;
 use App\Models\Petition;
+use App\Models\PolicyDepartment;
+use App\Models\User;
 use App\ValueObjects\Address;
+use App\ValueObjects\CalendarDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
+
+use function array_filter;
 
 readonly class WordTemplateReplacementsMapper
 {
@@ -18,54 +24,49 @@ readonly class WordTemplateReplacementsMapper
      */
     public function map(Petition $petition): array
     {
+        $applicant = $petition->applicant->first();
+        $contact = $petition->representative->first() ?? $applicant;
+
         $replacements = [
-            'ACT_datum' => DisplayDate::date(CarbonImmutable::now()),
-            'COR_ANH_regel1' => 'Geachte',
-            'COR_datum' => DisplayDate::date(CarbonImmutable::now()),
-            'DOS_naam' => $petition->name,
-            'DOS_nummer' => $petition->number,
-            'COR_onsKenmerk' => $petition->number,
+            'BELEIDSDIRECTIE' => $this->mapPolicyDepartment($petition),
+            'DATUM_BESLISSING_OP_BEZWAAR' => $this->mapDate(
+                $petition->customDates->getByLabel(CustomDateLabel::DATE_DECISION_ON_APPEAL)?->date,
+                'DATUM_BESLISSING_OP_BEZWAAR',
+            ),
+            'DATUM_BESTREDEN_BESLUIT' => $this->mapDate($petition->decision_date, 'DATUM_BESTREDEN_BESLUIT'),
+            'DATUM_ONTVANGEN_BERICHT' => $this->mapDate($petition->date_of_message, 'DATUM_ONTVANGEN_BERICHT'),
+            'EMAIL_ADRES' => $contact instanceof Contact ? $contact->email_address : 'EMAIL_ADRES',
+            'KENMERK_BESTREDEN_BESLUIT' => $petition->decision_reference,
+            'KENMERK_ONTVANGEN_BERICHT' => $petition->message,
+            'KENMERK_ZVS_NUMMER' => $petition->number,
+            'NAAM_ADRES' => $contact instanceof Contact ? Str::address(Address::fromContact($contact)) : null,
+            'NAAM_BEHANDELAAR' => $this->mapAssignedUser($petition),
+            'NAAM_BEZWAARDE' => $applicant instanceof Contact ? $applicant->full_name : 'NAAM_BEZWAARDE',
+            'NAAM_CONTACT' => $contact instanceof Contact ? $contact->full_name : 'NAAM_CONTACT',
+            'NAAM_ZAAK' => $petition->name,
+            'TELEFOON_CONTACT' => $contact instanceof Contact ? $contact->phone_number : 'TELEFOON_CONTACT',
+            'VANDAAG' => DisplayDate::date(CarbonImmutable::now()),
         ];
 
-        $contact = $this->determineContactAddress($petition);
-        if ($contact instanceof Contact) {
-            $replacements['COR_ADR_regel1'] = Str::address(Address::fromContact($contact));
-        }
-        if ($petition->decision_reference !== null) {
-            $replacements['BEZ_kenmerk_besluit'] = $petition->decision_reference;
-        }
-
-        if ($petition->decision_date !== null) {
-            $replacements['DOS_dtBesluit'] = DisplayDate::date($petition->decision_date);
-        }
-
-        if ($petition->message !== null) {
-            $replacements['BEZ_kenmerk_gemachtigde'] = $petition->message;
-        }
-
-        if ($petition->date_of_message !== null) {
-            $replacements['BEZ_dtBezwaar'] = DisplayDate::date($petition->date_of_message);
-        }
-
-        if ($petition->date_of_message !== null && $petition->message !== null) {
-            $replacements['BEZ_dtOntvangst'] = DisplayDate::date($petition->date_of_message);
-        }
-
-        if ($petition->policyDepartments->isNotEmpty()) {
-            $policyDepartments = $petition->policyDepartments->toString();
-
-            $replacements['BZ_BEZ_postkamer'] = $policyDepartments;
-        }
-
-        return $replacements;
+        return array_filter($replacements, static fn($value): bool => $value !== null);
     }
 
-    private function determineContactAddress(Petition $petition): ?Contact
+    private function mapDate(?CalendarDate $date, string $placeholder): string
     {
-        if ($petition->representative->first() !== null) {
-            return $petition->representative->first();
-        }
+        return $date instanceof CalendarDate ? DisplayDate::date($date) : $placeholder;
+    }
 
-        return $petition->applicant->first();
+    private function mapPolicyDepartment(Petition $petition): string
+    {
+        $policyDepartment = $petition->policyDepartments()->first();
+
+        return $policyDepartment instanceof PolicyDepartment ? $policyDepartment->name : 'BELEIDSDIRECTIE';
+    }
+
+    private function mapAssignedUser(Petition $petition): string
+    {
+        $assignedUser = $petition->assignedUser;
+
+        return $assignedUser instanceof User ? $assignedUser->name : 'NAAM_BEHANDELAAR';
     }
 }

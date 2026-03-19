@@ -30,6 +30,7 @@ class EventCalendarDay
         /** @var array<PetitionEventData> */
         public readonly array $petitionEvents = [],
         public readonly bool $isUnspecifiedAdjournment = false,
+        public readonly ?string $penaltySourceTerm = null,
     ) {
     }
 
@@ -49,6 +50,7 @@ class EventCalendarDay
          *     penaltyTodayInEuros?: int,
          *     penaltyInEurosForfeited?: int,
          *     petitionEvents?: array<PetitionEventData>,
+         *     penaltySourceTerm?: string|null,
          * } $typedProperties */
         $typedProperties = $properties;
 

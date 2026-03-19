@@ -93,6 +93,7 @@ table.objection-events-events-table {
         background-color: var(--oc-yellow-9);
       }
 
+      &--receipt_appeal_not_timely,
       &--appeal_decision_not_timely {
         background-color: var(--oc-orange-9);
       }

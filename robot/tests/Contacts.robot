@@ -47,10 +47,13 @@ Edit Contact By Clearing Last Name
     Open First Contact For Editing
     ${last_name}    Get Text    id=last_name
     Clear Text    id=last_name
-    Type Text    id=organisation_name    Robocop Corp    # make sure to not have empty last name and organisation
+    Get Text    id=last_name    ==    ${EMPTY}
+    Fill Text    id=organisation_name    Robocop Corp    # make sure to not have empty last name and organisation
     Click    button >> text=Contact bewerken
     Check For Notification    Opgeslagen
     Go To    ${BASE_URL}/team-a/contacts
+    Get Element Count    tr.table-row-clickable    greater than    0
+    Sleep    0.5s
     Get Element Count    text=${last_name}    equals    0
     Get Element Count    text=Robocop Corp    equals    1
 

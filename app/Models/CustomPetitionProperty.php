@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -52,6 +53,10 @@ class CustomPetitionProperty extends EloquentModel
         return $this->belongsTo(PetitionType::class);
     }
 
+    /**
+     * @return array<string, class-string<CustomPetitionPropertyType>|string>
+     */
+    #[Override]
     protected function casts(): array
     {
         return [

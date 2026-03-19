@@ -69,5 +69,6 @@ return RectorConfig::configure()
             __DIR__ . '/app/ValueObjects/PetitionEventData.php',
             __DIR__ . '/app/Http/Controllers/PetitionEventWizardController.php',
             __DIR__ . '/app/Http/Requests/PetitionEvent/AddPetitionEventRequest.php',
+            __DIR__ . '/app/Factories/PetitionEventDataFactory.php',
         ],
     ]);

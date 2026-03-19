@@ -13,6 +13,7 @@ use Database\Factories\PetitionDraftTermFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -45,6 +46,10 @@ class PetitionDraftTerm extends EloquentModel
         return $this->belongsTo(Petition::class);
     }
 
+    /**
+     * @return array<string, class-string<UuidCast>|class-string<CalendarDateCast>|string>
+     */
+    #[Override]
     protected function casts(): array
     {
         return [

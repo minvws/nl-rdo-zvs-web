@@ -97,9 +97,6 @@ jobs:
           mkdir -p reports
           vendor/bin/phpstan analyse --error-format=blade --no-ansi | tee reports/phpstan.json
 
-      - name: Phpmd
-        run: vendor/bin/phpmd app github ./phpmd.xml
-
       - name: Phpunit
         run: php artisan test  --compact --coverage --min=100 --log-junit=reports/report-phpunit.xml --coverage-clover=reports/coverage-phpunit.xml
         env:

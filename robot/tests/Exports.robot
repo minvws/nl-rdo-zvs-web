@@ -26,6 +26,7 @@ Create Internal Export For 'Bezwaarprocedure' In Team WJZ
     ${selector}    Get Element    id=date-to
     Type Date    ${selector}    10-07-2025
     Click    text=Export maken
+    Check For Notification    Export is gegenereerd
 
     ${row}    Select Export Row From Table    "01-06-2025"
 
@@ -33,7 +34,7 @@ Create Internal Export For 'Bezwaarprocedure' In Team WJZ
     ${download_info}    Download    ${download_url}    export-10-07-2025.xlsx
 
     Open Excel Document    ${download_info}[saveAs]    export-internal-report
-    ${actual}    Read Excel Column    6    1    10    petition_sheet
+    ${actual}    Read Excel Column    6    2    10    petition_sheet
     List Should Contain Value    ${actual}    Bezwaar
     List Should Not Contain Value    ${actual}    Beroep
     List Should Not Contain Value    ${actual}    Woo verzoek

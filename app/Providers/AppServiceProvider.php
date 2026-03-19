@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Actions\PetitionEvent\Contracts\UpdatePetitionTotalsFromEventsActionInterface;
+use App\Actions\PetitionEvent\Contracts\UpdatePetitionTotalsFromTermsActionInterface;
+use App\Actions\PetitionEvent\UpdatePetitionTotalsFromEventsAction;
+use App\Actions\PetitionEvent\UpdatePetitionTotalsFromTermsAction;
 use App\Models\ApiUser;
 use App\Models\Decision;
 use App\Models\Petition;
@@ -92,6 +96,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PetitionNumberGeneratorInterface::class, PetitionNumberGenerator::class);
 
         $this->app->bind(AuthenticationServiceInterface::class, AuthenticationService::class);
+
+        $this->app->bind(UpdatePetitionTotalsFromEventsActionInterface::class, UpdatePetitionTotalsFromEventsAction::class);
+        $this->app->bind(UpdatePetitionTotalsFromTermsActionInterface::class, UpdatePetitionTotalsFromTermsAction::class);
 
 
         $this->app->bind(static function (Application $application): VirusscannerInterface {

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -36,6 +37,7 @@ class PetitionTypeCustomDateLabel extends EloquentModel
         return $this->belongsTo(PetitionType::class);
     }
 
+    #[Override]
     protected function casts(): array
     {
         return [

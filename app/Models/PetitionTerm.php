@@ -52,6 +52,7 @@ class PetitionTerm extends EloquentModel
         return $this->belongsTo(Petition::class);
     }
 
+    #[Override]
     protected function casts(): array
     {
         return [

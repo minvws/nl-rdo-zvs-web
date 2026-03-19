@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Override;
 
 /**
  * @property string $name
@@ -53,6 +54,10 @@ class PetitionType extends EloquentModel implements DepartmentAwareInterface
         return $this->hasMany(Petition::class, 'petition_type_id');
     }
 
+    /**
+     * @return array<string, class-string<PetitionTypeType>|string>
+     */
+    #[Override]
     protected function casts(): array
     {
         return [

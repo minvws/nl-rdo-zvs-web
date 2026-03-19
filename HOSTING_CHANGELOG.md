@@ -34,6 +34,12 @@ Na iedere deployment moeten:
 
 - Verwerk migraties in `database/sql` v0.0.x
 
+### v1.17.0
+
+- Zorg voor de aanwezigheid van de correcte MinIO buckets op de omgeving(en).
+- De folder `storage/imports` moet aanwezig zijn om te kunnen omgaan met xlsx imports via console command `php artisan import:petitions`.
+- Controleer de aanwezigheid van alle benodigde env variabelen voor de S3 compatible storage in MinIO (zie .env.example / readme)
+
 ### v1.16.0
 - Geen bijzonderheden
 

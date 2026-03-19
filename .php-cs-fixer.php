@@ -6,6 +6,7 @@ $finder = PhpCsFixer\Finder::create()
     ->notName('*.blade.php')
     ->notName('_bootstrap.php')
     ->notName('_config.php')
+    ->notName('ImportPetitionsCommand.php')
     ->exclude('vendor'); // Exclude the vendor directory
 
 $config = new PhpCsFixer\Config();

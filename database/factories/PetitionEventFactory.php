@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\PetitionEventType;
+use App\Models\Petition;
 use App\Models\PetitionEvent;
 
 /**
@@ -24,6 +25,7 @@ class PetitionEventFactory extends Factory
             'type' => PetitionEventType::PRIMARY_DECISION->value,
             'date' => $this->faker->calendarDate(),
             'duration' => $this->faker->numberBetween(1, 100),
+            'petition_id' => Petition::factory(),
         ];
     }
 

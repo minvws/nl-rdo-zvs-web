@@ -70,6 +70,8 @@ Seed Database
 
 Open App
     [Documentation]    Opens the browser to the base URL.
+    VAR    @{list}    --disable-web-security    --allow-running-insecure-content    --ignore-certificate-errors
+    New Browser    chromium    args=${list}    slowMo=1
     New Context
     ...    baseURL=${BASE_URL}
     ...    acceptDownloads=True
@@ -239,9 +241,13 @@ Check Create Button Presence
     END
 
 Check For Notification
-    [Documentation]    Checks for a notification with the given text.
+    [Documentation]    Checks for a notification with the given text and closes it.
     [Arguments]    ${text}
     Get Text    div.alert    contains    ${text}
+    ${close_button}    Get Element Count    div.alert button[aria-label="Sluiten"]
+    IF    ${close_button} > 0
+        Click    div.alert button[aria-label="Sluiten"]
+    END
 
 Type Date
     [Documentation]    Types a date into a date input field.

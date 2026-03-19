@@ -1,0 +1,135 @@
+version: '3'
+
+tasks:
+  init:
+    desc: Initialize the application and services
+    deps: [env:check]
+    cmds:
+      - |
+        docker run --rm \
+        -u "$(id -u):$(id -g)" \
+        -v "$(pwd):/var/www/html" \
+        -w /var/www/html \
+        laravelsail/php84-composer:latest \
+        composer install --ignore-platform-reqs
+      - task: docker:up
+      - task: key-generate
+      - task: npm:install
+      - task: frontend:build
+      - task: db:fresh
+
+  env:check:
+    desc: Check the environment
+    cmds:
+      - |
+        if [ ! -f ".env" ]; then
+          cp .env.example .env
+        fi
+
+  env:clear:
+    desc: Clear the environment
+    cmds:
+      - rm -f .env
+      - task: env:check
+
+  docker:up:
+    desc: Start the application and services
+    deps: [env:check]
+    cmds:
+      - vendor/bin/sail up -d laravel.test --remove-orphans
+
+  docker:down:
+    desc: Remove the application and services
+    cmds:
+      - vendor/bin/sail down laravel.test --remove-orphans
+
+  docker:stop:
+    desc: Stop the application and services
+    cmds:
+      - vendor/bin/sail stop laravel.test
+
+  composer:install:
+    desc: Install composer dependencies
+    cmds:
+      - vendor/bin/sail composer install
+
+  composer:update:
+    desc: Update composer dependencies
+    cmd: vendor/bin/sail composer update
+
+  npm:install:
+    desc: Install npm dependencies
+    cmd: vendor/bin/sail npm install
+
+  npm:update:
+    desc: Update npm dependencies
+    cmd: vendor/bin/sail npm update
+
+  frontend:build:
+    desc: Build the frontend
+    cmd: vendor/bin/sail npm run build
+
+  frontend:watch:
+    desc: Build and watch the frontend
+    cmd: vendor/bin/sail npm run watch
+
+  db:migrate:
+    desc: Run database migrations
+    cmd: vendor/bin/sail artisan migrate
+
+  db:fresh:
+    desc: Create a fresh database
+    cmd: vendor/bin/sail artisan migrate:fresh --seed
+
+  update-all:
+    desc: Update the application and services
+    cmds:
+      - task: composer:update
+      - task: npm:update
+
+  key-generate:
+    desc: Generate the application key
+    cmd: vendor/bin/sail artisan key:generate
+
+  lint:phpcs:
+    desc: Lint PHP files
+    cmd: vendor/bin/sail composer run-script phpcs
+
+  lint:phpcbf:
+    desc: Lint and fix PHP files
+    cmd: vendor/bin/sail composer run-script phpcbf
+
+  lint:phpstan:
+    desc: Run PHPStan
+    cmd: vendor/bin/sail composer run-script phpstan
+
+  lint:phpmd:
+    desc: Run PHPMD
+    cmd: vendor/bin/sail composer run-script phpmd
+
+  lint:security:
+    desc: Run security checks
+    cmd: vendor/bin/sail artisan security-check:now
+
+  lint:all:
+    desc: Run all linters
+    cmds:
+      - task: lint:phpcs
+      - task: lint:phpstan
+      - task: lint:phpmd
+
+  test:db:create:
+    desc: Create the test database
+    cmd: vendor/bin/sail composer run-script reset-test-db
+
+  test:db:reset:
+    desc: Reset and recreate the test database
+    cmd: vendor/bin/sail composer run-script test-reset
+
+  test:quality:
+    desc: Run the quality tests
+    cmd: vendor/bin/sail composer run-script quality
+
+  test:
+    desc: Run the unit tests
+    cmd: vendor/bin/sail composer run-script test

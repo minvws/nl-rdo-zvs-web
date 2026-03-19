@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Petition;
 use App\Config\Config;
 use App\Enums\Ability;
 use App\Enums\TimelineFilterGroup;
+use App\Factories\WizardEventCollectionFactory;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\User;
@@ -28,6 +29,7 @@ final readonly class PetitionShowController
         private Gate $gate,
         private PetitionTimelineService $petitionTimelineService,
         private TimelineFilterService $timelineFilterService,
+        private WizardEventCollectionFactory $eventCollectionFactory,
     ) {
     }
 
@@ -43,11 +45,13 @@ final readonly class PetitionShowController
         $timelineFilterGroup = $request->enum('timeline_filter_group', TimelineFilterGroup::class);
         $timelineFilterGroups = $this->timelineFilterService->availableGroupsFor($petition->timelineItems);
         $petitionTimelineItems = $this->petitionTimelineService->getFilteredTimelineItems($petition, $timelineFilterGroup);
+        $events = $this->eventCollectionFactory::fromModels($petition->petitionEvents);
 
         return $this->view->make('petition.show', [
             'availableCostTypes' => new Collection($availableCostTypes),
             'department' => $department,
             'petition' => $petition,
+            'events' => $events,
             'petitionTypeConfiguration' => $petitionTypeConfiguration,
             'users' => User::query()->active()->get(),
             'user' => $user,

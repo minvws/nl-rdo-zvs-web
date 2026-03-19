@@ -39,4 +39,5 @@ enum TimelineType: string
     case PETITION_ARCHIVED = 'petition_archived';
     case DECISION_ARCHIVED = 'decision_archived';
     case DECISION_UNARCHIVED = 'decision_unarchived';
+    case PETITION_EVENTS_CREATED = 'petition_events_created';
 }

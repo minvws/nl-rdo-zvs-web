@@ -78,7 +78,6 @@ abstract readonly class AbstractFilterService
 
     private function saveCurrentFilters(Request $request, User $user, Department $department): void
     {
-        /** @var mixed $filterValue */
         $filterValue = $request->input('filter', []);
 
         if ($this->shouldClearFilters($filterValue)) {

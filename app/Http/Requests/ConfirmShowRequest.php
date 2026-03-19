@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use Illuminate\Support\Facades\Crypt;
+use Override;
 
 class ConfirmShowRequest extends FormRequest
 {
@@ -32,6 +33,7 @@ class ConfirmShowRequest extends FormRequest
         ];
     }
 
+    #[Override]
     protected function prepareForValidation(): void
     {
         $this->merge([

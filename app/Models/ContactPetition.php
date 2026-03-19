@@ -8,6 +8,7 @@ use App\Enums\ContactRole;
 use App\Enums\CorrespondencePreference;
 use App\Models\Casts\UuidCast;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -21,10 +22,12 @@ use Ramsey\Uuid\UuidInterface;
 class ContactPetition extends Pivot
 {
     public $incrementing = true;
+    public $timestamps = false;
     protected $table = 'contact_petition';
 
     protected $primaryKey = 'id';
 
+    #[Override]
     protected function casts(): array
     {
         return [

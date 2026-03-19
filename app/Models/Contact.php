@@ -18,8 +18,12 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 use Webmozart\Assert\Assert;
+
+use function array_filter;
+use function implode;
 
 /**
  * @property ?string $initials
@@ -48,6 +52,7 @@ use Webmozart\Assert\Assert;
  * @property ?string $email_address_2
  * @property ?string $email_address_3
  *
+ * @property-read string $full_name
  * @property-read ContactPetition $pivot
  */
 
@@ -67,6 +72,7 @@ class Contact extends EloquentModel implements DepartmentAwareInterface
     /**
      * @return array<string, string>
      */
+    #[Override]
     public function casts(): array
     {
         return [
@@ -93,12 +99,28 @@ class Contact extends EloquentModel implements DepartmentAwareInterface
      */
     protected function displayName(): Attribute
     {
-        return Attribute::make(static function (mixed $value, array $attributes): string {
+        return Attribute::make(function (mixed $_value, array $attributes): string {
             Assert::nullOrString($attributes['organisation_name']);
-            Assert::nullOrString($attributes['initials']);
-            Assert::nullOrString($attributes['last_name']);
 
-            return $attributes['organisation_name'] ?? $attributes['initials'] . ' ' . $attributes['last_name'];
+            return $attributes['organisation_name'] ?? $this->full_name;
+        });
+    }
+
+    /**
+     * @return Attribute<string, string>
+     */
+    protected function fullName(): Attribute
+    {
+        return Attribute::make(static function (mixed $value, array $attributes): string {
+            $initials = $attributes['initials'] ?? null;
+            $middleName = $attributes['middle_name'] ?? null;
+            $lastName = $attributes['last_name'] ?? null;
+
+            Assert::nullOrString($initials);
+            Assert::nullOrString($middleName);
+            Assert::nullOrString($lastName);
+
+            return implode(' ', array_filter([$initials, $middleName, $lastName]));
         });
     }
 }

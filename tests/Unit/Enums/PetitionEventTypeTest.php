@@ -6,6 +6,7 @@ namespace Tests\Unit\Enums;
 
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionTypeType;
+use Illuminate\Support\Facades\Lang;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -55,7 +56,7 @@ class PetitionEventTypeTest extends TestCase
         $labelWoo = PetitionEventType::PRIMARY_DECISION->label(PetitionTypeType::WOO_VERZOEK);
 
         $this->assertEquals('Primair besluit', $labelBezwaar);
-        $this->assertEquals('primary_decision', $labelWoo);
+        $this->assertEquals('Primair besluit', $labelWoo);
     }
 
     #[Test]
@@ -73,7 +74,7 @@ class PetitionEventTypeTest extends TestCase
     {
         $label = PetitionEventType::MEETING_SCHEDULED->label();
 
-        $this->assertEquals('meeting_scheduled', $label);
+        $this->assertEquals('Concrete datumafspraak of Commissiezitting', $label);
     }
 
     #[Test]
@@ -81,7 +82,7 @@ class PetitionEventTypeTest extends TestCase
     {
         $description = PetitionEventType::ADJOURNMENT->description();
 
-        $this->assertEquals('adjournment', $description);
+        $this->assertEquals('Dit is de datum waarop er is verdaagd.', $description);
     }
 
     #[Test]
@@ -99,10 +100,10 @@ class PetitionEventTypeTest extends TestCase
 
         // When type-specific translation is missing, should fall back to default
         $this->assertEquals($finalDecisionDefault, $finalDecisionBezwaar);
-        $this->assertEquals('actual_disclosure', $finalDecisionBezwaar,);
+        $this->assertEquals('Dit is de datum waarop de werkelijke verstrekking heeft plaatsgevonden.', $finalDecisionBezwaar,);
 
         $this->assertEquals($hearingDateDefault, $hearingDateWoo);
-        $this->assertEquals('hearing_date', $hearingDateWoo);
+        $this->assertEquals('Dit is de datum van de hoorzitting.', $hearingDateWoo);
     }
 
     #[Test]
@@ -276,5 +277,15 @@ class PetitionEventTypeTest extends TestCase
         $conflicts = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->getConflicts(PetitionTypeType::BEROEP);
 
         $this->assertEmpty($conflicts);
+    }
+
+    #[Test]
+    public function testTranslationNotFoundReturnOriginalKey(): void
+    {
+        Lang::setLocale('en');
+
+        $label = PetitionEventType::ADJOURNMENT->label(PetitionTypeType::WOO_VERZOEK);
+
+        $this->assertEquals('petition_event.woo_verzoek.label.adjournment', $label);
     }
 }

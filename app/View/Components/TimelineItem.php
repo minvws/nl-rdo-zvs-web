@@ -71,6 +71,7 @@ class TimelineItem extends Component
                 TimelineType::DECISION_UNARCHIVED => $this->renderView('decision.timeline.decision_unarchived'),
                 TimelineType::EXTERNAL_URL_UPDATED => $this->renderExternalUrlUpdated(),
                 TimelineType::QUERYSNAPSHOT_UPDATED => $this->renderQuerysnapshotUpdated(),
+                TimelineType::PETITION_EVENTS_CREATED => $this->renderView('petition.timeline.petition_events_created'),
                 default => null,
             };
         } catch (Throwable $e) {

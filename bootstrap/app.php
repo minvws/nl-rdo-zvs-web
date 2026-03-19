@@ -69,5 +69,5 @@ return Application::configure(basePath: dirname(__DIR__))
             'one-time-password-authenticated',
         ]);
     })
-    ->withRouting(web: __DIR__ . '/../routes/web.php', api: __DIR__ . '/../routes/api.php')
+    ->withRouting(web: __DIR__ . '/../routes/web.php', api: __DIR__ . '/../routes/api.php', commands: __DIR__ . '/../routes/console.php')
     ->create();

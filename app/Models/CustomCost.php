@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 /**
  * @property CustomCostType $custom_cost_type
@@ -39,6 +40,10 @@ class CustomCost extends EloquentModel
         return $this->belongsTo(Petition::class, 'petition_id');
     }
 
+    /**
+     * @return array<string, class-string<CustomCostType>|string>
+     */
+    #[Override]
     protected function casts(): array
     {
         return [

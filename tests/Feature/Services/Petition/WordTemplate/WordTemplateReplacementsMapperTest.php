@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Services\Petition\WordTemplate;
 
+use App\Enums\CustomDateLabel;
 use App\Facades\DisplayDate;
 use App\Models\Contact;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionCustomDate;
 use App\Models\PolicyDepartment;
+use App\Models\User;
 use App\Services\Petition\WordTemplate\WordTemplateReplacementsMapper;
 use App\ValueObjects\Address;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\FeatureTestCase;
 
 class WordTemplateReplacementsMapperTest extends FeatureTestCase
@@ -29,19 +31,23 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
                 'date_of_message' => $this->faker->calendarDate(),
                 'decision_reference' => null,
                 'decision_date' => null,
+                'assigned_to' => null,
             ]);
 
         $expected = [
-            'ACT_datum' => CarbonImmutable::now()->format('d-m-Y'),
-            'BEZ_kenmerk_gemachtigde' => $petition->message,
-            'BEZ_dtBezwaar' => $petition->date_of_message->format('d-m-Y'),
-            'BEZ_dtOntvangst' => $petition->date_of_message->format('d-m-Y'),
-            'COR_ANH_regel1' => 'Geachte',
-            'COR_datum' => CarbonImmutable::now()->format('d-m-Y'),
-            'DOS_naam' => $petition->name,
-            'DOS_nummer' => $petition->number,
-            'COR_onsKenmerk' => $petition->number,
-            'BZ_BEZ_postkamer' => $petition->policyDepartments->first()->name,
+            'BELEIDSDIRECTIE' => $petition->policyDepartments->first()->name,
+            'DATUM_BESLISSING_OP_BEZWAAR' => 'DATUM_BESLISSING_OP_BEZWAAR',
+            'DATUM_BESTREDEN_BESLUIT' => 'DATUM_BESTREDEN_BESLUIT',
+            'DATUM_ONTVANGEN_BERICHT' => DisplayDate::date($petition->date_of_message),
+            'EMAIL_ADRES' => 'EMAIL_ADRES',
+            'KENMERK_ONTVANGEN_BERICHT' => $petition->message,
+            'KENMERK_ZVS_NUMMER' => $petition->number,
+            'NAAM_BEHANDELAAR' => 'NAAM_BEHANDELAAR',
+            'NAAM_BEZWAARDE' => 'NAAM_BEZWAARDE',
+            'NAAM_CONTACT' => 'NAAM_CONTACT',
+            'NAAM_ZAAK' => $petition->name,
+            'TELEFOON_CONTACT' => 'TELEFOON_CONTACT',
+            'VANDAAG' => DisplayDate::date(CarbonImmutable::now()),
         ];
 
         $mapper = $this->getWordTemplateReplacementsMapper();
@@ -59,23 +65,13 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
                 'date_of_message' => $this->faker->calendarDate(),
                 'decision_reference' => null,
                 'decision_date' => null,
+                'assigned_to' => null,
             ]);
 
-        $expected = [
-            'ACT_datum' => CarbonImmutable::now()->format('d-m-Y'),
-            'BEZ_kenmerk_gemachtigde' => $petition->message,
-            'BEZ_dtBezwaar' => $petition->date_of_message->format('d-m-Y'),
-            'BEZ_dtOntvangst' => $petition->date_of_message->format('d-m-Y'),
-            'COR_ANH_regel1' => 'Geachte',
-            'COR_datum' => CarbonImmutable::now()->format('d-m-Y'),
-            'DOS_naam' => $petition->name,
-            'DOS_nummer' => $petition->number,
-            'COR_onsKenmerk' => $petition->number,
-            'BZ_BEZ_postkamer' => $petition->policyDepartments->toString(),
-        ];
-
         $mapper = $this->getWordTemplateReplacementsMapper();
-        $this->assertEquals($expected, $mapper->map($petition));
+        $result = $mapper->map($petition);
+
+        $this->assertEquals($petition->policyDepartments()->first()->name, $result['BELEIDSDIRECTIE']);
     }
 
     public function testMapWithoutPolicyDepartment(): void
@@ -87,62 +83,41 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
             'date_of_message' => $this->faker->calendarDate(),
             'decision_reference' => null,
             'decision_date' => null,
+            'assigned_to' => null,
         ]);
 
-        $expected = [
-            'ACT_datum' => CarbonImmutable::now()->format('d-m-Y'),
-            'BEZ_kenmerk_gemachtigde' => $petition->message,
-            'BEZ_dtBezwaar' => $petition->date_of_message->format('d-m-Y'),
-            'BEZ_dtOntvangst' => $petition->date_of_message->format('d-m-Y'),
-            'COR_ANH_regel1' => 'Geachte',
-            'COR_datum' => CarbonImmutable::now()->format('d-m-Y'),
-            'DOS_naam' => $petition->name,
-            'DOS_nummer' => $petition->number,
-            'COR_onsKenmerk' => $petition->number,
-        ];
-
         $mapper = $this->getWordTemplateReplacementsMapper();
-        $this->assertEquals($expected, $mapper->map($petition));
+        $result = $mapper->map($petition);
+
+        $this->assertEquals('BELEIDSDIRECTIE', $result['BELEIDSDIRECTIE']);
     }
 
-    public function testMapReplacementBEZDtOntvangstIsSet(): void
+    public function testMapDateOnvangenBerichtIsSet(): void
     {
         $dateOfMessage = $this->faker->calendarDate();
         $petition = Petition::factory()->create([
-            'message' => $this->faker->sentence(),
             'date_of_message' => $dateOfMessage,
         ]);
 
         $mapper = $this->getWordTemplateReplacementsMapper();
         $result = $mapper->map($petition);
 
-        $this->assertEquals(DisplayDate::date($dateOfMessage), $result['BEZ_dtOntvangst']);
+        $this->assertEquals(DisplayDate::date($dateOfMessage), $result['DATUM_ONTVANGEN_BERICHT']);
     }
 
-    /**
-     * @param array<mixed> $petitionAttributes
-     */
-    #[DataProvider('replacementDataProvider')]
-    public function testMapReplacementBEZDtOntvangstNotSet(array $petitionAttributes): void
+    public function testMapDateOnvangenBerichtFallsBackToPlaceholder(): void
     {
-        $petition = Petition::factory()->create($petitionAttributes);
+        $petition = Petition::factory()->create([
+            'date_of_message' => null,
+        ]);
 
         $mapper = $this->getWordTemplateReplacementsMapper();
         $result = $mapper->map($petition);
 
-        $this->assertArrayNotHasKey('BEZ_dtOntvangst', $result);
+        $this->assertEquals('DATUM_ONTVANGEN_BERICHT', $result['DATUM_ONTVANGEN_BERICHT']);
     }
 
-    public static function replacementDataProvider(): array
-    {
-        return [
-            'no message' => [['date_of_message' => '2000-01-01', 'message' => null]],
-            'no date_of_message' => [['date_of_message' => null, 'message' => 'my message']],
-            'no date_of_message, no message' => [['date_of_message' => null, 'message' => null]],
-        ];
-    }
-
-    public function testMapWithApplicantAndAndRepresentative(): void
+    public function testMapWithApplicantAndRepresentative(): void
     {
         $department = Department::factory()->create();
         $applicant = Contact::factory()->recycle($department)->create();
@@ -155,7 +130,9 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
         $mapper = $this->getWordTemplateReplacementsMapper();
         $result = $mapper->map($petition);
 
-        $this->assertEquals(Str::address(Address::fromContact($representative)), $result['COR_ADR_regel1']);
+        $this->assertEquals(Str::address(Address::fromContact($representative)), $result['NAAM_ADRES']);
+        $this->assertEquals($representative->full_name, $result['NAAM_CONTACT']);
+        $this->assertEquals($applicant->full_name, $result['NAAM_BEZWAARDE']);
     }
 
     public function testMapWithApplicantAndWithoutRepresentative(): void
@@ -169,7 +146,9 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
         $mapper = $this->getWordTemplateReplacementsMapper();
         $result = $mapper->map($petition);
 
-        $this->assertEquals(Str::address(Address::fromContact($applicant)), $result['COR_ADR_regel1']);
+        $this->assertEquals(Str::address(Address::fromContact($applicant)), $result['NAAM_ADRES']);
+        $this->assertEquals($applicant->full_name, $result['NAAM_CONTACT']);
+        $this->assertEquals($applicant->full_name, $result['NAAM_BEZWAARDE']);
     }
 
     public function testMapWithRepresentativeAndWithoutApplicant(): void
@@ -183,7 +162,9 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
         $mapper = $this->getWordTemplateReplacementsMapper();
         $result = $mapper->map($petition);
 
-        $this->assertEquals(Str::address(Address::fromContact($representative)), $result['COR_ADR_regel1']);
+        $this->assertEquals(Str::address(Address::fromContact($representative)), $result['NAAM_ADRES']);
+        $this->assertEquals($representative->full_name, $result['NAAM_CONTACT']);
+        $this->assertEquals('NAAM_BEZWAARDE', $result['NAAM_BEZWAARDE']);
     }
 
     public function testMapWithDecisionFields(): void
@@ -192,8 +173,6 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
         $decisionDate = $this->faker->calendarDate();
 
         $petition = Petition::factory()->create([
-            'message' => $this->faker->sentence(),
-            'date_of_message' => $this->faker->calendarDate(),
             'decision_reference' => $decisionReference,
             'decision_date' => $decisionDate,
             'applicant_id' => null,
@@ -203,11 +182,72 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
         $mapper = $this->getWordTemplateReplacementsMapper();
         $result = $mapper->map($petition);
 
-        $this->assertArrayHasKey('BEZ_kenmerk_besluit', $result);
-        $this->assertEquals($decisionReference, $result['BEZ_kenmerk_besluit']);
+        $this->assertEquals($decisionReference, $result['KENMERK_BESTREDEN_BESLUIT']);
+        $this->assertEquals(DisplayDate::date($decisionDate), $result['DATUM_BESTREDEN_BESLUIT']);
+    }
 
-        $this->assertArrayHasKey('DOS_dtBesluit', $result);
-        $this->assertEquals($decisionDate->format('d-m-Y'), $result['DOS_dtBesluit']);
+    public function testMapWithAssignedUser(): void
+    {
+        $user = User::factory()->create();
+
+        $petition = Petition::factory()->create([
+            'assigned_to' => $user->id,
+            'applicant_id' => null,
+            'representative_id' => null,
+        ]);
+
+        $mapper = $this->getWordTemplateReplacementsMapper();
+        $result = $mapper->map($petition);
+
+        $this->assertEquals($user->name, $result['NAAM_BEHANDELAAR']);
+    }
+
+    public function testMapWithoutAssignedUser(): void
+    {
+        $petition = Petition::factory()->create([
+            'assigned_to' => null,
+            'applicant_id' => null,
+            'representative_id' => null,
+        ]);
+
+        $mapper = $this->getWordTemplateReplacementsMapper();
+        $result = $mapper->map($petition);
+
+        $this->assertEquals('NAAM_BEHANDELAAR', $result['NAAM_BEHANDELAAR']);
+    }
+
+    public function testMapWithDateDecisionOnAppeal(): void
+    {
+        $date = $this->faker->calendarDate();
+
+        $petition = Petition::factory()->create([
+            'applicant_id' => null,
+            'representative_id' => null,
+        ]);
+
+        PetitionCustomDate::factory()->create([
+            'petition_id' => $petition->id,
+            'date_label' => CustomDateLabel::DATE_DECISION_ON_APPEAL,
+            'date' => $date,
+        ]);
+
+        $mapper = $this->getWordTemplateReplacementsMapper();
+        $result = $mapper->map($petition->refresh());
+
+        $this->assertEquals(DisplayDate::date($date), $result['DATUM_BESLISSING_OP_BEZWAAR']);
+    }
+
+    public function testMapWithoutDateDecisionOnAppeal(): void
+    {
+        $petition = Petition::factory()->create([
+            'applicant_id' => null,
+            'representative_id' => null,
+        ]);
+
+        $mapper = $this->getWordTemplateReplacementsMapper();
+        $result = $mapper->map($petition);
+
+        $this->assertEquals('DATUM_BESLISSING_OP_BEZWAAR', $result['DATUM_BESLISSING_OP_BEZWAAR']);
     }
 
     private function getWordTemplateReplacementsMapper(): WordTemplateReplacementsMapper

@@ -1486,4 +1486,53 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
             'petition' => $petition,
         ];
     }
+
+    #[Test]
+    public function testStoreCreatesTimelineItem(): void
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $testEvents = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->addDays(5)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 1,
+            ));
+
+        Session::put(sprintf('wizard.petition.%s.events', $petition->id), $testEvents);
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_STORE, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), []);
+
+        $response->assertRedirect();
+
+        // Verify timeline item was created with correct data
+        $timelineItems = $petition->timelineItems()->get();
+        $this->assertTrue($timelineItems->isNotEmpty());
+
+        $createdItem = $timelineItems->first();
+        $this->assertNotNull($createdItem);
+        $this->assertEquals('petition_events_created', $createdItem->type->value);
+        $this->assertEquals($user->id, $createdItem->user_id);
+        $this->assertCount(2, $createdItem->data['event_types']);
+        $this->assertEquals(2, $createdItem->data['count']);
+    }
 }

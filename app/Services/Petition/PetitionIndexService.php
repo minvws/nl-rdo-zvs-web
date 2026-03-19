@@ -62,6 +62,7 @@ final readonly class PetitionIndexService
             ->withPenaltyToDate()
             ->paginate($this->paginationItemsPerPage);
 
+
         return [
             'petitions' => $paginator->getCollection(),
             'petitionCount' => $paginator->total(),

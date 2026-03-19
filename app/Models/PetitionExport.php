@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Override;
 
 /**
  * @property PetitionType $petitionType
@@ -61,6 +62,7 @@ class PetitionExport extends EloquentModel implements DepartmentAwareInterface
         return $this->hasOne(PetitionCategory::class, 'id', 'petition_category_id');
     }
 
+    #[Override]
     protected function casts(): array
     {
         return [

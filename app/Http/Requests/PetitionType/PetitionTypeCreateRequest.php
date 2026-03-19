@@ -7,6 +7,7 @@ namespace App\Http\Requests\PetitionType;
 use App\Enums\PetitionTypeType;
 use App\Http\Requests\FormRequest;
 use Illuminate\Validation\Rule;
+use Override;
 
 class PetitionTypeCreateRequest extends FormRequest
 {
@@ -36,6 +37,7 @@ class PetitionTypeCreateRequest extends FormRequest
         ];
     }
 
+    #[Override]
     protected function prepareForValidation(): void
     {
         $this->merge([

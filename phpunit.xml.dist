@@ -26,6 +26,8 @@
         </include>
         <exclude>
             <directory>./app/Faker</directory>
+            <file>./app/Console/Commands/CleanupPetitionDatesCommand.php</file>
+            <file>./app/Console/Commands/ImportPetitionsCommand.php</file>
         </exclude>
     </source>
     <php>

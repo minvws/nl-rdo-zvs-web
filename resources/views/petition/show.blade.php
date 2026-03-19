@@ -42,11 +42,24 @@
                     </div>
                 </div>
 
-                <x-petition.petition-terms.table
-                    :petition="$petition"
-                    :petitionTerms="$petition->petitionTerms"
-                    :draftTerm="$petition->draftTerm"
-                    :departmentSlug="$department->slug" />
+                @if ($petition->isTermEngineConverted())
+                    <x-objection-events-calendar :events="$events" />
+                    @if (Config::get('app.features.term_engine_v2'))
+                        <a
+                            class="mt-2"
+                            href="{{ route(RouteName::PETITION_EVENTS_WIZARD_RESET, ['department' => $petition->department, 'petition' => $petition]) }}">
+                            {{ __('term.manage_terms') }}
+                        </a>
+                    @endif
+                @endif
+
+                <div class="{{ ! $petition->isTermEngineConverted() ? '' : 'mt-5 hidden' }}">
+                    <x-petition.petition-terms.table
+                        :petition="$petition"
+                        :petitionTerms="$petition->petitionTerms"
+                        :draftTerm="$petition->draftTerm"
+                        :departmentSlug="$department->slug" />
+                </div>
 
                 <x-petition.petition-deliverables.table :petition="$petition" />
 

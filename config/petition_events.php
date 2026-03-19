@@ -41,7 +41,7 @@ return [
         ],
         PetitionTypeType::WOO_VERZOEK->value => [
             PetitionEventType::PETITION_RECEIVED->value => [
-                'duration' => 14,
+                'duration' => 28,
             ],
             PetitionEventType::ADJOURNMENT->value => [
                 'duration' => 14,

@@ -12,6 +12,7 @@ use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\Rule;
+use Override;
 use Webmozart\Assert\Assert;
 
 class UserUpdateRequest extends FormRequest
@@ -76,6 +77,7 @@ class UserUpdateRequest extends FormRequest
         ];
     }
 
+    #[Override]
     protected function prepareForValidation(): void
     {
         $this->merge([

@@ -7,6 +7,7 @@ namespace App\Http\Requests\Contact;
 use App\Enums\ContactType;
 use App\Http\Requests\FormRequest;
 use Illuminate\Validation\Rule;
+use Override;
 use Webmozart\Assert\Assert;
 
 use function str_replace;
@@ -56,6 +57,7 @@ class ContactPersistRequest extends FormRequest
         ];
     }
 
+    #[Override]
     protected function prepareForValidation(): void
     {
         //@codeCoverageIgnoreStart

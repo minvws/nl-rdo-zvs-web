@@ -7,7 +7,9 @@ namespace App\Exports;
 use App\Collections\CustomPetitionPropertyCollection;
 use App\Config\Config;
 use App\Enums\CustomDateLabel;
+use App\Enums\PetitionEventType;
 use App\Enums\PetitionTypeType;
+use App\Enums\ResultType;
 use App\Models\Petition;
 use Webmozart\Assert\Assert;
 
@@ -26,9 +28,12 @@ class PetitionBezwaarExcelExport extends PetitionAbstractExcelExport
         return [
             $row->number,
             $row->name ?? '-',
-            $this->formatDate($row->date_of_entry),
-            $this->formatCustomDateValueByLabel($row->customDates, CustomDateLabel::DATE_WITHDRAWN),
-            $this->formatCustomDateValueByLabel($row->customDates, CustomDateLabel::DATE_DECISION_ON_APPEAL),
+
+            // the values below depend on Terms V1 or V2 being used
+            $this->dateOfEntry($row),
+            $this->dateWithdrawn($row),
+            $this->dateDecision($row),
+
             $this->formatInOutTerm($row->customPetitionProperties),
             $this->formatDecision($row->customPetitionProperties),
         ];
@@ -64,5 +69,39 @@ class PetitionBezwaarExcelExport extends PetitionAbstractExcelExport
         Assert::isMap($optionSet);
 
         return $this->formatMatchingCustomOptions($customPetitionProperties, $optionSet);
+    }
+
+    private function dateOfEntry(Petition $row): ?string
+    {
+        if ($row->isTermEngineConverted()) {
+            return $row->petitionEvents
+                ->firstWhere('type', PetitionEventType::RECEIPT_OF_OBJECTION)?->date->toDateString() ?? null;
+        }
+
+        return $this->formatDate($row->date_of_entry);
+    }
+
+    private function dateWithdrawn(Petition $row): ?string
+    {
+        if ($row->isTermEngineConverted()) {
+            return $row->petitionEvents
+                ->where('type', PetitionEventType::FINAL_RESULT)
+                ->where('result_type', ResultType::WITHDRAWN)
+                ->first()?->date->toDateString() ?? null;
+        }
+
+        return $this->formatCustomDateValueByLabel($row->customDates, CustomDateLabel::DATE_WITHDRAWN);
+    }
+
+    private function dateDecision(Petition $row): ?string
+    {
+        if ($row->isTermEngineConverted()) {
+            return $row->petitionEvents
+                ->where('type', PetitionEventType::FINAL_RESULT)
+                ->where('result_type', ResultType::FINAL_DECISION)
+                ->first()?->date->toDateString() ?? null;
+        }
+
+        return $this->formatCustomDateValueByLabel($row->customDates, CustomDateLabel::DATE_DECISION_ON_APPEAL);
     }
 }

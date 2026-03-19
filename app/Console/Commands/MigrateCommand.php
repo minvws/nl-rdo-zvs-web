@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Console\Migrations\MigrateCommand as IlluminateMigrateCommand;
-use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -24,13 +22,6 @@ use function version_compare;
 
 class MigrateCommand extends IlluminateMigrateCommand
 {
-    public function __construct(
-        Migrator $migrator,
-        Dispatcher $dispatcher,
-    ) {
-        parent::__construct($migrator, $dispatcher);
-    }
-
     /**
      * @throws ValueError|Throwable
      */

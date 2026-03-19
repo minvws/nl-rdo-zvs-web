@@ -11,6 +11,7 @@ use Database\Factories\PetitionQuerysnapshotFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 /**
  * @property string $petition_id
@@ -37,6 +38,7 @@ class PetitionQuerysnapshot extends EloquentModel
         return $this->belongsTo(Petition::class);
     }
 
+    #[Override]
     protected function casts(): array
     {
         return [

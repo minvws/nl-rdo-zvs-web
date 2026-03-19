@@ -80,6 +80,7 @@ class BNTPeriodGenerator implements PeriodGeneratorInterface
                 $calendar->upsertDay($currentDate, [
                     'applicableTerm' => TermType::PENALTY_PERIOD->value,
                     'penaltyTodayInEuros' => $penalty->amount,
+                    'penaltySourceTerm' => TermType::APPEAL_NOT_TIMELY->value,
                     'isBudgetDay' => false,
                     'isFirstDayOfBudget' => false,
                     'isLastDayOfBudget' => false,

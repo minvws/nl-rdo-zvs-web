@@ -60,7 +60,7 @@ jobs:
         run: composer archive --format=tar.gz --dir /tmp --file ${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}
 
       - name: Upload release tar
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}
           path: /tmp/${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}.tar.gz

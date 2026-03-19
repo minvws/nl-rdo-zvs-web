@@ -8,7 +8,9 @@ use App\Enums\CustomDateLabel;
 use App\Models\Decision;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionEvent;
 use App\Models\PetitionStatusHistory;
+use App\Models\PetitionTerm;
 use App\Models\PolicyDepartment;
 use App\Models\User;
 use App\ValueObjects\CalendarDate;
@@ -129,5 +131,19 @@ class PetitionTest extends FeatureTestCase
         $this->assertCount(2, $retrievedDecisions);
         $this->assertNotContains($unrelatedDecisions, $retrievedDecisions);
         $this->assertInstanceOf(Collection::class, $retrievedDecisions);
+    }
+
+    public function testTermsV2(): void
+    {
+        $petition = Petition::factory()->create();
+        $this->assertTrue($petition->isTermEngineConverted());
+
+        PetitionTerm::factory()->recycle($petition)->create();
+
+        $this->assertFalse($petition->isTermEngineConverted());
+
+        PetitionEvent::factory()->recycle($petition)->create();
+
+        $this->assertTrue($petition->isTermEngineConverted());
     }
 }

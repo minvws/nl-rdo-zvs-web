@@ -9,22 +9,20 @@ use App\Actions\PetitionEvent\PetitionEventPersistAction;
 use App\Config\DepartmentConfigurationService;
 use App\Enums\PetitionEventType;
 use App\Enums\RouteName;
+use App\Factories\WizardEventCollectionFactory;
 use App\Http\Requests\PetitionEvent\AddPetitionEventRequest;
 use App\Models\Department;
 use App\Models\Petition;
-use App\Models\PetitionEvent;
 use App\Services\PetitionEvent\PetitionEventsStorage;
 use App\Services\PetitionEventAvailabilityService;
-use App\ValueObjects\PenaltyData;
-use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Collection;
 use Throwable;
+use Webmozart\Assert\Assert;
 
-use function array_map;
+use function auth;
 use function to_route;
 
 final readonly class PetitionEventWizardController
@@ -108,7 +106,10 @@ final readonly class PetitionEventWizardController
      */
     public function store(Department $department, Petition $petition, PetitionEventPersistAction $action): RedirectResponse
     {
-        $action->execute($petition);
+        $user = auth()->user();
+        Assert::notNull($user);
+
+        $action->execute($petition, $user);
 
         return to_route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
             'department' => $department,
@@ -132,32 +133,6 @@ final readonly class PetitionEventWizardController
     {
         $existingEvents = $petition->petitionEvents()->oldest()->get();
 
-        if ($existingEvents->isEmpty()) {
-            return WizardEventCollection::make();
-        }
-
-        /** @var Collection<int, PetitionEventData> $events */
-        $events = $existingEvents->map(static function (PetitionEvent $event): PetitionEventData {
-            /** @var array<int, PenaltyData> $penalties */
-            $penalties = array_map(
-                static fn(array $penalty): PenaltyData => new PenaltyData(
-                    amount: (int) $penalty['amount'],
-                    duration: (int) $penalty['duration'],
-                ),
-                $event->penalties ?? [],
-            );
-
-            return new PetitionEventData(
-                type: $event->type,
-                date: $event->date,
-                createdAt: $event->created_at->toImmutable(),
-                duration: $event->duration,
-                penalties: $penalties,
-                suspensionType: $event->suspension_type,
-                resultType: $event->result_type,
-            );
-        });
-
-        return new WizardEventCollection($events);
+        return WizardEventCollectionFactory::fromModels($existingEvents);
     }
 }

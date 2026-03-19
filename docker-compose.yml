@@ -24,6 +24,8 @@ services:
         depends_on:
             - pgsql
             - mailpit
+            - clamav
+            - minio-setup
 
     pgsql: &db
         image: 'postgres:15'
@@ -73,6 +75,8 @@ services:
         depends_on:
             - pgsql-robot
             - mailpit
+            - clamav
+            - minio-setup
 
     pgsql-robot:
         <<: *db
@@ -86,6 +90,11 @@ services:
         build:
             context: .
             dockerfile: robot/Dockerfile
+        command: >
+            uv run robot
+            --exclude SKIP
+            --console verbose
+            tests/
         networks:
             - sail
         depends_on:
@@ -99,6 +108,41 @@ services:
             - ./robot:/app/robot
             - /var/run/docker.sock:/var/run/docker.sock:ro
 
+    minio:
+        image: 'minio/minio:RELEASE.2025-02-28T09-55-16Z'
+        container_name: minio
+        ports:
+            - '${MINIO_PORT:-9000}:9000'
+            - '${MINIO_CONSOLE_PORT:-9001}:9001'
+        environment:
+            MINIO_ROOT_USER: '${MINIO_ROOT_USER:-minioadmin}'
+            MINIO_ROOT_PASSWORD: '${MINIO_ROOT_PASSWORD:-minioadmin}'
+        volumes:
+            - 'sail-minio:/minio_root'
+        networks:
+            - sail
+        command: minio server /minio_root --console-address ":9001"
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+            interval: 30s
+            timeout: 20s
+            retries: 3
+
+    minio-setup:
+        image: sail-8.4/app
+        depends_on:
+            minio:
+                condition: service_healthy
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        entrypoint: ["/bin/sh", "-c"]
+        command:
+            - |
+                php artisan minio:setup
+                exit 0
+
 networks:
     sail:
         driver: bridge
@@ -106,4 +150,6 @@ volumes:
     sail-mysql:
         driver: local
     sail-pgsql:
+        driver: local
+    sail-minio:
         driver: local

@@ -7,8 +7,10 @@ namespace Tests\Feature\Exports;
 use App\Enums\ExportType;
 use App\Exports\ExportCriteria;
 use App\Exports\PetitionWooVerzoekExcelExport;
+use App\Models\Petition;
 use App\Models\PetitionType;
 use App\ValueObjects\DateRange;
+use Mockery;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 use Tests\Feature\FeatureTestCase;
 
@@ -24,7 +26,7 @@ class PetitionWooVerzoekExcelExportTest extends FeatureTestCase
     #[DataProviderExternal(PetitionExcelExport::class, 'excelExportDataProvider1')]
     public function testMapVerdaging(array $data): void
     {
-        $row = $this->mapDataToPetition($data);
+        $row = $this->mockPetitionAsLegacy($this->mapDataToPetition($data));
         $petitionWooVerzoekExcelExport = $this->makePetitionWooVerzoekExcelExport();
 
         $expectedResult = [
@@ -49,7 +51,7 @@ class PetitionWooVerzoekExcelExportTest extends FeatureTestCase
     #[DataProviderExternal(PetitionExcelExport::class, 'excelExportDataProvider2')]
     public function testMapInOverlegMetVerzoeker(array $data): void
     {
-        $row = $this->mapDataToPetition($data);
+        $row = $this->mockPetitionAsLegacy($this->mapDataToPetition($data));
         $petitionWooVerzoekExcelExport = $this->makePetitionWooVerzoekExcelExport();
 
         $expectedResult = [
@@ -101,5 +103,14 @@ class PetitionWooVerzoekExcelExportTest extends FeatureTestCase
                 new DateRange($startDate, $endDate),
             ),
         );
+    }
+
+    private function mockPetitionAsLegacy(Petition $petition): Petition
+    {
+        return Mockery::mock($petition)
+            ->makePartial()
+            ->shouldReceive('isTermEngineConverted')
+            ->andReturn(false)
+            ->getMock();
     }
 }

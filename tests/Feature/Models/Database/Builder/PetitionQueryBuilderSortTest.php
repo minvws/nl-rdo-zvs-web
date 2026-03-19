@@ -6,13 +6,11 @@ namespace Tests\Feature\Models\Database\Builder;
 
 use App\Enums\ContactType;
 use App\Enums\PetitionCriteria;
-use App\Enums\TermType;
 use App\Models\Builder\Petition\PetitionQueryBuilder;
 use App\Models\Contact;
 use App\Models\Petition;
 use App\Models\PetitionCategory;
 use App\Models\PetitionStatus;
-use App\Models\PetitionTerm;
 use App\Models\PetitionType;
 use App\Models\User;
 use App\ValueObjects\CalendarDate;
@@ -41,53 +39,65 @@ class PetitionQueryBuilderSortTest extends FeatureTestCase
 
     public function testSortByDeadlineAt(): void
     {
-        $petition1 = Petition::factory()->create(['deadline_at' => CalendarDate::createFromFormat('d-m-Y', '1-1-2000')]);
-        $petition2 = Petition::factory()->create(['deadline_at' => CalendarDate::createFromFormat('d-m-Y', '1-1-2001')]);
+        $petition1 = Petition::factory()->create([
+            'deadline_at' => CalendarDate::createFromFormat('d-m-Y', '1-1-2000'),
+        ]);
+        $petition2 = Petition::factory()->create([
+            'deadline_at' => CalendarDate::createFromFormat('d-m-Y', '1-1-2001'),
+        ]);
 
         $this->assertOrder(PetitionCriteria::DEADLINE_AT, $petition1, $petition2);
     }
 
     public function testSortByApplicant(): void
     {
-        $petition1 = Petition::factory()->create(['applicant_id' => Contact::factory()->state(['type' => ContactType::CIVILIAN])]);
-        $petition2 = Petition::factory()->create(['applicant_id' => Contact::factory()->state(['type' => ContactType::LEGAL_SPECIALIST])]);
+        $petition1 = Petition::factory()->create([
+            'applicant_id' => Contact::factory()->state(['type' => ContactType::CIVILIAN]),
+        ]);
+        $petition2 = Petition::factory()->create([
+            'applicant_id' => Contact::factory()->state(['type' => ContactType::LEGAL_SPECIALIST]),
+        ]);
 
         $this->assertOrder(PetitionCriteria::APPLICANT, $petition1, $petition2);
     }
 
     public function testSortByAssignedUser(): void
     {
-        $petition1 = Petition::factory()->create(['assigned_to' => User::factory()->state(['name' => 'aaa'])]);
-        $petition2 = Petition::factory()->create(['assigned_to' => User::factory()->state(['name' => 'bbb'])]);
+        $petition1 = Petition::factory()->create([
+            'assigned_to' => User::factory()->state(['name' => 'aaa']),
+        ]);
+        $petition2 = Petition::factory()->create([
+            'assigned_to' => User::factory()->state(['name' => 'bbb']),
+        ]);
 
         $this->assertOrder(PetitionCriteria::ASSIGNED_USER, $petition1, $petition2);
     }
 
     public function testSortByCategory(): void
     {
-        $petition1 = Petition::factory()->create(['petition_category_id' => PetitionCategory::factory()->state(['name' => 'aaa'])]);
-        $petition2 = Petition::factory()->create(['petition_category_id' => PetitionCategory::factory()->state(['name' => 'bbb'])]);
+        $petition1 = Petition::factory()->create([
+            'petition_category_id' => PetitionCategory::factory()->state(['name' => 'aaa']),
+        ]);
+        $petition2 = Petition::factory()->create([
+            'petition_category_id' => PetitionCategory::factory()->state(['name' => 'bbb']),
+        ]);
 
         $this->assertOrder(PetitionCriteria::CATEGORY, $petition1, $petition2);
     }
 
     public function testSortByPetitionType(): void
     {
-        $petition1 = Petition::factory()->create(['petition_type_id' => PetitionType::factory()->state(['name' => 'aaa'])]);
-        $petition2 = Petition::factory()->create(['petition_type_id' => PetitionType::factory()->state(['name' => 'bbb'])]);
+        $petition1 = Petition::factory()->create([
+            'petition_type_id' => PetitionType::factory()->state(['name' => 'aaa']),
+        ]);
+        $petition2 = Petition::factory()->create([
+            'petition_type_id' => PetitionType::factory()->state(['name' => 'bbb']),
+        ]);
 
         $this->assertOrder(PetitionCriteria::PETITION_TYPE, $petition1, $petition2);
     }
 
     public function testSortByStatus(): void
-    {
-        $petition1 = Petition::factory()->create(['petition_status_id' => PetitionStatus::factory()->state(['order' => 1])]);
-        $petition2 = Petition::factory()->create(['petition_status_id' => PetitionStatus::factory()->state(['order' => 2])]);
-
-        $this->assertOrder(PetitionCriteria::STATUS, $petition1, $petition2);
-    }
-
-    public function testSortByStatusGroup(): void
     {
         $petition1 = Petition::factory()->create([
             'petition_status_id' => PetitionStatus::factory()->state(['order' => 1]),
@@ -96,27 +106,37 @@ class PetitionQueryBuilderSortTest extends FeatureTestCase
             'petition_status_id' => PetitionStatus::factory()->state(['order' => 2]),
         ]);
 
+        $this->assertOrder(PetitionCriteria::STATUS, $petition1, $petition2);
+    }
+
+    public function testSortByStatusGroup(): void
+    {
+        $petition1 = Petition::factory()->create([
+            'petition_status_id' => PetitionStatus::factory()->state([
+                'order' => 1,
+            ]),
+        ]);
+        $petition2 = Petition::factory()->create([
+            'petition_status_id' => PetitionStatus::factory()->state([
+                'order' => 2,
+            ]),
+        ]);
+
         $this->assertOrder(PetitionCriteria::STATUS_GROUP, $petition1, $petition2);
     }
 
     public function testSortBySumOfPenaltiesPerDate(): void
     {
-        $today = CalendarDate::today();
-
-        $petition1 = Petition::factory()->create();
-        PetitionTerm::factory()->recycle($petition1)->create([
-            'type' => TermType::PENALTY,
-            'start_date' => $today->subDays(10),
-            'duration_in_days' => 20,
-            'penalty_amount_in_euros' => 100,
+        $petition1 = Petition::factory()->create([
+            'legacy_term_penalty_today' => 100,
+            'igs_penalty_today' => 0,
+            'bnt_penalty_today' => 0,
         ]);
 
-        $petition2 = Petition::factory()->create();
-        PetitionTerm::factory()->recycle($petition2)->create([
-            'type' => TermType::PENALTY,
-            'start_date' => $today->subDays(5),
-            'duration_in_days' => 20,
-            'penalty_amount_in_euros' => 200,
+        $petition2 = Petition::factory()->create([
+            'legacy_term_penalty_today' => 200,
+            'igs_penalty_today' => 0,
+            'bnt_penalty_today' => 0,
         ]);
 
         $this->assertOrder(PetitionCriteria::SUM_OF_PENALTIES_PER_DATE, $petition1, $petition2);
@@ -124,22 +144,16 @@ class PetitionQueryBuilderSortTest extends FeatureTestCase
 
     public function testSortByPenaltyToDate(): void
     {
-        $today = CalendarDate::today();
-
-        $petition1 = Petition::factory()->create();
-        PetitionTerm::factory()->recycle($petition1)->create([
-            'type' => TermType::PENALTY,
-            'start_date' => $today->subDays(5),
-            'duration_in_days' => 10,
-            'penalty_amount_in_euros' => 100,
+        $petition1 = Petition::factory()->create([
+            'legacy_term_forfeited' => 100,
+            'igs_forfeited' => 0,
+            'bnt_forfeited' => 0,
         ]);
 
-        $petition2 = Petition::factory()->create();
-        PetitionTerm::factory()->recycle($petition2)->create([
-            'type' => TermType::PENALTY,
-            'start_date' => $today->subDays(10),
-            'duration_in_days' => 20,
-            'penalty_amount_in_euros' => 200,
+        $petition2 = Petition::factory()->create([
+            'legacy_term_forfeited' => 200,
+            'igs_forfeited' => 0,
+            'bnt_forfeited' => 0,
         ]);
 
         $this->assertOrder(PetitionCriteria::PENALTY_TO_DATE, $petition1, $petition2);

@@ -11,6 +11,7 @@ use Database\Factories\DepartmentTermTypeSettingFactory;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -34,6 +35,10 @@ class DepartmentTermTypeSetting extends EloquentModel
     public $timestamps = false;
     protected $table = 'department_term_type_settings';
 
+    /**
+     * @return array<string, class-string<TermType>|string>
+     */
+    #[Override]
     protected function casts(): array
     {
         return [

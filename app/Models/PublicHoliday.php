@@ -11,6 +11,7 @@ use App\ValueObjects\CalendarDate;
 use Database\Factories\PublicHolidayFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Override;
 
 /**
  * @property string $name
@@ -26,6 +27,7 @@ class PublicHoliday extends EloquentModel
 
     protected $table = 'public_holidays';
 
+    #[Override]
     protected function casts(): array
     {
         return [

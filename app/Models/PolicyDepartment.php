@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Override;
 
 /**
  * @property string $name
@@ -43,6 +44,7 @@ class PolicyDepartment extends EloquentModel
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

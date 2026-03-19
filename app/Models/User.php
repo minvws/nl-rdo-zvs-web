@@ -136,7 +136,7 @@ class User extends Authenticatable implements LoggableUser
     /**
      * @return HasMany<UserGlobalRole, $this>
      */
-    public function globalRoles(): hasMany
+    public function globalRoles(): HasMany
     {
         return $this->hasMany(UserGlobalRole::class, 'user_id', 'id');
     }
@@ -149,6 +149,10 @@ class User extends Authenticatable implements LoggableUser
         });
     }
 
+    /**
+     * @return array<string, class-string<UuidCast>|class-string<DatetimeWithTimezoneCast>|string>
+     */
+    #[Override]
     protected function casts(): array
     {
         return [

@@ -24,7 +24,6 @@ class WordTemplateProcessingService
         $path = $this->generateTempPath();
 
         $processor = WordTemplateProcessor::create($wordTemplate->path);
-        $processor->setMacroChars('«', '»');
         $processor->setValues($replacements);
         $processor->saveAs($path);
 

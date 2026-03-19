@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -51,6 +52,7 @@ class PetitionCustomDate extends EloquentModel
         return $this->belongsTo(Petition::class);
     }
 
+    #[Override]
     protected function casts(): array
     {
         return [

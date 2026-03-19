@@ -115,6 +115,7 @@ class BeslisPeriodGenerator implements PeriodGeneratorInterface
         $isSuspended = $this->isDaySuspended($calendar, $currentDate);
 
         if ($isSuspended) {
+            $calendar->totalDaysSuspended++;
             $calendar->upsertDay($currentDate, [
                 'applicableTerm' => TermType::DECISION_PERIOD->value,
                 'isBudgetDay' => false,

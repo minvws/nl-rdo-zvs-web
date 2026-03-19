@@ -29,13 +29,13 @@ class ContactArchivedFilteringTest extends FeatureTestCase
             'archived_at' => Carbon::now(),
         ]);
 
-        $user = User::factory()->withPermissions(Permission::CONTACT_READ)->fullyVerified()->create();
+        $user = User::factory()->withPermissions(Permission::CONTACT_READ, Permission::CONTACT_MANAGE)->fullyVerified()->create();
         $response = $this->beUser($user)
             ->getByRoute(RouteName::DEPARTMENTS_CONTACTS_INDEX, ['department' => $department]);
 
         $response->assertOk();
-        $response->assertSee($nonArchivedContact->full_name);
-        $response->assertDontSee($archivedContact->full_name);
+        $response->assertSee($nonArchivedContact->last_name);
+        $response->assertDontSee($archivedContact->last_name);
     }
 
     public function testApiContactIndexShowsAllContacts(): void
@@ -84,7 +84,7 @@ class ContactArchivedFilteringTest extends FeatureTestCase
             ]);
 
         $response->assertOk();
-        $response->assertSee($nonArchivedContact->full_name);
-        $response->assertDontSee($archivedContact->full_name);
+        $response->assertSee($nonArchivedContact->last_name);
+        $response->assertDontSee($archivedContact->last_name);
     }
 }

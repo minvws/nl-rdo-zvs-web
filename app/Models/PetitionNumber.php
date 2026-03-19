@@ -8,6 +8,7 @@ use App\Models\Casts\UuidCast;
 use Database\Factories\PetitionNumberFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -26,6 +27,7 @@ class PetitionNumber extends EloquentModel
 
     protected $table = 'petition_number';
 
+    #[Override]
     protected function casts(): array
     {
         return [

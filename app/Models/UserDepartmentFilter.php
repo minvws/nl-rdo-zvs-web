@@ -8,6 +8,7 @@ use App\Models\Casts\UuidCast;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -46,6 +47,10 @@ final class UserDepartmentFilter extends Model
         return $this->belongsTo(Department::class);
     }
 
+    /**
+     * @return array<string, class-string<UuidCast>|string>
+     */
+    #[Override]
     protected function casts(): array
     {
         return [

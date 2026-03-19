@@ -2,7 +2,10 @@
 
     declare(strict_types=1);
 
-    return [
+use App\Enums\PetitionTypeType;
+use App\Enums\ResultType;
+
+return [
         'create_date' => 'Export gemaakt op',
         'date_from' => 'Datum vanaf',
         'date_to' => 'Datum tot',
@@ -46,5 +49,14 @@
             'verzet' => 'Verzet',
             'voorlopige_voorziening' => 'Voorlopige voorziening',
             'woo_verzoek' => 'Woo-verzoeken',
-        ]
+        ],
+        PetitionTypeType::WOO_VERZOEK->value => [
+            ResultType::WITHDRAWN->value => 'Verzoek ingetrokken',
+            ResultType::FORWARDED->value => 'Verzoek doorverwezen',
+            ResultType::REJECTED->value => 'Anders',
+            ResultType::DISMISSED->value => 'Anders',
+            ResultType::RECONSIDERED->value => 'Verzoek betrof bij nader inzien burgervraag',
+            ResultType::ALREADY_PUBLIC->value => 'Verzoek betrof reeds openbare informatie',
+            ResultType::OTHER->value => 'Anders',
+        ],
     ];

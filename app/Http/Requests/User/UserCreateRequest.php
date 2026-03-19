@@ -10,6 +10,7 @@ use App\Http\Requests\FormRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\Rule;
+use Override;
 
 class UserCreateRequest extends FormRequest
 {
@@ -54,6 +55,7 @@ class UserCreateRequest extends FormRequest
         ];
     }
 
+    #[Override]
     protected function prepareForValidation(): void
     {
         $this->merge([

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\PetitionEventType;
+use App\Enums\TermType;
 use App\Services\PeriodGenerators\BeslisPeriodGenerator;
 use App\Services\PeriodGenerators\BNTPeriodGenerator;
 use App\Services\PeriodGenerators\EventsGenerator;
@@ -18,6 +20,8 @@ use App\ValueObjects\EventCalendar;
 use App\ValueObjects\EventCalendarDay;
 use App\ValueObjects\PetitionEventData;
 use Illuminate\Support\Collection;
+
+use function collect;
 
 class DerivedState
 {
@@ -42,6 +46,7 @@ class DerivedState
         foreach ($generators as $generator) {
             $generator->generate($this->events, $this->calendar);
         }
+        $this->calendar->sortByDate();
 
         return $this;
     }
@@ -81,6 +86,72 @@ class DerivedState
             ->sum(static function ($day): int {
                 /** @var EventCalendarDay $day */
                 return $day->penaltyTodayInEuros;
+            });
+    }
+
+    public function dateOfEntry(): ?CalendarDate
+    {
+        $receiptEvent = $this->events->first(
+            static function (PetitionEventData $event): bool {
+                return $event->type === PetitionEventType::RECEIPT_OF_OBJECTION
+                    || $event->type === PetitionEventType::PETITION_RECEIVED;
+            },
+        );
+
+        return $receiptEvent?->date;
+    }
+
+    public function deadlineDate(): ?CalendarDate
+    {
+        $lastDeadlineDay = $this->calendar
+            ->filter(static fn($day): bool => $day->isDeadline)
+            ->sortByDesc(static fn($day): string => $day->date->toDateString())
+            ->first();
+
+        return $lastDeadlineDay?->date;
+    }
+
+    public function penaltyTodayForTerm(CalendarDate $date, TermType $term): int
+    {
+        $day = $this->calendar->findDay($date);
+
+        if (!$day instanceof EventCalendarDay) {
+            return 0;
+        }
+
+        if ($day->penaltySourceTerm !== $term->value) {
+            return 0;
+        }
+
+        return $day->penaltyTodayInEuros;
+    }
+
+    public function forfeitedForTerm(CalendarDate $date, TermType $term): int
+    {
+        return $this->calendar
+            ->filter(static function (EventCalendarDay $day) use ($date, $term): bool {
+                return $day->date->lessThanOrEqualTo($date)
+                    && $day->penaltySourceTerm === $term->value;
+            })
+            ->sum(static fn(EventCalendarDay $day): int => $day->penaltyTodayInEuros);
+    }
+
+    public function maximumPenaltyForEventType(PetitionEventType $eventType): int
+    {
+        $eventsOfType = $this->events->filter(
+            static fn(PetitionEventData $e): bool => $e->type === $eventType,
+        );
+
+        if ($eventsOfType->isEmpty()) {
+            return 0;
+        }
+
+        return $eventsOfType
+            ->sum(static function (PetitionEventData $event): int {
+                return collect($event->penalties)
+                    ->sum(static function ($penalty): int {
+                        return $penalty->amount * $penalty->duration;
+                    });
             });
     }
 

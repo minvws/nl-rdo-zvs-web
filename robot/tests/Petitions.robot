@@ -125,7 +125,7 @@ Nieuwe Zaak Voor Team C Aanmaken Met Ontvangst Bezwaar Binnen De Bezwaarperiode
     Check For Notification    Opgeslagen
 
     Take Screenshot    fullPage=True
-    ${table}    Get Element    h2 >> text=Termijnen >> .. >> table
+    ${table}    Get Element    h2 >> text=Gebeurtenissen en termijnen kalender >> .. >> table
     ${objection_period_start_date}    Extract And Convert Table Date    ${table}    "Startdatum"    1
     ${diff}    Subtract Date From Date
     ...    ${objection_period_start_date}
@@ -160,7 +160,8 @@ Nieuwe Zaak Voor Team C Aanmaken Met Ontvangst Bezwaar Buiten De Bezwaarperiode
     Click    ${button}
     Check For Notification    Opgeslagen
 
-    ${table}    Get Element    h2 >> text=Termijnen >> .. >> table
+    Take Screenshot    fullPage=True
+    ${table}    Get Element    h2 >> text=Gebeurtenissen en termijnen kalender >> .. >> table
     ${objection_period_start_date}    Extract And Convert Table Date    ${table}    "Startdatum"    1
     ${diff}    Subtract Date From Date
     ...    ${objection_period_start_date}
@@ -290,8 +291,7 @@ Substatus Handmatig Wijzigen Van 'Toebedeling' Naar 'Intake'
     ${default_substatus}    Get Text    span.tag.tag--substatus
     ${default_substatus}    Strip String    ${default_substatus}
 
-    ${link}    Get Element By Role    link    name=${default_substatus}
-    Click    ${link}
+    Click    span.tag.tag--substatus >> ..
 
     ${combobox}    Get Element By Role    combobox    name=Status
     Get Selected Options    ${combobox}    label    equals    ${default_substatus}

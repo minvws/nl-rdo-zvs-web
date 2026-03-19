@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Enums;
 
 use App\Services\EventValidatorInterface;
+use Illuminate\Support\Facades\Lang;
 
-use function __;
 use function app;
 use function resolve;
 use function sprintf;
@@ -35,38 +35,6 @@ enum PetitionEventType: string
     case OPINION_OUTSIDE_TERM = 'opinion_outside_term';
     case RECEIPT_APPEAL_NOT_TIMELY = 'receipt_appeal_not_timely';
     case SENT_PARTIAL_DECISION = 'sent_partial_decision';
-
-    public function label(?PetitionTypeType $petitionType = null): string
-    {
-        $typeKey = $petitionType->value ?? 'default';
-        $eventKey = $this->value;
-
-        $key = sprintf('petition_event.%s.type.%s', $typeKey, $eventKey);
-        $translation = __($key);
-
-        if ($translation === $key) {
-            $key = sprintf('petition_event.default.type.%s', $eventKey);
-            $translation = __($key);
-        }
-
-        return $translation;
-    }
-
-    public function description(?PetitionTypeType $petitionType = null): string
-    {
-        $typeKey = $petitionType->value ?? 'default';
-        $eventKey = $this->value;
-
-        $key = sprintf('petition_event.%s.description.%s', $typeKey, $eventKey);
-        $translation = __($key);
-
-        if ($translation === $key) {
-            $key = sprintf('petition_event.default.description.%s', $eventKey);
-            $translation = __($key);
-        }
-
-        return $translation;
-    }
 
     public function rule(): ?EventValidatorInterface
     {
@@ -130,7 +98,7 @@ enum PetitionEventType: string
             self::HEARING_DATE => $petitionType === PetitionTypeType::BEZWAAR,
 
             self::PETITION_RECEIVED, self::PUBLICATION_DATE, self::ACTUAL_DISCLOSURE,
-            self::OPINION_OUTSIDE_TERM, self::RECEIPT_APPEAL_NOT_TIMELY,
+            self::OPINION_OUTSIDE_TERM,
             self::SENT_PARTIAL_DECISION => $petitionType === PetitionTypeType::WOO_VERZOEK,
 
             self::NOTICE_OF_DEFAULT_WITHDRAWN => false,
@@ -141,6 +109,7 @@ enum PetitionEventType: string
             self::NOTICE_OF_DEFAULT_RECEIVED,
             // Hier komt eventueel self::NOTICE_OF_DEFAULT_WITHDRAWN,
             self::APPEAL_DECISION_NOT_TIMELY,
+            self::RECEIPT_APPEAL_NOT_TIMELY,
             self::FINAL_RESULT,
             self::ADJOURNMENT,
             self::UNSPECIFIED_ADJOURNMENT,
@@ -311,5 +280,35 @@ enum PetitionEventType: string
             },
             default => [],
         };
+    }
+
+    public function label(?PetitionTypeType $petitionType = null): string
+    {
+        return $this->translate('label', $petitionType);
+    }
+
+    public function description(?PetitionTypeType $petitionType = null): string
+    {
+        return $this->translate('description', $petitionType);
+    }
+
+    protected function translate(string $translationType, ?PetitionTypeType $petitionType = null): string
+    {
+        $typeKey = $petitionType->value ?? 'default';
+        $eventKey = $this->value;
+
+        $specificKey = sprintf('petition_event.%s.%s.%s', $typeKey, $translationType, $eventKey);
+
+        if (Lang::has($specificKey)) {
+            return Lang::get($specificKey);
+        }
+
+        $defaultKey = sprintf('petition_event.default.%s.%s', $translationType, $eventKey);
+
+        if (Lang::has($defaultKey)) {
+            return Lang::get($defaultKey);
+        }
+
+        return $specificKey;
     }
 }

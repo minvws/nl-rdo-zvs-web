@@ -33,7 +33,7 @@
         @include('petition.contacts.show', ['petition' => $petition])
     </div>
 
-    @if ($petition->availableCustomDates->isNotEmpty())
+    @if ($petition->availableCustomDates->isNotEmpty() && ! $petition->isTermEngineConverted())
         <div
             id="custom-dates-block"
             class="petition-edit"
@@ -95,8 +95,10 @@
         </div>
     @endif
 
-    @if ($petition->petitionType->type !== PetitionTypeType::BEROEP)
-        <x-petition.petition-terms.summary :petitionTerms="$petition->petitionTerms" />
+    @if ($petition->petitionType->type !== PetitionTypeType::BEROEP && ! $petition->isTermEngineConverted())
+        <x-petition.petition-terms.summary
+            :petition="$petition"
+            :petitionTerms="$petition->petitionTerms" />
     @endif
 
     @can(Ability::UPDATE, $petition)

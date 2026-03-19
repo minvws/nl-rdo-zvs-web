@@ -37,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Collection;
 use Kingmaker\Illuminate\Eloquent\Relations\BelongsToManySelf;
 use Kingmaker\Illuminate\Eloquent\Relations\HasBelongsToManySelfRelation;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -59,6 +60,16 @@ use Ramsey\Uuid\UuidInterface;
  * @property ?CalendarDate $date_of_close
  * @property ?string $decision_reference
  * @property ?CalendarDate $decision_date
+ * @property int $total_days_suspended
+ * @property int $igs_penalty_today
+ * @property int $bnt_penalty_today
+ * @property int $igs_forfeited
+ * @property int $bnt_forfeited
+ * @property int $igs_penalty_maximum
+ * @property int $bnt_penalty_maximum
+ * @property int $legacy_term_penalty_today
+ * @property int $legacy_term_forfeited
+ * @property int $legacy_term_penalty_maximum
  *
  * @property-read int $daysPending
  * @property-read Collection<int, Contact> $applicant
@@ -325,6 +336,16 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
         return $this->hasMany(PetitionEvent::class, 'petition_id');
     }
 
+    public function isTermEngineConverted(): bool
+    {
+        if ($this->petitionEvents()->exists()) {
+            return true;
+        }
+
+        return !$this->petitionTerms()->exists();
+    }
+
+    #[Override]
     protected function casts(): array
     {
         return [

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Casts\AsUri;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Uri;
+use Override;
 
 /**
  * @property ExternalUrlType $petition_external_url_type
@@ -37,6 +38,7 @@ class PetitionExternalUrl extends EloquentModel
         return $this->belongsTo(Petition::class);
     }
 
+    #[Override]
     protected function casts(): array
     {
         return [

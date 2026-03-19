@@ -15,7 +15,8 @@ iRealisatie is developing a modern case management system to support these proce
 1. Clone this repository: git clone git@github.com:minvws/nl-rdo-zvs-web-private.git zvs
 2. Cd into the newly created `zvs` folder: `cd zvs`
 3. Open a new terminal at the root of this folder
-4. Create an `.env` file by copying the `./.env.example` to `./.env`
+4. Create an `.env` file by copying the `./.env.example` to `./.env`: `cp .env.example .env`
+4. Create an `.env.robot` file by copying the `./.env.robot.example` to `./.env.robot`: `cp .env.robot.example .env.robot`
 5. Setup docker using laravel/sail by running:
 
     ```
@@ -27,30 +28,69 @@ iRealisatie is developing a modern case management system to support these proce
         composer install --ignore-platform-reqs
     ```
 
-   For more information see: https://laravel.com/docs/11.x/sail#installing-composer-dependencies-for-existing-projects
+> [!NOTE]  
+> You might see a warning about a missing connection pgsql driver (database) and a `telescope_entries` table related query. The migrations (step 9) will fix this issue. You can ignore it for now.
+
+
+#### installing the application in sail
+
+   For more information see: https://laravel.com/docs/12.x/sail#installing-sail-into-existing-applications
 
    (The steps below assume you have an alias for `./vendor/bin/sail`, if not run: `alias sail=./vendor/bin/sail`)
 
-6. Start the container by running `sail up -d laravel.test`
-7. Run `sail npm install && sail npm run build` to build the node environment
-8. Run `sail artisan key:generate` to generate a new application key
-9. Run `sail artisan migrate:fresh --seed` to (re)run all migrations and default seeder
-10. Browse to [http://localhost/](http://localhost/) and see the login screen
-11. The default seeded user/password combination is `admin@minvws.nl` / `admin`
+1. Start the container by running `sail up -d laravel.test`
+2. Run `sail npm install && sail npm run build` to build the node environment
+3. Run `sail artisan key:generate` to generate a new application key
+4. Run `sail artisan migrate:fresh --seed` to (re)run all migrations and default seeder
 
-#### Development .env vars
+##### run MinIO (in sail) for data storage
+
+MinIO is a high-performance, S3-compatible object storage solution, we use it to store uploaded files and exports.
+
+> [!NOTE]  
+> MinIO is not required to run the application for local development.
+>> ```
+>> # for local development only, if not using MinIO, add the following lines to your .env file:
+>> UPLOADS_DRIVER=local
+>> EXPORTS_DRIVER=local
+>> ```
+> See `.env.example` for more information on how to configure the application to use MinIO
+
+1. If not done already, copy the environment variables to your `.env` file from the `.env.example` file.
+2. Run `sail up -d minio` to start the MinIO server
+3. Run `sail artisan minio:setup` to create the MinIO buckets
+4. Browse to [http://localhost:9001](http://localhost:9001/) for the MinIO dashboard
+5. The default user/password combination is `minioadmin` / `minioadmin`
+
+#### add local development .env vars
 
 For development, the following env var settings wil be helpful:
 
 ```
 # dev env vars:
-OUTBOX_SMTP_FROM=foo@bar.nl    # the local env uses mailpit, any from email adres will do
-ONE_TIME_PASSWORD_DRIVER=fake  # the application will accept any OTP when prompted
-QUEUE_CONNECTION=sync          # jobs will by executed synchronously, no need to listen to any queues
-CSP_ENABLED=false              # allows telescope from rendreing css (/telescope)
+
+# the local env uses mailpit, any from email adres will do
+OUTBOX_SMTP_FROM=foo@bar.nl
+
+# the application will accept any OTP when prompted
+ONE_TIME_PASSWORD_DRIVER=fake
+
+# jobs will by executed synchronously, no need to listen to any queues
+QUEUE_CONNECTION=sync
+
+# allows telescope from rendering css (/telescope)
+CSP_ENABLED=false
 ```
 
+#### run the application in your browser
+
+1. Browse to [http://localhost/](http://localhost/) and see the login screen
+2. The default seeded user/password combination is `admin@minvws.nl` / `admin`
+3. You can use any 6 digits OTP code to login
+
+
 #### Running tests in your dev-env
+
 In order to run the test suite in your dev env. Simply use sail to run the quality assurance tests on your
 docker container:
 
@@ -59,12 +99,21 @@ docker container:
 $ sail composer reset-test-db
 ```
 
-Then run the test suite. Beware that the tests will run in parrallel mode. This means that the first time, you need to run
-`sail composer test-reset` which will recreate the test databases. This is only needed once, afterwards you can run the tests
+The tests do run in parallel mode. You need to reset the test databases only one time:
+
+```bash
+$ sail composer test-reset
+```
+
+From now on, you can always run the test suite. 
 
 ```bash
 $ sail composer quality
-# Or just the PHPUnit tests?
+```
+
+Or just the PHPUnit tests:
+
+```bash
 $ sail composer test
 ```
 
@@ -75,6 +124,17 @@ See the [robot/README.md](./robot/README.md) for instructions on setting up and 
 #### Building the manual
 
 The manual is located in the `manual` folder and is built with [Sphinx](https://www.sphinx-doc.org/).
+
+### Feature flags
+
+If you need to enable or disable feature flags, you can do so by setting these variables in your `.env` file:
+
+```
+NOTIFICATIONS_ENABLED=true|false
+TERM_ENGINE_V2_ENABLED=true|false
+```
+
+All feature flags are documented in the `config/app.php` file features array.
 
 ## License
 

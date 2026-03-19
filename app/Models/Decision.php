@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -73,6 +74,7 @@ class Decision extends EloquentModel implements DepartmentAwareInterface, Timeli
         return $this->morphMany(TimelineItem::class, 'timelineable')->latest()->chaperone();
     }
 
+    #[Override]
     protected function casts(): array
     {
         return [

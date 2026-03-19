@@ -352,6 +352,17 @@ class TimelineItemTest extends FeatureTestCase
         ]);
     }
 
+    public function testRenderPetitionEventsCreated(): void
+    {
+        $this->assertView(TimelineType::PETITION_EVENTS_CREATED, [
+            'event_types' => [
+                'receipt_of_objection',
+                'primary_decision',
+            ],
+            'count' => 2,
+        ]);
+    }
+
     public function testRenderFallbackOnException(): void
     {
         $timelineable = Petition::factory()->create();

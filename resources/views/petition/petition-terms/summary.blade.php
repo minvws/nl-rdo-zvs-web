@@ -6,17 +6,20 @@
             <h2>{{ __('term.overview') }}</h2>
         </header>
         <dl class="description-list">
-            <div class="description-list__item">
-                <dt>{{ $current_terms->count() === 1 ? __('term.current_term') : __('term.current_terms') }}</dt>
-                @forelse ($current_terms as $current_term)
-                    <dd>{{ __('term.term_type.' . $current_term->type->value) }}</dd>
-                @empty
-                    <dd>
-                        <span class="visually-hidden">{{ __('term.no_records') }}</span>
-                        <span aria-hidden="true">{{ '-' }}</span>
-                    </dd>
-                @endforelse
-            </div>
+            @if ($current_terms !== null)
+                <div class="description-list__item">
+                    <dt>{{ $current_terms->count() === 1 ? __('term.current_term') : __('term.current_terms') }}</dt>
+                    @forelse ($current_terms as $current_term)
+                        <dd>{{ __('term.term_type.' . $current_term->type->value) }}</dd>
+                    @empty
+                        <dd>
+                            <span class="visually-hidden">{{ __('term.no_records') }}</span>
+                            <span aria-hidden="true">{{ '-' }}</span>
+                        </dd>
+                    @endforelse
+                </div>
+            @endif
+
             <div class="description-list__item">
                 <dt>{{ __('term.total_days_of_suspensions') }}</dt>
                 <dd>{{ $total_days_of_suspensions }}</dd>

@@ -14,6 +14,7 @@
             <p>{{ $message }}</p>
 
             <form
+                class="mt-3"
                 method="post"
                 action="{{ $confirmUrl }}">
                 @csrf

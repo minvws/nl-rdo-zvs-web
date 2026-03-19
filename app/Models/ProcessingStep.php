@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -57,6 +58,7 @@ class ProcessingStep extends EloquentModel
         return $this->belongsTo(Decision::class);
     }
 
+    #[Override]
     protected function casts(): array
     {
         return [

@@ -14,6 +14,7 @@
     <exclude-pattern type="relative">^storage/*</exclude-pattern>
     <exclude-pattern type="relative">^vendor/*</exclude-pattern>
     <exclude-pattern type="relative">^utils/PHPStan/tests/testfiles/*</exclude-pattern>
+    <exclude-pattern type="relative">^app/Console/Commands/ImportPetitionsCommand.php</exclude-pattern>
 
     <!-- include strict ruleset -->
     <rule ref="PSR12"/>

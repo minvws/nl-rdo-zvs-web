@@ -6,7 +6,6 @@ namespace App\View\Components;
 
 use App\Services\DerivedState;
 use App\ValueObjects\EventCalendar;
-use App\ValueObjects\EventCalendarDay;
 use App\ValueObjects\WizardEventCollection;
 use Closure;
 use Illuminate\Contracts\View\View;
@@ -29,12 +28,8 @@ class ObjectionEventsCalendar extends Component
 
     public function render(): View|Closure|string
     {
-        $sortedCalendar = $this->calendar->sortBy(static function (EventCalendarDay $day): string {
-            return $day->date->toDateString();
-        });
-
         return view('components.objection-events-calendar', [
-            'calendarItems' => $sortedCalendar,
+            'calendarItems' => $this->calendar,
         ]);
     }
 }

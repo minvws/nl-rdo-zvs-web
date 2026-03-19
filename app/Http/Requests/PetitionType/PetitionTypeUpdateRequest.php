@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\PetitionType;
 
 use App\Http\Requests\FormRequest;
+use Override;
 
 class PetitionTypeUpdateRequest extends FormRequest
 {
@@ -30,6 +31,7 @@ class PetitionTypeUpdateRequest extends FormRequest
         ];
     }
 
+    #[Override]
     protected function prepareForValidation(): void
     {
         $this->merge([

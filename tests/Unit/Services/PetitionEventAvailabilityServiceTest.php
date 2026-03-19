@@ -873,6 +873,57 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $this->assertNotContains(PetitionEventType::FINAL_RESULT, $availableTypes);
     }
 
+    public function testBNTCanBeEnteredAfterIGSForObjection(): void
+    {
+        $currentEvents = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),)
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-01-13'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),)
+            ->add(new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-04-15'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+
+        $this->assertContains(PetitionEventType::HEARING_DATE, $availableTypes);
+        $this->assertContains(PetitionEventType::FINAL_RESULT, $availableTypes);
+        $this->assertContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
+    }
+
+    public function testBNTCanBeEnteredAfterIGSForWoo(): void
+    {
+        $currentEvents = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),)
+            ->add(new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-04-15'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $currentEvents);
+
+        $this->assertContains(PetitionEventType::FINAL_RESULT, $availableTypes);
+        $this->assertContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
+    }
+
     private function createEvent(PetitionEventType $type, string $date = '2025-01-01', ?int $duration = null): PetitionEventData
     {
         return new PetitionEventData(

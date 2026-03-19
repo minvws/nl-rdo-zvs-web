@@ -10,6 +10,7 @@ use App\Models\Concerns\HasTimestamps;
 use Database\Factories\UserGlobalRoleFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Override;
 
 /**
  * @property GlobalRole $role
@@ -24,6 +25,7 @@ class UserGlobalRole extends EloquentModel
 
     protected $table = 'user_global_roles';
 
+    #[Override]
     protected function casts(): array
     {
         return [
