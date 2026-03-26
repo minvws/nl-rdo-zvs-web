@@ -13,7 +13,7 @@ class InitialsTest extends TestCase
     #[DataProvider('initialsDataProvider')]
     public function testGetInitialsReturnsCorrectInitialsForFullName(string $input, string $expectedInitials): void
     {
-        $this->assertEquals($expectedInitials, Str::initials($input));
+        $this->assertEquals($expectedInitials, Str::customInitials($input));
     }
 
     public static function initialsDataProvider(): array

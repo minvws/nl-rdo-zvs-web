@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Petition\WordTemplate;
 
+use PhpOffice\PhpWord\Settings;
 use Ramsey\Uuid\Uuid;
 
 use function sprintf;
@@ -22,6 +23,8 @@ class WordTemplateProcessingService
     public function process(object $wordTemplate, array $replacements): string
     {
         $path = $this->generateTempPath();
+
+        Settings::setOutputEscapingEnabled(true);
 
         $processor = WordTemplateProcessor::create($wordTemplate->path);
         $processor->setValues($replacements);

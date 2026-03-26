@@ -35,8 +35,8 @@ readonly class PetitionQueryBuilder
     public static function make(?Request $request = null): CustomPetitionQueryBuilder
     {
         $builder = QueryBuilder::for(Petition::class, $request)
-            ->allowedFilters(self::createAllowedFilters())
-            ->allowedSorts(self::createAllowedSorts())
+            ->allowedFilters(...self::createAllowedFilters())
+            ->allowedSorts(...self::createAllowedSorts())
             ->defaultSort('-created_at', '-id')
             ->getEloquentBuilder()
             ->with([

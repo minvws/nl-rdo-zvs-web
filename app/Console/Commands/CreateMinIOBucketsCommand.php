@@ -7,6 +7,8 @@ namespace App\Console\Commands;
 use App\Config\Config;
 use Aws\S3\S3Client;
 use Illuminate\Console\Command;
+use Illuminate\Filesystem\AwsS3V3Adapter as LaravelAwsS3V3Adapter;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Throwable;
 
@@ -21,45 +23,39 @@ use function sprintf;
 #[AsCommand(name: 'minio:setup', description: 'Create MinIO buckets for file storage')]
 class CreateMinIOBucketsCommand extends Command
 {
-    public function __construct(private readonly ?S3Client $s3Client = null)
-    {
-        parent::__construct();
-    }
+    private const array DISKS = ['uploads', 'exports'];
 
     public function handle(): int
     {
-        $s3Client = $this->s3Client ?? $this->createS3Client();
-        $bucket = Config::string('filesystems.disks.minio.bucket');
+        foreach (self::DISKS as $diskName) {
+            $bucket = Config::string(sprintf('filesystems.disks.%s.bucket', $diskName));
+            $disk = Storage::disk($diskName);
 
-        try {
-            if ($s3Client->doesBucketExistV2($bucket)) {
-                $this->info(sprintf("Bucket %s already exists.", $bucket));
+            if (!$disk instanceof LaravelAwsS3V3Adapter) {
+                $this->error(sprintf('Disk %s does not expose an S3 client.', $diskName));
 
-                return self::SUCCESS;
+                return self::FAILURE;
             }
 
-            $s3Client->createBucket(['Bucket' => $bucket]);
-            $this->info(sprintf("Bucket %s created successfully.", $bucket));
+            /** @var S3Client $s3Client */
+            $s3Client = $disk->getClient();
 
-            return self::SUCCESS;
-        } catch (Throwable $e) {
-            $this->error(sprintf("Error with bucket %s: %s", $bucket, $e->getMessage()));
+            try {
+                if ($s3Client->doesBucketExistV2($bucket)) {
+                    $this->info(sprintf('Bucket %s already exists.', $bucket));
 
-            return self::FAILURE;
+                    continue;
+                }
+
+                $s3Client->createBucket(['Bucket' => $bucket]);
+                $this->info(sprintf('Bucket %s created successfully.', $bucket));
+            } catch (Throwable $e) {
+                $this->error(sprintf('Error with bucket %s: %s', $bucket, $e->getMessage()));
+
+                return self::FAILURE;
+            }
         }
-    }
 
-    protected function createS3Client(): S3Client
-    {
-        return new S3Client([
-            'version' => 'latest',
-            'region' => Config::string('filesystems.disks.minio.region'),
-            'endpoint' => Config::string('filesystems.disks.minio.endpoint'),
-            'use_path_style_endpoint' => true,
-            'credentials' => [
-                'key' => Config::string('filesystems.disks.minio.key'),
-                'secret' => Config::string('filesystems.disks.minio.secret'),
-            ],
-        ]);
+        return self::SUCCESS;
     }
 }

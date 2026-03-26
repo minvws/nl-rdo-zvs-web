@@ -54,12 +54,12 @@ abstract class PetitionAbstractExcelExport implements WithTitle, WithMapping, Wi
     public function query(): Builder
     {
         return QueryBuilder::for(Petition::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::custom('dateRange', new PetitionStatusHistoryDateRangeFilter())
                     ->default($this->criteria->dateRange),
                 AllowedFilter::custom('petitionType', new PetitionTypeFilter())
                     ->default($this->criteria->petitionType->id),
-            ])
+            )
             ->getEloquentBuilder()
             ->with(['customDates']) // Eager load the custom dates relationship
             ->notArchived()

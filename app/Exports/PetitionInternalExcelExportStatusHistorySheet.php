@@ -70,12 +70,12 @@ class PetitionInternalExcelExportStatusHistorySheet implements WithTitle, FromQu
     public function query(): Builder
     {
         $petitionQuery = QueryBuilder::for(Petition::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::custom('dateRange', new PetitionStatusHistoryDateRangeFilter())
                     ->default($this->criteria->dateRange),
                 AllowedFilter::custom('petitionType', new PetitionTypeFilter())
                     ->default($this->criteria->petitionType->id),
-            ])
+            )
             ->when($this->criteria->petitionCategory instanceof PetitionCategory, function (Builder $query): void {
                 Assert::isInstanceOf($this->criteria->petitionCategory, PetitionCategory::class);
                 $query->where('petition_category_id', $this->criteria->petitionCategory->id);

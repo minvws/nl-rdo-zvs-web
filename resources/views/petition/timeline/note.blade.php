@@ -1,7 +1,7 @@
 <div class="timeline-item timeline-item--note">
     <div class="timeline-item__wrapper">
         <div class="timeline-item__badge">
-            {{ Str::initials($timelineItem->user->name) }}
+            {{ Str::customInitials($timelineItem->user->name) }}
         </div>
         <div class="timeline-item__content">
             <x-timeline.timeline-header>

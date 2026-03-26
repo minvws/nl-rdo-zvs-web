@@ -51,9 +51,6 @@ return [
                 'petition_type_id',
                 'petition_status_id',
                 'department_id',
-                'applicant_id',
-                'representative_id',
-                'institution_id',
                 'date_appealed_decision',
                 'decision_date',
                 'decision_reference',
@@ -418,6 +415,56 @@ return [
                 'petition_id',
                 'querysnapshot_id',
                 'querysnapshot_type',
+                'created_at',
+                'updated_at',
+            ],
+            'filterable_fields' => [
+                'created_at',
+                'updated_at',
+            ],
+        ],
+
+        'contact_petition' => [
+            'table' => 'contact_petition',
+            'fields' => [
+                'id',
+                'contact_id',
+                'petition_id',
+                'role',
+                'reference',
+                'correspondence_preference',
+            ],
+            'filterable_fields' => [],
+        ],
+
+        'custom_petition_properties' => [
+            'table' => 'custom_petition_properties',
+            'fields' => [
+                'id',
+                'petition_type_id',
+                'name',
+                'type',
+                'ordering',
+                'created_at',
+                'updated_at',
+            ],
+            'filterable_fields' => [
+                'created_at',
+                'updated_at',
+            ],
+        ],
+
+        'petition_events' => [
+            'table' => 'petition_events',
+            'fields' => [
+                'id',
+                'petition_id',
+                'type',
+                'date',
+                'duration',
+                'penalties',
+                'suspension_type',
+                'result_type',
                 'created_at',
                 'updated_at',
             ],

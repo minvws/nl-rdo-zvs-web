@@ -5,73 +5,106 @@ declare(strict_types=1);
 namespace Tests\Feature\Commands;
 
 use App\Config\Config;
-use App\Console\Commands\CreateMinIOBucketsCommand;
 use Aws\S3\S3Client;
 use Exception;
-use ReflectionClass;
+use Illuminate\Filesystem\AwsS3V3Adapter;
+use Illuminate\Support\Facades\Storage;
+use stdClass;
 use Tests\Feature\FeatureTestCase;
 
+use function config;
 use function sprintf;
 
 class CreateMinIOBucketsCommandTest extends FeatureTestCase
 {
     public function testCommandCreatesNewBucket(): void
     {
-        $bucketName = Config::string('filesystems.disks.minio.bucket');
+        [$uploadsBucket, $exportsBucket] = $this->configureBuckets();
 
-        $s3Client = $this->mock(S3Client::class);
-        $s3Client->expects('doesBucketExistV2')
-            ->with($bucketName)
-            ->andReturn(false);
+        $uploadsClient = $this->mock(S3Client::class);
+        $exportsClient = $this->mock(S3Client::class);
 
-        $s3Client->expects('createBucket')
-            ->with(['Bucket' => $bucketName])
-            ->andReturn([]);
+        $this->mockS3Disk('uploads', $uploadsClient);
+        $this->mockS3Disk('exports', $exportsClient);
+
+        $uploadsClient->expects('doesBucketExistV2')->with($uploadsBucket)->andReturn(false);
+        $uploadsClient->expects('createBucket')->with(['Bucket' => $uploadsBucket])->andReturn([]);
+
+        $exportsClient->expects('doesBucketExistV2')->with($exportsBucket)->andReturn(false);
+        $exportsClient->expects('createBucket')->with(['Bucket' => $exportsBucket])->andReturn([]);
 
         $this->artisan('minio:setup')
-            ->expectsOutput(sprintf("Bucket %s created successfully.", $bucketName))
+            ->expectsOutput(sprintf('Bucket %s created successfully.', $uploadsBucket))
+            ->expectsOutput(sprintf('Bucket %s created successfully.', $exportsBucket))
             ->assertSuccessful();
     }
 
     public function testCommandHandlesExistingBucket(): void
     {
-        $bucketName = Config::string('filesystems.disks.minio.bucket');
+        [$uploadsBucket, $exportsBucket] = $this->configureBuckets();
 
-        $s3Client = $this->mock(S3Client::class);
-        $s3Client->expects('doesBucketExistV2')
-            ->with($bucketName)
-            ->andReturn(true);
+        $uploadsClient = $this->mock(S3Client::class);
+        $exportsClient = $this->mock(S3Client::class);
+
+        $this->mockS3Disk('uploads', $uploadsClient);
+        $this->mockS3Disk('exports', $exportsClient);
+
+        $uploadsClient->expects('doesBucketExistV2')->with($uploadsBucket)->andReturn(true);
+        $exportsClient->expects('doesBucketExistV2')->with($exportsBucket)->andReturn(true);
 
         $this->artisan('minio:setup')
-            ->expectsOutput(sprintf("Bucket %s already exists.", $bucketName))
+            ->expectsOutput(sprintf('Bucket %s already exists.', $uploadsBucket))
+            ->expectsOutput(sprintf('Bucket %s already exists.', $exportsBucket))
             ->assertSuccessful();
     }
 
     public function testCommandHandlesErrors(): void
     {
-        $bucketName = Config::string('filesystems.disks.minio.bucket');
+        [$uploadsBucket] = $this->configureBuckets();
 
-        $s3Client = $this->mock(S3Client::class);
-        $s3Client->expects('doesBucketExistV2')
-            ->with($bucketName)
+        $uploadsClient = $this->mock(S3Client::class);
+        $this->mockS3Disk('uploads', $uploadsClient);
+
+        $uploadsClient->expects('doesBucketExistV2')
+            ->with($uploadsBucket)
             ->andThrow(new Exception('Connection error'));
 
         $this->artisan('minio:setup')
-            ->expectsOutput(sprintf("Error with bucket %s: Connection error", $bucketName))
+            ->expectsOutput(sprintf('Error with bucket %s: Connection error', $uploadsBucket))
             ->assertFailed();
     }
 
-    public function testCreateS3ClientWithCorrectConfiguration(): void
+    public function testCommandFailsWhenDiskIsNotS3Compatible(): void
     {
-        $command = new CreateMinIOBucketsCommand();
-        $reflection = new ReflectionClass($command);
-        $method = $reflection->getMethod('createS3Client');
-        $method->setAccessible(true);
+        $this->configureBuckets();
 
-        $s3Client = $method->invoke($command);
+        $nonS3Disk = new stdClass();
+        Storage::shouldReceive('disk')->with('uploads')->once()->andReturn($nonS3Disk);
 
-        $this->assertInstanceOf(S3Client::class, $s3Client);
-        $this->assertEquals(Config::string('filesystems.disks.minio.region'), $s3Client->getRegion());
-        $this->assertEquals(Config::string('filesystems.disks.minio.endpoint'), $s3Client->getEndpoint());
+        $this->artisan('minio:setup')
+            ->expectsOutput('Disk uploads does not expose an S3 client.')
+            ->assertFailed();
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function configureBuckets(): array
+    {
+        config()->set('filesystems.disks.uploads.bucket', 'uploads-test-bucket');
+        config()->set('filesystems.disks.exports.bucket', 'exports-test-bucket');
+
+        return [
+            Config::string('filesystems.disks.uploads.bucket'),
+            Config::string('filesystems.disks.exports.bucket'),
+        ];
+    }
+
+    private function mockS3Disk(string $diskName, object $s3Client): void
+    {
+        $disk = $this->mock(AwsS3V3Adapter::class);
+        $disk->expects('getClient')->andReturn($s3Client);
+
+        Storage::shouldReceive('disk')->with($diskName)->once()->andReturn($disk);
     }
 }

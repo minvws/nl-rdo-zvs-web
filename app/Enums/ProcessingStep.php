@@ -19,4 +19,7 @@ enum ProcessingStep: string
     case ASSESSMENT = 'assessment';
     case CHECK = 'check';
     case PUBLISH = 'publish';
+    case ACTUAL_DISCLOSURE = 'actual-disclosure';
+    case POLICY = 'policy';
+    case HITS_ASSESSMENT = 'hits-assessment';
 }

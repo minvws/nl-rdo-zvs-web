@@ -136,7 +136,7 @@ class PetitionTest extends FeatureTestCase
     public function testTermsV2(): void
     {
         $petition = Petition::factory()->create();
-        $this->assertTrue($petition->isTermEngineConverted());
+        $this->assertFalse($petition->isTermEngineConverted());
 
         PetitionTerm::factory()->recycle($petition)->create();
 

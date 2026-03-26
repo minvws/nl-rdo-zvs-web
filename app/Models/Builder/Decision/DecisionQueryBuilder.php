@@ -26,8 +26,8 @@ readonly class DecisionQueryBuilder
     public static function make(?Request $request = null): CustomDecisionQueryBuilder
     {
         $builder = QueryBuilder::for(Decision::class, $request)
-            ->allowedFilters(self::createAllowedFilters())
-            ->allowedSorts(self::createAllowedSorts())
+            ->allowedFilters(...self::createAllowedFilters())
+            ->allowedSorts(...self::createAllowedSorts())
             ->defaultSort('-created_at', '-id')
             ->getEloquentBuilder();
 

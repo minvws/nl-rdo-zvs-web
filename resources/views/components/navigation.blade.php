@@ -81,7 +81,7 @@
                         class="profile-link avatar"
                         :href="route('profile.edit')">
                         <span class="visually-hidden">{{ __('profile.profile_of') }}:</span>
-                        <span aria-hidden="true">{{ Str::initials(Authentication::user()->name) }}</span>
+                        <span aria-hidden="true">{{ Str::customInitials(Authentication::user()->name) }}</span>
                         <span class="visually-hidden">{{ Authentication::user()->name }}</span>
                     </x-nav-link>
                 </li>

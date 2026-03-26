@@ -116,7 +116,7 @@ final class UpdatePetitionTotalsFromEventsActionTest extends FeatureTestCase
     }
 
     #[Test]
-    public function testResetsAllTotalsWhenNoEventsExist(): void
+    public function testDoesNotRunWhenNoEventsExist(): void
     {
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->recycle($department)->create();
@@ -145,14 +145,13 @@ final class UpdatePetitionTotalsFromEventsActionTest extends FeatureTestCase
 
         $petition->refresh();
 
-        $this->assertNull($petition->deadline_at);
-        $this->assertEquals(0, $petition->total_days_suspended);
-        $this->assertEquals(0, $petition->igs_penalty_maximum);
-        $this->assertEquals(0, $petition->bnt_penalty_maximum);
-        $this->assertEquals(0, $petition->igs_penalty_today);
-        $this->assertEquals(0, $petition->bnt_penalty_today);
-        $this->assertEquals(0, $petition->igs_forfeited);
-        $this->assertEquals(0, $petition->bnt_forfeited);
+        // When no events exist, isTermEngineConverted() returns false and the action skips.
+        // Values remain unchanged from what was set before.
+        $this->assertNotNull($petition->deadline_at);
+        $this->assertEquals('2025-03-15', $petition->deadline_at->toDateString());
+        $this->assertEquals(5, $petition->total_days_suspended);
+        $this->assertEquals(1000, $petition->igs_penalty_maximum);
+        $this->assertEquals(500, $petition->bnt_penalty_maximum);
     }
 
     #[Test]

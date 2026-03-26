@@ -107,7 +107,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     }
 
     #[Test]
-    public function testDeletingAllEventsResetsDeadlineToNull(): void
+    public function testDeletingAllEventsDoesNotResetDeadline(): void
     {
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
@@ -139,7 +139,10 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
 
         $petition->refresh();
 
-        $this->assertNull($petition->deadline_at);
+        // When all events are deleted, isTermEngineConverted() returns false and the totals
+        // action skips — deadline remains as previously set.
+        $this->assertNotNull($petition->deadline_at);
+        $this->assertEquals('2025-02-01', $petition->deadline_at->toDateString());
     }
 
     #[Test]
@@ -233,7 +236,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     }
 
     #[Test]
-    public function testDeletingAllEventsResetsAllCachedTotals(): void
+    public function testDeletingAllEventsDoesNotResetCachedTotals(): void
     {
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
@@ -272,14 +275,17 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
 
         $petition->refresh();
 
-        $this->assertNull($petition->deadline_at);
-        $this->assertEquals(0, $petition->total_days_suspended);
-        $this->assertEquals(0, $petition->igs_penalty_today);
-        $this->assertEquals(0, $petition->bnt_penalty_today);
-        $this->assertEquals(0, $petition->igs_forfeited);
-        $this->assertEquals(0, $petition->bnt_forfeited);
-        $this->assertEquals(0, $petition->igs_penalty_maximum);
-        $this->assertEquals(0, $petition->bnt_penalty_maximum);
+        // When all events are deleted, isTermEngineConverted() returns false and the totals
+        // action skips — cached values remain unchanged from what was set before.
+        $this->assertNotNull($petition->deadline_at);
+        $this->assertEquals('2025-03-01', $petition->deadline_at->toDateString());
+        $this->assertEquals(5, $petition->total_days_suspended);
+        $this->assertEquals(100, $petition->igs_penalty_today);
+        $this->assertEquals(50, $petition->bnt_penalty_today);
+        $this->assertEquals(500, $petition->igs_forfeited);
+        $this->assertEquals(250, $petition->bnt_forfeited);
+        $this->assertEquals(1000, $petition->igs_penalty_maximum);
+        $this->assertEquals(500, $petition->bnt_penalty_maximum);
     }
 
     #[Test]

@@ -319,10 +319,10 @@ class PetitionStatusHistoryDateRangeFilterTest extends FeatureTestCase
     private function queryBuilder(DateRange $dateRange): Builder
     {
         return QueryBuilder::for(Petition::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::custom('dateRange', new PetitionStatusHistoryDateRangeFilter())
                     ->default($dateRange),
-            ])
+            )
             ->getEloquentBuilder();
     }
 }

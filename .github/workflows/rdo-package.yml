@@ -5,6 +5,10 @@ on:
     tags:
       - v*
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -60,7 +64,7 @@ jobs:
         run: composer archive --format=tar.gz --dir /tmp --file ${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}
 
       - name: Upload release tar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}
           path: /tmp/${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}.tar.gz

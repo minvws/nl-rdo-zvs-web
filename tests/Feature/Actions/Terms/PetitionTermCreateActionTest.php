@@ -192,6 +192,27 @@ class PetitionTermCreateActionTest extends FeatureTestCase
         ];
     }
 
+    public function testSucceedsWhenTermEngineV2IsDisabled(): void
+    {
+        $this->app['config']->set('app.features.term_engine_v2', false);
+
+        $department = Department::factory()->create();
+        $this->setActiveDepartment($department);
+        $petition = Petition::factory()->recycle($department)->create();
+
+        $startDate = $this->faker->calendarDate();
+
+        $this->getPetitionTermCreateAction()->execute($petition, TermType::FIRST, new User(), [
+            'start_date' => $startDate->format('Y-m-d'),
+            'duration_in_days' => '10',
+        ]);
+
+        $this->assertDatabaseHas(PetitionTerm::class, [
+            'petition_id' => $petition->id,
+            'type' => TermType::FIRST,
+        ]);
+    }
+
     private function getPetitionTermCreateAction(): PetitionTermCreateAction
     {
         return $this->app->get(PetitionTermCreateAction::class);

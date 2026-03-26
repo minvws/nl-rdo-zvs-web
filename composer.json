@@ -16,7 +16,7 @@
         "laravel/framework": "^12.26.3",
         "laravel/prompts": "^0.3.6",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.9",
+        "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.30",
         "maatwebsite/excel": "^3.1",
         "minvws/laravel-logging": "^3.2",
@@ -24,9 +24,9 @@
         "ramsey/uuid": "^4.7",
         "secondnetwork/blade-tabler-icons": "^3.26",
         "spatie/laravel-csp": "^3.0",
-        "spatie/laravel-query-builder": "^6.3",
+        "spatie/laravel-query-builder": "^7.0",
         "spomky-labs/otphp": "^11.2",
-        "webmozart/assert": "^1.11",
+        "webmozart/assert": "^2.1",
         "xenolope/quahog": "^3.0"
     },
     "require-dev": {

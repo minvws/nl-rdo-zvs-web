@@ -19,8 +19,8 @@ readonly class ContactQueryBuilder
     public static function make(?Request $request = null): CustomContactQueryBuilder
     {
         $builder = QueryBuilder::for(Contact::class, $request)
-            ->allowedFilters(self::createAllowedFilters())
-            ->allowedSorts(self::createAllowedSorts())
+            ->allowedFilters(...self::createAllowedFilters())
+            ->allowedSorts(...self::createAllowedSorts())
             ->defaultSort('last_name', 'organisation_name', 'id')
             ->getEloquentBuilder();
 

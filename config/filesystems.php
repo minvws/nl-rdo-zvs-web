@@ -79,9 +79,8 @@ return [
         ],
 
         'uploads' => [
-            'driver' => env('UPLOADS_DRIVER', 's3'),
-            'root' => storage_path('uploads'),
-            'bucket' => env('AWS_BUCKET'),
+            'driver' => 's3',
+            'bucket' => env('UPLOADS_BUCKET', 'uploads'),
             'endpoint' => env('AWS_ENDPOINT'),
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
@@ -93,9 +92,8 @@ return [
         ],
 
         'exports' => [
-            'driver' => env('EXPORTS_DRIVER', 's3'),
-            'root' => storage_path('exports'),
-            'bucket' => env('AWS_BUCKET'),
+            'driver' => 's3',
+            'bucket' => env('EXPORTS_BUCKET', 'exports'),
             'endpoint' => env('AWS_ENDPOINT'),
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),

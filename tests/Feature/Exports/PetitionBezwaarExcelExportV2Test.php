@@ -17,6 +17,7 @@ use App\Models\PetitionType;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\DateRange;
 use Illuminate\Support\Collection;
+use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\FeatureTestCase;
 
@@ -216,6 +217,15 @@ class PetitionBezwaarExcelExportV2Test extends FeatureTestCase
         $petition->setRelation('customPetitionProperties', $properties);
         $petition->setRelation('customDates', collect());
 
-        return $petition;
+        return $this->mockPetitionAsConverted($petition);
+    }
+
+    private function mockPetitionAsConverted(Petition $petition): Petition
+    {
+        return Mockery::mock($petition)
+            ->makePartial()
+            ->shouldReceive('isTermEngineConverted')
+            ->andReturn(true)
+            ->getMock();
     }
 }

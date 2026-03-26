@@ -35,6 +35,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 use Kingmaker\Illuminate\Eloquent\Relations\BelongsToManySelf;
 use Kingmaker\Illuminate\Eloquent\Relations\HasBelongsToManySelfRelation;
 use Override;
@@ -342,7 +343,11 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
             return true;
         }
 
-        return !$this->petitionTerms()->exists();
+        if ($this->petitionTerms()->exists()) {
+            return false;
+        }
+
+        return (bool) Config::get('app.features.term_engine_v2', false);
     }
 
     #[Override]

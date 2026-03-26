@@ -48,7 +48,7 @@ class AppServiceProvider extends ServiceProvider
         Paginator::defaultSimpleView('pagination::simple-default');
 
         $this->registerStringMacro('address', AddressString::class);
-        $this->registerStringMacro('initials', Initials::class);
+        $this->registerStringMacro('customInitials', Initials::class);
 
         Model::shouldBeStrict();
         Model::unguard();

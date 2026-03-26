@@ -3,7 +3,7 @@
 <div class="timeline-item">
     <div class="timeline-item__wrapper">
         <div class="timeline-item__badge">
-            {{ Str::initials(Authentication::user()->name) }}
+            {{ Str::customInitials(Authentication::user()->name) }}
         </div>
         <div class="timeline-item__content">
             <div class="timeline-item__note">
