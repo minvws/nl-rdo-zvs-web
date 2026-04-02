@@ -16,7 +16,7 @@ class PetitionCollectionTest extends FeatureTestCase
         $petition1 = Petition::factory()->create();
         $petition2 = Petition::factory()->create();
 
-        $petitions = Petition::all();
+        $petitions = Petition::orderBy('id')->get();
 
         $this->assertEquals(sprintf('%s, %s', $petition1->number, $petition2->number), $petitions->toString());
     }

@@ -10,6 +10,8 @@ return [
     'details' => 'Gebeurtenis details',
     'suspension_type' => 'Type opschorting',
     'result_type' => 'Uitkomsttype',
+    'result_type_optgroup_with' => 'Met besluit',
+    'result_type_optgroup_without' => 'Zonder besluit',
 
     'date' => [
         'actual_disclosure' => 'Datum verstrekking',

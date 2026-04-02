@@ -2,6 +2,7 @@
 
 return [
     'final_decision' => 'Finaal besluit',
+    'partial_decision' => 'Deelbesluit',
     'withdrawn' => 'Ingetrokken',
     'forwarded' => 'Doorgezonden',
     'rejected' => 'Afgewezen',

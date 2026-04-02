@@ -46,7 +46,7 @@
                         <x-input-label
                             for="date"
                             :required="true"
-                            :content="__('petition_event.date.'. ($selectedType->value ?? 'default') )" />
+                            :content="__('petition_event.default.label.'. $selectedType->value )" />
                         <x-input-error
                             id="date-error"
                             :messages="$errors->get('date')" />
@@ -102,13 +102,18 @@
                                 class="form-control @error('result_type') input-error @enderror"
                                 aria-describedby="result_type-error"
                                 required>
-                                <option value="">{{ __('general.select') }}</option>
-                                @foreach (ResultType::getForPetitionType($petition->petitionType->type) as $type)
-                                    <option
-                                        value="{{ $type->value }}"
-                                        @selected(old('result_type', $config['result_type']->value ?? null) === $type->value)>
-                                        {{ $type->label() }}
-                                    </option>
+                                @foreach (ResultType::getGroupedForPetitionType($petition->petitionType->type) as $group => $types)
+                                    @if (count($types) > 0)
+                                        <optgroup label="{{ __('petition_event.result_type_optgroup_' . $group) }}">
+                                            @foreach ($types as $type)
+                                                <option
+                                                    value="{{ $type->value }}"
+                                                    @selected(old('result_type', $config['result_type']->value ?? null) === $type->value)>
+                                                    {{ $type->label() }}
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
                                 @endforeach
                             </select>
                         </div>
@@ -119,7 +124,7 @@
                             <x-input-label
                                 for="duration"
                                 required
-                                :content="__('petition_event.duration.'. ($selectedType->value ?? 'default') )" />
+                                :content="__('petition_event.default.label.'. $selectedType->value )" />
                             <x-input-error
                                 id="duration-error"
                                 :messages="$errors->get('duration')" />

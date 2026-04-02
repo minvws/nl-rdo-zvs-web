@@ -125,7 +125,7 @@ Nieuwe Zaak Voor Team C Aanmaken Met Ontvangst Bezwaar Binnen De Bezwaarperiode
     Check For Notification    Opgeslagen
 
     Take Screenshot    fullPage=True
-    ${table}    Get Element    h2 >> text=Gebeurtenissen en termijnen kalender >> .. >> table
+    ${table}    Get Element    h2 >> text=Termijnen >> .. >> table
     ${objection_period_start_date}    Extract And Convert Table Date    ${table}    "Startdatum"    1
     ${diff}    Subtract Date From Date
     ...    ${objection_period_start_date}
@@ -161,7 +161,7 @@ Nieuwe Zaak Voor Team C Aanmaken Met Ontvangst Bezwaar Buiten De Bezwaarperiode
     Check For Notification    Opgeslagen
 
     Take Screenshot    fullPage=True
-    ${table}    Get Element    h2 >> text=Gebeurtenissen en termijnen kalender >> .. >> table
+    ${table}    Get Element    h2 >> text=Termijnen >> .. >> table
     ${objection_period_start_date}    Extract And Convert Table Date    ${table}    "Startdatum"    1
     ${diff}    Subtract Date From Date
     ...    ${objection_period_start_date}

@@ -26,6 +26,7 @@ return [
     'start_date' => 'Startdatum',
     'end_date' => 'Einddatum',
     'date_of_message' => 'Ontvangstdatum',
+    'date_appealed_decision' => 'Datum besluit waartegen bezwaar wordt gemaakt',
     'no_records' => 'Er zijn nog geen termijnen ingevoerd.',
     'manage_terms' => 'Beheer gebeurtenissen en termijnen',
     'delete_last' => 'Verwijder laatste stap',

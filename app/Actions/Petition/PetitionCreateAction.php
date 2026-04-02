@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Petition;
 
 use App\Actions\Petition\PetitionEventCreation\PetitionEventCreationStrategyResolver;
+use App\Actions\Petition\TermCreation\TermCreationStrategyResolver;
 use App\Enums\TimelineType;
 use App\Models\Department;
 use App\Models\Petition;
@@ -24,6 +25,7 @@ readonly class PetitionCreateAction
         private PetitionNumberGeneratorInterface $petitionNumberGenerator,
         private DatabaseManager $databaseManager,
         private PetitionEventCreationStrategyResolver $petitionEventCreationStrategyResolver,
+        private TermCreationStrategyResolver $termCreationStrategyResolver,
     ) {
     }
 
@@ -52,6 +54,8 @@ readonly class PetitionCreateAction
 
                 if ($petition->isTermEngineConverted()) {
                     $this->createPetitionEvents($petition, $attributes, $user);
+                } else {
+                    $this->createTerms($petition, $attributes, $user);
                 }
 
                 $petition->timelineItems()->create([
@@ -83,6 +87,17 @@ readonly class PetitionCreateAction
     {
         $strategy = $this->petitionEventCreationStrategyResolver->resolve($petition->petitionType->type);
         $strategy->create($petition, $attributes, $user);
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     *
+     * @throws Throwable
+     */
+    private function createTerms(Petition $petition, array $attributes, User $user): void
+    {
+        $strategy = $this->termCreationStrategyResolver->resolve($petition->petitionType->type);
+        $strategy->createTerms($petition, $attributes, $user);
     }
 
     private function createPetitionStatusHistory(Petition $petition, User $user): void
