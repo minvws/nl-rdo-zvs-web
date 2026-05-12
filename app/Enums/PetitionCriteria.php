@@ -10,6 +10,7 @@ enum PetitionCriteria: string
     case ARCHIVE = 'archive';
     case ASSIGNED_USER = 'assigned_user';
     case CATEGORY = 'category';
+    case CUSTOM_PROPERTY = 'custom_property';
     case DEADLINE_AT = 'deadline_at';
     case NAME = 'name';
     case NUMBER = 'number';

@@ -417,7 +417,7 @@ class DerivedStateTest extends FeatureTestCase
         $this->assertEquals('2025-01-27', $lastDay->date->toDateString());
     }
 
-    #[Test]
+     #[Test]
     public function testFinalDecisionWithPenaltiesStaysActiveOnLastDay(): void
     {
         $events = collect([
@@ -459,5 +459,58 @@ class DerivedStateTest extends FeatureTestCase
         $this->assertEquals('2026-03-23', $lastDay->date->toDateString());
         $this->assertEquals(TermType::PENALTY_PERIOD->value, $lastDay->applicableTerm);
         $this->assertEquals(23, $lastDay->penaltyTodayInEuros);
+    }
+
+     #[Test]
+    public function testDeadlineDateReturnsNullWhenFinalResultExists(): void
+    {
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-13'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-02-18'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::FINAL_RESULT,
+                date: CalendarDate::create('2025-04-05'),
+                createdAt: CarbonImmutable::now(),
+            ),
+        ]);
+
+        $derivedState = new DerivedState()->addEvents($events)->buildCalendar();
+
+        $this->assertNull($derivedState->deadlineDate());
+    }
+
+     #[Test]
+    public function testDeadlineDateReturnsDateWhenNoFinalResult(): void
+    {
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-13'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-02-18'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+        ]);
+
+        $derivedState = new DerivedState()->addEvents($events)->buildCalendar();
+
+        $deadlineDate = $derivedState->deadlineDate();
+        $this->assertNotNull($deadlineDate);
+        $this->assertEquals('2025-04-07', $deadlineDate->toDateString());
     }
 }

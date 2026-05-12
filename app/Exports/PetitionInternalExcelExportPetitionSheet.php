@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Exports;
 
 use App\Enums\CustomDateLabel;
+use App\Enums\PetitionEventType;
+use App\Enums\ResultType;
 use App\Facades\DisplayDate;
 use App\Models\Decision;
 use App\Models\Petition;
@@ -46,12 +48,13 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
             $this->formatCustomDateValueByLabel($row->customDates, CustomDateLabel::DATE_DECISION_ON_APPEAL),
             $row->daysPending,
             __('petition_status.' . $row->petitionStatus->status_group->value),
+            $row->petitionStatus->status,
             $this->formatMatchingCustomOptions($row->customPetitionProperties, [
                 'Binnen wettelijke termijn' => 'Binnen wettelijke termijn',
                 'Binnen afgesproken termijn' => 'Binnen afgesproken termijn',
                 'Buiten wettelijke/afgesproken termijn' => 'Buiten wettelijke/afgesproken termijn',
             ]),
-            $this->formatMatchingCustomOptions($row->customPetitionProperties, ['Doorzending' => 'Doorzending']),
+            $this->forwarding($row),
             $this->formatMatchingCustomOptions($row->customPetitionProperties, [
                 'Herziening – herstel bezwaar' => 'Herziening - herstel bezwaar', // watch it: dashes are different
                 'Herziening – herstel primair besluit' => 'Herziening - herstel primair besluit', // watch it: dashes are different
@@ -103,6 +106,7 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
             __('exports.date_decision'),
             __('petition.days_in_progress'),
             __('petition_status.status'),
+            __('petition.substatus'),
             __('exports.within_outside_term'),
             __('exports.forwarding'),
             __('exports.withdrawal'),
@@ -121,5 +125,19 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
         $latestDecision = $decisions->sortByDesc('date')->first();
 
         return $latestDecision?->date?->format('Y-m-d');
+    }
+
+    private function forwarding(Petition $row): string
+    {
+        if ($row->isTermEngineConverted()) {
+            $forwardedEvent = $row->petitionEvents
+                ->where('type', PetitionEventType::FINAL_RESULT)
+                ->where('result_type', ResultType::FORWARDED)
+                ->first();
+
+            return $forwardedEvent ? 'Doorzending' : '';
+        }
+
+        return $this->formatMatchingCustomOptions($row->customPetitionProperties, ['Doorzending' => 'Doorzending']);
     }
 }

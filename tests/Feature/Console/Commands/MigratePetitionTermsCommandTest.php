@@ -29,7 +29,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
     #[Test]
     public function testCommandFailsWhenNoZaaknummerProvided(): void
     {
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => ''])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => ''])
             ->expectsOutput('U dient een zaaknummer op te geven')
             ->assertFailed();
     }
@@ -37,7 +37,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
     #[Test]
     public function testCommandFailsWhenPetitionNotFound(): void
     {
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'NIET-BESTAAND'])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'NIET-BESTAAND'])
             ->expectsOutput('Petitie met zaaknummer "NIET-BESTAAND" niet gevonden')
             ->assertFailed();
     }
@@ -57,7 +57,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'number' => 'BEROEP-123',
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'BEROEP-123'])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'BEROEP-123'])
             ->expectsOutput('Deze zaak BEROEP-123 is van het type beroep en heeft geen termijnen')
             ->assertFailed();
     }
@@ -75,7 +75,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'start_date' => CalendarDate::create('2024-01-01'),
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => $caseNumber])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => $caseNumber])
             ->expectsOutput($expectedMessage)
             ->assertFailed();
     }
@@ -101,7 +101,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'petition_id' => $petition->id,
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'BEZWAAR-004'])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'BEZWAAR-004'])
             ->expectsOutput('Petitie heeft al 3 events. Gebruik --overwrite om deze opnieuw te schrijven.')
             ->assertFailed();
     }
@@ -118,7 +118,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'duration_in_days' => 42,
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => $petition->number])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => $petition->number])
             ->expectsOutput('Dry-run voltooid. Geen wijzigingen opgeslagen.')
             ->assertSuccessful();
 
@@ -144,7 +144,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'duration_in_days' => 14,
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'BEZWAAR-006', '--commit' => true])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'BEZWAAR-006', '--commit' => true])
             ->expectsOutput('Petition terms succesvol gemigreerd naar events.')
             ->assertSuccessful();
 
@@ -220,7 +220,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'duration_in_days' => 21,
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'BEZWAAR-007', '--commit' => true])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'BEZWAAR-007', '--commit' => true])
             ->assertSuccessful();
 
         $events = PetitionEvent::query()
@@ -281,7 +281,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'duration_in_days' => 14,
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'WOO-001', '--commit' => true])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'WOO-001', '--commit' => true])
             ->assertSuccessful();
 
         $events = PetitionEvent::query()
@@ -331,7 +331,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'date' => CalendarDate::create('2024-07-01'),
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'BEZWAAR-008', '--commit' => true])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'BEZWAAR-008', '--commit' => true])
             ->assertSuccessful();
 
         $events = PetitionEvent::query()
@@ -374,7 +374,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'date' => CalendarDate::create('2024-05-20'),
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'WOO-002', '--commit' => true])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'WOO-002', '--commit' => true])
             ->expectsOutputToContain('Geen event mapping gevonden voor custom date label "date_settlement_without_decision"')
             ->assertSuccessful();
 
@@ -407,7 +407,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'date' => CalendarDate::create('2024-05-20'),
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'BEZWAAR-009', '--commit' => true])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'BEZWAAR-009', '--commit' => true])
             ->assertSuccessful();
 
         $events = PetitionEvent::query()
@@ -434,7 +434,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'duration_in_days' => 42,
         ]);
 
-        $this->artisan('app:migrate-petition-terms', [
+        $this->artisan('petition:migrate-terms', [
             'zaaknummer' => 'BEZWAAR-010',
             '--commit' => true,
             '--overwrite' => true,
@@ -461,7 +461,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'duration_in_days' => 30,
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'BEZWAAR-011', '--commit' => true])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'BEZWAAR-011', '--commit' => true])
             ->expectsOutputToContain('Geen event type gevonden voor term type "decision_period"')
             ->assertSuccessful();
 
@@ -490,7 +490,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
             'date' => CalendarDate::create('2024-05-20'),
         ]);
 
-        $this->artisan('app:migrate-petition-terms', ['zaaknummer' => 'BEZWAAR-012', '--commit' => true])
+        $this->artisan('petition:migrate-terms', ['zaaknummer' => 'BEZWAAR-012', '--commit' => true])
             ->assertSuccessful();
 
         $events = PetitionEvent::query()

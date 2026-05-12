@@ -19,11 +19,17 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
      */
     public function generate(Collection $events, EventCalendar $calendar): void
     {
-        $igsEvents = $events->filter(
-            static fn(PetitionEventData $petitionEventData): bool => $petitionEventData->type === PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
-        );
+        $withdrawalCount = $events->filter(
+            static fn(PetitionEventData $event): bool => $event->type === PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+        )->count();
 
-        foreach ($igsEvents as $igsEvent) {
+        $activeIGSEvents = $events->filter(
+            static fn(PetitionEventData $event): bool => $event->type === PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+        )->sortBy(
+            static fn(PetitionEventData $event): string => $event->createdAt->toDateTimeString(),
+        )->skip($withdrawalCount)->values();
+
+        foreach ($activeIGSEvents as $igsEvent) {
             $this->processIGSEvent($igsEvent, $calendar);
         }
     }

@@ -27,6 +27,9 @@ return [
     'assigned_to' => 'Toegewezen aan',
     'confirm_delete' => 'Weet u zeker dat u deze processtap wilt verwijderen?',
 
+    'move_up' => 'Omhoog verplaatsen',
+    'move_down' => 'Omlaag verplaatsen',
+
     'intake' => 'Intake',
     'search-question' => 'Zoekvraag',
     'document-reception' => 'Verzamelen en ontvangst documenten',

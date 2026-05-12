@@ -1,10 +1,12 @@
 {
     "name": "minvws/nl-rdo-zvs-web-private",
-    "type": "project",
     "description": "minvws/nl-rdo-zvs-web-private",
-    "keywords": ["minvws", "zaakvolgsysteem"],
     "license": "MIT",
-
+    "type": "project",
+    "keywords": [
+        "minvws",
+        "zaakvolgsysteem"
+    ],
     "require": {
         "php": "^8.4",
         "ext-pdo": "*",
@@ -13,13 +15,13 @@
         "bacon/bacon-qr-code": "^3.0",
         "clue/socket-raw": "^1.6",
         "kingmaker/laravel-many-to-many-self-relationship": "^2.1",
-        "laravel/framework": "^12.26.3",
+        "laravel/framework": "^13.4.0",
         "laravel/prompts": "^0.3.6",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.30",
         "maatwebsite/excel": "^3.1",
-        "minvws/laravel-logging": "^3.2",
+        "minvws/laravel-logging": "^4.0",
         "phpoffice/phpword": "^1.3",
         "ramsey/uuid": "^4.7",
         "secondnetwork/blade-tabler-icons": "^3.26",
@@ -41,116 +43,36 @@
         "laravel/telescope": "^5.9",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.0",
+        "pdepend/pdepend": "3.x-dev#e2be111bb7e474bdc882d0a46b666e10a9528f4d",
         "pestphp/pest": "^4.0",
         "phpmd/phpmd": "3.x-dev@dev",
-        "pdepend/pdepend": "3.x-dev#e2be111bb7e474bdc882d0a46b666e10a9528f4d",
         "phpstan/extension-installer": "^1.4.3",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "rector/rector": "^2.1",
         "slevomat/coding-standard": "^8.15",
-        "squizlabs/php_codesniffer": "^4.0",
-        "tomasvotruba/bladestan": "^0.11.0"
+        "squizlabs/php_codesniffer": "^4.0"
     },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
     "autoload": {
-        "files": [
-            "app/helpers.php"
-        ],
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/",
             "Utils\\PHPStan\\": "utils/PHPStan/src",
-            "Utils\\Rector\\": "utils/rector",
-            "Utils\\PHPStan\\Tests\\": "utils/PHPStan/tests"
+            "Utils\\PHPStan\\Tests\\": "utils/PHPStan/tests",
+            "Utils\\Rector\\": "utils/rector"
         }
     },
-    "scripts": {
-        "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices",
-        "quality": [
-            "@prettier",
-            "@phpcs",
-            "@rector",
-            "@phpmd",
-            "@phpstan",
-            "@build",
-            "@test"
-        ],
-        "post-autoload-dump": [
-            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi",
-            "@php artisan optimize:clear"
-        ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
-        ],
-        "prettier": "npx prettier -c --config .prettierrc.json resources/views/",
-        "prettier-fix": "npx prettier -c --config .prettierrc.json --write resources/views/",
-        "phpcbf": "vendor/bin/phpcbf -n",
-        "phpcs": "vendor/bin/phpcs -n",
-        "php-cs-fixer": "vendor/bin/php-cs-fixer fix",
-        "rector": "vendor/bin/rector -n",
-        "rector-fix": "vendor/bin/rector process",
-        "phpmd": "vendor/bin/phpmd app github ./phpmd.xml",
-        "phpmd-baseline": "vendor/bin/phpmd app github ./phpmd.xml --generate-baseline",
-        "phpstan": "vendor/bin/phpstan analyze --error-format=blade --memory-limit=-1",
-        "phpstan-clear-cache": [
-            "php artisan optimize:clear",
-            "rm -rf /tmp/phpstan"
-        ],
-        "phpstan-reset": [
-            "@phpstan-clear-cache",
-            "@phpstan"
-        ],
-        "phpstan-baseline": "vendor/bin/phpstan analyze --error-format=blade --memory-limit=-1 --generate-baseline",
-        "reset": [
-            "composer install",
-            "npm i",
-            "@build",
-            "@reset-db",
-            "@phpstan-clear-cache"
-        ],
-        "reset-db": "php artisan migrate:fresh --seed",
-        "reset-test-db": [
-            "DB_DATABASE=testing php artisan db:wipe",
-            "DB_DATABASE=testing php artisan migrate"
-        ],
-        "build": "npm run build",
-        "test": [
-            "Composer\\Config::disableProcessTimeout",
-            "php artisan test --parallel --compact --coverage --min=100"
-        ],
-        "test-reset": "php artisan test --parallel --coverage --min=100 --recreate-databases",
-        "dev-test": "php artisan test --parallel --stop-on-defect"
-    },
-    "extra": {
-        "laravel": {
-            "dont-discover": [
-                "laravel/telescope"
-            ]
-        },
-        "aws/aws-sdk-php": [
-            "S3"
-        ]
-    },
-    "config": {
-        "optimize-autoloader": true,
-        "preferred-install": "dist",
-        "sort-packages": true,
-        "allow-plugins": {
-            "php-http/discovery": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true,
-            "phpstan/extension-installer": true,
-            "pestphp/pest-plugin": true
-        }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true,
     "archive": {
         "exclude": [
             "*",
@@ -171,5 +93,88 @@
             "!/.db_requirements",
             "!/private/word_templates"
         ]
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true,
+            "phpstan/extension-installer": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "extra": {
+        "aws/aws-sdk-php": [
+            "S3"
+        ],
+        "laravel": {
+            "dont-discover": [
+                "laravel/telescope"
+            ]
+        }
+    },
+    "scripts": {
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices",
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi",
+            "@php artisan optimize:clear"
+        ],
+        "build": "npm run build",
+        "dev-test": "php artisan test --parallel --stop-on-defect",
+        "php-cs-fixer": "vendor/bin/php-cs-fixer fix",
+        "phpcbf": "vendor/bin/phpcbf -n",
+        "phpcs": "vendor/bin/phpcs -n",
+        "phpmd": "vendor/bin/phpmd app github ./phpmd.xml",
+        "phpmd-baseline": "vendor/bin/phpmd app github ./phpmd.xml --generate-baseline",
+        "phpstan": "vendor/bin/phpstan analyze --error-format=github --memory-limit=-1",
+        "phpstan-baseline": "vendor/bin/phpstan analyze --error-format=github --memory-limit=-1 --generate-baseline",
+        "phpstan-clear-cache": [
+            "php artisan optimize:clear",
+            "rm -rf /tmp/phpstan"
+        ],
+        "phpstan-reset": [
+            "@phpstan-clear-cache",
+            "@phpstan"
+        ],
+        "prettier": "npx prettier -c --config .prettierrc.json resources/views/",
+        "prettier-fix": "npx prettier -c --config .prettierrc.json --write resources/views/",
+        "quality": [
+            "@prettier",
+            "@phpcs",
+            "@rector",
+            "@phpstan",
+            "@build",
+            "@test"
+        ],
+        "fix": [
+            "@prettier-fix",
+            "@phpcbf",
+            "@rector-fix"
+        ],
+        "rector": "vendor/bin/rector -n",
+        "rector-fix": "vendor/bin/rector process",
+        "reset": [
+            "composer install",
+            "npm i",
+            "@build",
+            "@reset-db",
+            "@phpstan-clear-cache"
+        ],
+        "reset-db": "php artisan migrate:fresh --seed",
+        "reset-test-db": [
+            "DB_DATABASE=testing php artisan db:wipe",
+            "DB_DATABASE=testing php artisan migrate"
+        ],
+        "test": [
+            "Composer\\Config::disableProcessTimeout",
+            "php artisan test --parallel --compact --coverage --min=100"
+        ],
+        "test-reset": "php artisan test --parallel --coverage --min=100 --recreate-databases"
     }
 }

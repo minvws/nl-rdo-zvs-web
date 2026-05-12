@@ -10,7 +10,6 @@ use App\Enums\TimelineType;
 use App\Models\Decision;
 use App\Models\Department;
 use App\Models\Petition;
-use App\Models\ProcessingStep;
 use App\Models\User;
 use Illuminate\Database\DatabaseManager;
 use Throwable;
@@ -51,10 +50,13 @@ readonly class DecisionCreateAction
             if ($this->departmentConfigurationService->createProcessingStepsOnDecisionCreation($decision->department, $decision->type)) {
                 $this->departmentConfigurationService
                     ->processingStepOptions($decision->department, $decision->type)
-                    ->each(static fn (string $option): ProcessingStep => $decision->processingSteps()->create([
-                        'name' => $option,
-                        'status' => ProcessingStepStatus::DRAFT,
-                    ]));
+                    ->values()->each(static function (string $option, int $i) use ($decision): void {
+                        $decision->processingSteps()->create([
+                            'name' => $option,
+                            'status' => ProcessingStepStatus::DRAFT,
+                            'ordering' => $i,
+                        ]);
+                    });
             }
 
             return $decision;

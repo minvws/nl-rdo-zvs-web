@@ -3,6 +3,7 @@
 @use(App\Enums\OptionalFormFieldSetting)
 
 @use(App\Enums\SuspensionType)
+@use(App\Enums\HearingForm)
 @use(App\Enums\ResultType)
 
 @php
@@ -119,6 +120,32 @@
                         </div>
                     @endif
 
+                    @if ($selectedType->hasHearingForm())
+                        <div class="form-input-group">
+                            <x-input-label
+                                for="hearing_form"
+                                required
+                                :content="__('petition_event.hearing_form')" />
+                            <x-input-error
+                                id="hearing_form-error"
+                                :messages="$errors->get('hearing_form')" />
+                            <select
+                                id="hearing_form"
+                                name="hearing_form"
+                                class="form-control @error('hearing_form') input-error @enderror"
+                                aria-describedby="hearing_form-error"
+                                required>
+                                @foreach (HearingForm::cases() as $form)
+                                    <option
+                                        value="{{ $form->value }}"
+                                        @selected(old('hearing_form', $config['hearing_form']->value ?? null) === $form->value)>
+                                        {{ $form->label() }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
                     @if ($selectedType->hasDuration())
                         <div class="form-input-group">
                             <x-input-label
@@ -139,7 +166,7 @@
                         </div>
                     @endif
 
-                    @if ($selectedType->hasPenalties())
+                    @if ($selectedType->hasPenalties($petition->petitionType->type))
                         <fieldset class="form-group">
                             <legend>Boetes (max. 3) - vul alleen in wat nodig is</legend>
 

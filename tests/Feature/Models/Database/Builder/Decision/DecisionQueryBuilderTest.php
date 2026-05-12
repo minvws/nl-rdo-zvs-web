@@ -72,7 +72,7 @@ class DecisionQueryBuilderTest extends FeatureTestCase
         $request = new Request(['sort' => DecisionCriteria::REFERENCE->value]);
         $results = DecisionQueryBuilder::make($request)->get();
 
-        $this->assertEquals('REF-2025-001', $results->first()->reference);
+        $this->assertEquals('ref-2025-001', $results->first()->reference);
     }
 
     #[Test]

@@ -14,7 +14,7 @@ class ViewFactoryServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->when(WordTemplateViewFactory::class)
-            ->needs('$templates')
-            ->giveConfig('word_templates.templates');
+            ->needs('$departments')
+            ->giveConfig('word_templates.departments');
     }
 }

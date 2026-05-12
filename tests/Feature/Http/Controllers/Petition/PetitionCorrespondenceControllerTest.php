@@ -48,7 +48,7 @@ class PetitionCorrespondenceControllerTest extends FeatureTestCase
             ->recycle($department)
             ->create();
 
-        ConfigHelper::set('word_templates.templates', []);
+        ConfigHelper::set('word_templates.departments', []);
 
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
@@ -272,17 +272,20 @@ class PetitionCorrespondenceControllerTest extends FeatureTestCase
         $wordTemplateId = $this->faker->randomElement(WordTemplateId::cases());
         $disk = 'word_templates';
 
-        ConfigHelper::set($disk, [
+        $department = Department::factory()->create();
+
+        ConfigHelper::set('word_templates', [
             'filesystem_disk' => $disk,
-            'templates' => [
-                $wordTemplateId->value => ['filename' => $filename],
+            'departments' => [
+                $department->config_key => [
+                    $wordTemplateId->value => ['filename' => $filename],
+                ],
             ],
         ]);
 
         Storage::fake($disk);
         Storage::disk($disk)->put($filename, $this->faker->word());
 
-        $department = Department::factory()->create();
         $petition = Petition::factory()
             ->recycle($department)
             ->create();
@@ -317,6 +320,35 @@ class PetitionCorrespondenceControllerTest extends FeatureTestCase
     }
 
     #[Test]
+    public function testDownloadWhenTemplateNotInDepartment(): void
+    {
+        $wordTemplateId = $this->faker->randomElement(WordTemplateId::cases());
+        $department = Department::factory()->create();
+
+        ConfigHelper::set('word_templates', [
+            'filesystem_disk' => 'word_templates',
+            'departments' => [],
+        ]);
+
+        $petition = Petition::factory()
+            ->recycle($department)
+            ->create();
+
+        $authUser = User::factory()->withPermissionsAndDepartment(
+            $department,
+            Permission::PETITION_WRITE,
+            Permission::PETITION_READ,
+        )->fullyVerified()->create();
+        $this->beUser($authUser, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_CORRESPONDENCE_WORD_TEMPLATE_DOWNLOAD, [
+                'department' => $department,
+                'petition' => $petition,
+                'word_template_id' => $wordTemplateId,
+            ])
+            ->assertNotFound();
+    }
+
+    #[Test]
     public function testDownloadWhenPetitonNotFound(): void
     {
         $department = Department::factory()->create();
@@ -338,7 +370,18 @@ class PetitionCorrespondenceControllerTest extends FeatureTestCase
     #[Test]
     public function testDownloadWhenWordTemplateNotFound(): void
     {
+        $wordTemplateId = $this->faker->randomElement(WordTemplateId::cases());
         $department = Department::factory()->create();
+
+        ConfigHelper::set('word_templates', [
+            'filesystem_disk' => 'word_templates',
+            'departments' => [
+                $department->config_key => [
+                    $wordTemplateId->value => ['filename' => $this->faker->word()],
+                ],
+            ],
+        ]);
+
         $petition = Petition::factory()
             ->recycle($department)
             ->create();
@@ -358,7 +401,7 @@ class PetitionCorrespondenceControllerTest extends FeatureTestCase
             ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_CORRESPONDENCE_WORD_TEMPLATE_DOWNLOAD, [
                 'department' => $department,
                 'petition' => $petition,
-                'word_template_id' => $this->faker->randomElement(WordTemplateId::cases()),
+                'word_template_id' => $wordTemplateId,
             ])
             ->assertNotFound();
     }
@@ -366,7 +409,18 @@ class PetitionCorrespondenceControllerTest extends FeatureTestCase
     #[Test]
     public function testDownloadWhenWordTemplateProcessFails(): void
     {
+        $wordTemplateId = $this->faker->randomElement(WordTemplateId::cases());
         $department = Department::factory()->create();
+
+        ConfigHelper::set('word_templates', [
+            'filesystem_disk' => 'word_templates',
+            'departments' => [
+                $department->config_key => [
+                    $wordTemplateId->value => ['filename' => $this->faker->word()],
+                ],
+            ],
+        ]);
+
         $petition = Petition::factory()
             ->recycle($department)
             ->create();
@@ -395,7 +449,7 @@ class PetitionCorrespondenceControllerTest extends FeatureTestCase
             ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_CORRESPONDENCE_WORD_TEMPLATE_DOWNLOAD, [
                 'department' => $department,
                 'petition' => $petition,
-                'word_template_id' => $this->faker->randomElement(WordTemplateId::cases()),
+                'word_template_id' => $wordTemplateId,
             ])
             ->assertNotFound();
     }

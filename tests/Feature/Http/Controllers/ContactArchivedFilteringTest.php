@@ -34,8 +34,8 @@ class ContactArchivedFilteringTest extends FeatureTestCase
             ->getByRoute(RouteName::DEPARTMENTS_CONTACTS_INDEX, ['department' => $department]);
 
         $response->assertOk();
-        $response->assertSee($nonArchivedContact->last_name);
-        $response->assertDontSee($archivedContact->last_name);
+        $response->assertSee($nonArchivedContact->id->toString());
+        $response->assertDontSee($archivedContact->id->toString());
     }
 
     public function testApiContactIndexShowsAllContacts(): void
@@ -84,7 +84,7 @@ class ContactArchivedFilteringTest extends FeatureTestCase
             ]);
 
         $response->assertOk();
-        $response->assertSee($nonArchivedContact->last_name);
-        $response->assertDontSee($archivedContact->last_name);
+        $response->assertSee($nonArchivedContact->id->toString());
+        $response->assertDontSee($archivedContact->id->toString());
     }
 }

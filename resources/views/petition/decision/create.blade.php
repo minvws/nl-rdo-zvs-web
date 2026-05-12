@@ -32,10 +32,15 @@
             <x-input-label
                 for="reference"
                 :content="__('decision.reference')" />
+            <x-input-error
+                id="reference-error"
+                :messages="$errors->get('reference')" />
             <x-text-input
                 id="reference"
                 class="form-control"
-                name="reference" />
+                :hasError="$errors->has('reference')"
+                name="reference"
+                aria-describedby="reference-error" />
         </div>
         <div class="form-group">
             <x-input-label

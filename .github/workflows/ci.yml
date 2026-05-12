@@ -61,7 +61,7 @@ jobs:
       - name: Install PHP
         uses: shivammathur/setup-php@master
         with:
-          php-version: 8.4
+          php-version: 8.5
           extensions: pgsql
           coverage: pcov
 
@@ -99,7 +99,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p reports
-          vendor/bin/phpstan analyse --error-format=blade --no-ansi | tee reports/phpstan.json
+          vendor/bin/phpstan analyse --error-format=github --no-ansi | tee reports/phpstan.json
 
       - name: Phpunit
         run: php artisan test  --compact --coverage --min=100 --log-junit=reports/report-phpunit.xml --coverage-clover=reports/coverage-phpunit.xml

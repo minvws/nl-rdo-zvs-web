@@ -71,9 +71,12 @@ class CspPolicyTest extends FeatureTestCase
             ->andReturn(true);
 
         /** @var Vite&MockInterface $vite */
-        $vite = $this->mock(Vite::class);
-        $vite->expects('hotFile')
-            ->andReturn(config_path('csp.php')); // return path to some "random" file to satisfy is_file()
+         $vite = $this->mock(Vite::class);
+         $vite->allows('useCspNonce')->andReturn('test-nonce');
+
+         $vite->expects('hotFile')
+             ->andReturn(config_path('csp.php')); // return path to some "random" file to satisfy is_file()
+         $vite->allows('useCspNonce')->andReturn('test-nonce');
 
         $preset = new CspPolicy($environment, $vite);
         $policy = new Policy();
@@ -93,7 +96,9 @@ class CspPolicyTest extends FeatureTestCase
             ->andReturn(false);
 
         /** @var Vite&MockInterface $vite */
-        $vite = $this->mock(Vite::class);
+         $vite = $this->mock(Vite::class);
+         $vite->allows('useCspNonce')->andReturn('test-nonce');
+
 
         $preset = new CspPolicy($environment, $vite);
         $policy = new Policy();

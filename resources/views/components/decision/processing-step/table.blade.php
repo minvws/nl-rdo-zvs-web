@@ -9,6 +9,7 @@
     <table>
         <thead>
             <tr>
+                <th scope="col">#</th>
                 <th scope="col">{{ __('processing-step.name') }}</th>
                 <th scope="col">{{ __('processing-step.assigned-user') }}</th>
                 <th scope="col">{{ __('processing-step.deadline') }}</th>
@@ -28,6 +29,40 @@
         <tbody>
             @forelse ($processingSteps as $processingStep)
                 <tr>
+                    <td>
+                        @if ($decision->archived_at === null)
+                            <div class="sort horizontal-view">
+                                @if (! $loop->first)
+                                    <form
+                                        class="inline"
+                                        method="POST"
+                                        action="{{ route(RouteName::DEPARTMENTS_DECISIONS_PROCESSING_STEPS_MOVE_UP, ['department' => $decision->department, 'decision' => $decision, 'processingStep' => $processingStep]) }}">
+                                        @csrf
+                                        <button
+                                            type="submit"
+                                            class="icon-only"
+                                            aria-label="{{ __('processing-step.move_up') }}">
+                                            <x-tabler-chevron-up />
+                                        </button>
+                                    </form>
+                                @endif
+
+                                @if (! $loop->last)
+                                    <form
+                                        method="POST"
+                                        action="{{ route(RouteName::DEPARTMENTS_DECISIONS_PROCESSING_STEPS_MOVE_DOWN, ['department' => $decision->department, 'decision' => $decision, 'processingStep' => $processingStep]) }}">
+                                        @csrf
+                                        <button
+                                            type="submit"
+                                            class="icon-only sort-down"
+                                            aria-label="{{ __('processing-step.move_down') }}">
+                                            <x-tabler-chevron-down />
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endif
+                    </td>
                     <th scope="row">{{ $processingStep->name }}</th>
                     <td>{{ $processingStep->assignedUser?->name }}</td>
                     <td>{{ $processingStep->deadline_at ? DisplayDate::date($processingStep->deadline_at) : '-' }}</td>
@@ -75,7 +110,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="3">
+                    <td colspan="4">
                         {{ __('processing-step.no_processing_steps') }}
                     </td>
                 </tr>
@@ -83,7 +118,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3">
+                <td colspan="4">
                     {{ $footer }}
                 </td>
             </tr>

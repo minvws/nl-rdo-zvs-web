@@ -25,7 +25,7 @@ class DecisionFactory extends Factory
 
             'department_id' => Department::factory(),
             'name' => $this->faker->sentence(),
-            'reference' => $this->faker->optional()->word(),
+            'reference' => $this->faker->word(),
             'date' => $this->faker->calendarDate(),
             'archived_at' => null,
             'type' => $this->faker->randomElement(DecisionType::cases()),

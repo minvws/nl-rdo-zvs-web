@@ -63,7 +63,10 @@ final readonly class PetitionQuerysnapshotsController
     ): RedirectResponse|View {
         $this->gate->authorize(Ability::UPDATE, $petition);
 
-        $action->execute($petition, $user, $querysnapshotUpdateRequest->validated());
+        /** @var array{querysnapshots: list<array{querysnapshot_type: string, querysnapshot_id: string}>} $data */
+        $data = $querysnapshotUpdateRequest->validated();
+
+        $action->execute($petition, $user, $data);
 
         $petition->refresh();
 

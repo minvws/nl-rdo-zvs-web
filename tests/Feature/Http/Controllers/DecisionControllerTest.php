@@ -45,7 +45,7 @@ class DecisionControllerTest extends FeatureTestCase
                 'petition' => $petition,
             ], [
                 'name' => $this->faker->name,
-                'reference' => $this->faker->word,
+                'reference' => $this->faker->optional()->word,
                 'date' => $this->faker->calendarDate()->format('Y-m-d'),
                 'type' => $this->faker->randomElement(DecisionType::cases())->value,
             ]);
@@ -101,7 +101,7 @@ class DecisionControllerTest extends FeatureTestCase
                 'petition' => $petition,
             ], [
                 'name' => $this->faker->name,
-                'reference' => null, // reference is not mandatory
+                'reference' => 'REF-001',
                 'date' => $this->faker->calendarDate()->format('Y-m-d'),
                 'type' => $this->faker->randomElement(DecisionType::cases())->value,
                 'petition_id' => $petition->id->toString(),
@@ -145,7 +145,7 @@ class DecisionControllerTest extends FeatureTestCase
                 'department' => $department,
             ], [
                 'name' => $this->faker->name,
-                'reference' => $this->faker->word,
+                'reference' => $this->faker->optional()->word,
                 'date' => $this->faker->calendarDate()->format('Y-m-d'),
                 'type' => $this->faker->randomElement(DecisionType::cases())->value,
             ]);
@@ -240,7 +240,7 @@ class DecisionControllerTest extends FeatureTestCase
 
         $name = $this->faker->name();
         $date = $this->faker->calendarDate();
-        $reference = $this->faker->optional()->text();
+        $reference = $this->faker->optional()->word();
 
         $authUser = User::factory()
             ->withPermissionsAndDepartment($department, Permission::DECISION_WRITE)
@@ -277,13 +277,13 @@ class DecisionControllerTest extends FeatureTestCase
             ->fullyVerified()
             ->create();
         $this->beUser($authUser, true, $decision->department)
-            ->postByRouteAsHtmx(RouteName::DEPARTMENTS_DECISIONS_EDIT, [
+            ->postByRouteAsHtmx(RouteName::DEPARTMENTS_DECISIONS_UPDATE, [
                 'department' => $department,
                 'decision' => $decision,
             ], [
                 'name' => $name,
                 'date' => $decision->date->format('Y-m-d'),
-                'reference' => null,
+                'reference' => $decision->reference,
             ])
             ->assertViewIs('decision.properties.show');
 
@@ -306,7 +306,7 @@ class DecisionControllerTest extends FeatureTestCase
             ], [
                 'name' => $this->faker->name(),
                 'date' => $this->faker->calendarDate()->format('Y-m-d'),
-                'reference' => $this->faker->sentence(),
+                'reference' => $this->faker->optional()->word,
             ])
             ->assertNotFound();
     }
@@ -539,7 +539,7 @@ class DecisionControllerTest extends FeatureTestCase
 
         $response->assertOk();
         $decisions = $response->viewData('decisions');
-        $this->assertEquals('REF-2025-001', $decisions->first()->reference);
+        $this->assertEquals('ref-2025-001', $decisions->first()->reference);
     }
 
     #[Test]

@@ -9,16 +9,18 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Webmozart\Assert\Assert;
 
 use function array_key_exists;
+use function array_merge;
+use function array_values;
 use function sprintf;
 
 readonly class FilesystemWordTemplateRepository implements WordTemplateRepositoryInterface
 {
     /**
-     * @param array<string, array<string, string>> $templates
+     * @param array<string, array<string, array<string, string>>> $departments
      */
     public function __construct(
         private Filesystem $filesystem,
-        private array $templates,
+        private array $departments,
     ) {
     }
 
@@ -27,11 +29,13 @@ readonly class FilesystemWordTemplateRepository implements WordTemplateRepositor
      */
     public function getById(WordTemplateId $id): object
     {
-        if (!array_key_exists($id->value, $this->templates)) {
+        $templates = array_merge([], ...array_values($this->departments));
+
+        if (!array_key_exists($id->value, $templates)) {
             throw new WordTemplateNotFoundException(sprintf('id "%s" not found', $id->value));
         }
 
-        $wordTemplateConfig = $this->templates[$id->value];
+        $wordTemplateConfig = $templates[$id->value];
 
         Assert::keyExists($wordTemplateConfig, 'filename');
         $filename = $wordTemplateConfig['filename'];

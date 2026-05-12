@@ -98,7 +98,39 @@ Response shape:
 - `updated_at_after`
 - `updated_at_before`
 
-## 4. Use the Postman collection
+## 3a. Timeline Items Endpoint
+
+### GET /api/v1/petition_timeline_items
+
+Retrieve timeline items (activities) for all cases or filtered by specific case.
+
+**Authentication:** Required (Sanctum token)
+
+**Query Parameters:**
+- `page` - Page number (default: 1)
+- `per_page` - Items per page (default: 15, max: 100)
+- `created_at_after` - ISO 8601 timestamp
+- `created_at_before` - ISO 8601 timestamp
+- `updated_at_after` - ISO 8601 timestamp
+- `updated_at_before` - ISO 8601 timestamp
+
+**Response Fields:**
+- `internal_id` - Timeline item ID
+- `timelineable_type` - Type (e.g., App\Models\Petition)
+- `timelineable_id` - Related entity ID
+- `user_id` - User who triggered the event
+- `type` - Event type
+- `data` - Event data (JSON)
+- `created_at` - Creation timestamp
+- `updated_at` - Update timestamp
+
+**Example Request:**
+```bash
+curl -H "Authorization: Bearer TOKEN" \
+  http://localhost/api/v1/petition_timeline_items?page=1
+```
+
+## 5. Use the Postman collection
 
 Collection file:
 
@@ -115,7 +147,7 @@ Collection file:
 4. The `login` test script stores `access_token` automatically.
 5. Run any `GET /api/v1/*` request.
 
-## 5. Run API tests
+## 6. Run API tests
 
 Run API endpoint tests:
 

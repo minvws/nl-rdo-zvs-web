@@ -6,9 +6,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\ProcessingStep\ProcessingStepCreateAction;
 use App\Actions\ProcessingStep\ProcessingStepDeleteAction;
+use App\Actions\ProcessingStep\ProcessingStepMoveAction;
 use App\Actions\ProcessingStep\ProcessingStepUpdateAction;
 use App\Config\DepartmentConfigurationService;
 use App\Enums\Ability;
+use App\Enums\ProcessingStepMoveDirection;
 use App\Enums\ProcessingStepStatus;
 use App\Enums\RouteName;
 use App\Http\Requests\ProcessingStepCreateRequest;
@@ -23,6 +25,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
+use Webmozart\Assert\Assert;
 
 use function __;
 
@@ -48,12 +51,16 @@ final readonly class ProcessingStepController
 
         $options = $this->configurationService->processingStepOptions($department, $decision->type);
 
+        $defaultOrdering = $decision->processingSteps()->max('ordering') ?? 0;
+        Assert::integer($defaultOrdering);
+
         return $this->view->make('departments.decisions.processing-steps.create', [
             'options' => $options,
             'department' => $department,
             'decision' => $decision,
             'users' => $users,
             'statuses' => ProcessingStepStatus::cases(),
+            'defaultOrdering' => $defaultOrdering,
         ]);
     }
 
@@ -113,6 +120,23 @@ final readonly class ProcessingStepController
             'department' => $department,
             'decision' => $decision,
         ])->with('message.success', __('general.saved'));
+    }
+
+    public function move(
+        Department $department,
+        Decision $decision,
+        ProcessingStep $processingStep,
+        ProcessingStepMoveAction $action,
+        ProcessingStepMoveDirection $direction,
+    ): RedirectResponse {
+        $this->gate->authorize(Ability::UPDATE, $decision);
+
+        $action->move($processingStep, $direction);
+
+        return $this->redirector->route(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
+            'department' => $department,
+            'decision' => $decision,
+        ]);
     }
 
     public function delete(

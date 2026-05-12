@@ -8,75 +8,44 @@ use App\Enums\TimelineType;
 use App\Models\Petition;
 use App\Models\User;
 use Illuminate\Database\DatabaseManager;
-use Webmozart\Assert\Assert;
 
 use function collect;
-use function in_array;
-use function trim;
 
-readonly class QuerysnapshotUpdateAction
+class QuerysnapshotUpdateAction
 {
     public function __construct(
-        private DatabaseManager $databaseManager,
+        private readonly DatabaseManager $databaseManager,
     ) {
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param array{querysnapshots: list<array{querysnapshot_type: string, querysnapshot_id: string}>} $data
      */
-    public function execute(Petition $petition, User $user, array $attributes): void
+    public function execute(Petition $petition, User $user, array $data): void
     {
-        $this->databaseManager->transaction(function () use ($petition, $attributes, $user): void {
-            $petition->querysnapshots()->delete();
-            $this->createNewQuerysnapshots($attributes, $petition);
-            $this->createTimelineItem($petition, $attributes, $user);
+        $this->databaseManager->transaction(static function () use ($petition, $data, $user): void {
+            $incoming = collect($data['querysnapshots'])
+                ->reject(static fn(array $snapshot): bool => empty($snapshot['querysnapshot_id']));
+
+            $incomingTypes = $incoming->pluck('querysnapshot_type');
+
+            $petition->querysnapshots()
+                ->whereNotIn('querysnapshot_type', $incomingTypes)
+                ->delete();
+
+            foreach ($incoming as $snapshot) {
+                $petition->querysnapshots()
+                    ->updateOrCreate(
+                        ['querysnapshot_type' => $snapshot['querysnapshot_type']],
+                        ['querysnapshot_id' => $snapshot['querysnapshot_id']],
+                    );
+            }
+
+            $petition->timelineItems()->create([
+                'user_id' => $user->id,
+                'type' => TimelineType::QUERYSNAPSHOT_UPDATED,
+                'data' => $data,
+            ]);
         });
-    }
-
-    /**
-     * @param array<string, mixed> $attributes
-     */
-    private function createTimelineItem(Petition $petition, array $attributes, User $user): void
-    {
-        $petition->timelineItems()->create([
-            'user_id' => $user->id,
-            'type' => TimelineType::QUERYSNAPSHOT_UPDATED,
-            'data' => $attributes,
-        ]);
-    }
-
-    /**
-     * @param array<string, mixed> $attributes
-     */
-    private function createNewQuerysnapshots(array $attributes, Petition $petition): void
-    {
-        Assert::keyExists($attributes, 'querysnapshots');
-        Assert::isArray($attributes['querysnapshots']);
-
-        /** @var array<array<string, mixed>> $querysnapshotsData */
-        $querysnapshotsData = collect($attributes['querysnapshots'])
-            ->filter(static function (mixed $item): bool {
-                Assert::isArray($item);
-                Assert::keyExists($item, 'querysnapshot_id');
-                Assert::nullOrString($item['querysnapshot_id']);
-
-                return !in_array(trim((string) $item['querysnapshot_id']), ['', '0'], true);
-            })
-            ->map(static function (mixed $item) use ($petition): array {
-                Assert::isArray($item);
-                Assert::keyExists($item, 'querysnapshot_type');
-                Assert::keyExists($item, 'querysnapshot_id');
-
-                return [
-                    'petition_id' => $petition->id,
-                    'querysnapshot_type' => $item['querysnapshot_type'],
-                    'querysnapshot_id' => $item['querysnapshot_id'],
-                ];
-            })
-            ->all();
-
-        if (!empty($querysnapshotsData)) {
-            $petition->querysnapshots()->createMany($querysnapshotsData);
-        }
     }
 }

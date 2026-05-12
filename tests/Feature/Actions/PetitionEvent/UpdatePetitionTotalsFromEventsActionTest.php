@@ -16,6 +16,7 @@ use App\ValueObjects\CalendarDate;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
+use Tests\Helpers\ConfigHelper;
 
 use function app;
 
@@ -116,8 +117,10 @@ final class UpdatePetitionTotalsFromEventsActionTest extends FeatureTestCase
     }
 
     #[Test]
-    public function testDoesNotRunWhenNoEventsExist(): void
+    public function testDoesNotRunWhenNoEventsExistWhenV2TermEngineIsDisabled(): void
     {
+        ConfigHelper::set('app.features.term_engine_v2', false);
+
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->recycle($department)->create();
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();

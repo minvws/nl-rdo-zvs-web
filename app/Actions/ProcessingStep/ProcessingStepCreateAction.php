@@ -6,9 +6,11 @@ namespace App\Actions\ProcessingStep;
 
 use App\Enums\TimelineType;
 use App\Models\Decision;
+use App\Models\ProcessingStep;
 use App\Models\User;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
+use Webmozart\Assert\Assert;
 
 final readonly class ProcessingStepCreateAction
 {
@@ -23,6 +25,13 @@ final readonly class ProcessingStepCreateAction
     public function execute(Decision $decision, User $user, array $attributes): void
     {
         $this->databaseManager->transaction(static function () use ($decision, $attributes, $user): void {
+            $max = ProcessingStep::query()
+                ->where('decision_id', $decision->id)
+                ->max('ordering') ?? 0;
+
+            Assert::integer($max);
+            $attributes['ordering'] = $max + 1;
+
             $processingStep = $decision->processingSteps()->create($attributes);
             $decision->timelineItems()->create([
                 'type' => TimelineType::PROCESSING_STEP_CREATED,

@@ -103,6 +103,14 @@ class DerivedState
 
     public function deadlineDate(): ?CalendarDate
     {
+        if (
+            $this->events->contains(
+                static fn(PetitionEventData $event): bool => $event->type === PetitionEventType::FINAL_RESULT,
+            )
+        ) {
+            return null;
+        }
+
         $lastDeadlineDay = $this->calendar
             ->filter(static fn($day): bool => $day->isDeadline)
             ->sortByDesc(static fn($day): string => $day->date->toDateString())

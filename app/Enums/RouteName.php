@@ -189,6 +189,8 @@ enum RouteName: string
     case DEPARTMENTS_DECISIONS_PROCESSING_STEPS_EDIT = 'departments.decisions.processing-steps.edit';
     case DEPARTMENTS_DECISIONS_PROCESSING_STEPS_UPDATE = 'departments.decisions.processing-steps.update';
     case DEPARTMENTS_DECISIONS_PROCESSING_STEPS_DELETE = 'departments.decisions.processing-steps.delete';
+    case DEPARTMENTS_DECISIONS_PROCESSING_STEPS_MOVE_UP = 'departments.decisions.processing-steps.move-up';
+    case DEPARTMENTS_DECISIONS_PROCESSING_STEPS_MOVE_DOWN = 'departments.decisions.processing-steps.move-down';
 
     // departments.petitions.petition.attach
     case DEPARTMENTS_PETITION_PETITION_ATTACH_FORM = 'departments.petitions.petitions.attach-form';

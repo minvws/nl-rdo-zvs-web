@@ -5,7 +5,7 @@
 ### Dry Run (Preview Only)
 ```bash
 # Preview import without making changes
-vendor/bin/sail artisan import:petitions storage/imports/completebezwaren-testdata.xlsx \
+vendor/bin/sail artisan petitions:import storage/imports/completebezwaren-testdata.xlsx \
 --file-jurist=storage/imports/juristen-testdata.xlsx \
 --file-category=storage/imports/categorieen.xlsx
 ```
@@ -13,7 +13,7 @@ vendor/bin/sail artisan import:petitions storage/imports/completebezwaren-testda
 ### Commit Changes
 ```bash
 # Actually import the data
-vendor/bin/sail artisan import:petitions storage/imports/completebezwaren-testdata.xlsx \
+vendor/bin/sail artisan petitions:import storage/imports/completebezwaren-testdata.xlsx \
 --file-jurist=storage/imports/juristen-testdata.xlsx \
 --file-category=storage/imports/categorieen.xlsx \
 --commit
@@ -25,7 +25,7 @@ vendor/bin/sail artisan import:petitions storage/imports/completebezwaren-testda
 Used for importing "bezwaren".
 
 ```bash
-vendor/bin/sail artisan import:petitions storage/imports/completebezwaren-testdata.xlsx \
+vendor/bin/sail artisan petitions:import storage/imports/completebezwaren-testdata.xlsx \
 --file-jurist=storage/imports/juristen-testdata.xlsx \
 --file-category=storage/imports/categorieen.xlsx \
 --commit
@@ -40,7 +40,7 @@ vendor/bin/sail artisan import:petitions storage/imports/completebezwaren-testda
 Used for importing "beroepen".
 
 ```bash
-vendor/bin/sail artisan import:petitions storage/imports/beroepenWJZ-testdata.xlsx \
+vendor/bin/sail artisan petitions:import storage/imports/beroepenWJZ-testdata.xlsx \
 --file-jurist=storage/imports/juristen-testdata.xlsx \
 --file-category=storage/imports/categorieen.xlsx \
 --beroepen \
@@ -69,7 +69,7 @@ vendor/bin/sail artisan import:petitions storage/imports/beroepenWJZ-testdata.xl
 ### Step 1: Dry Run
 Always start with a dry run to preview changes:
 ```bash
-vendor/bin/sail artisan import:petitions storage/imports/completebezwaren-testdata.xlsx \
+vendor/bin/sail artisan petitions:import storage/imports/completebezwaren-testdata.xlsx \
 --file-jurist=storage/imports/juristen-testdata.xlsx \
 --file-category=storage/imports/categorieen.xlsx
 ```
@@ -83,7 +83,7 @@ Check the output for:
 ### Step 3: Commit
 If everything looks good:
 ```bash
-vendor/bin/sail artisan import:petitions storage/imports/completebezwaren-testdata.xlsx \
+vendor/bin/sail artisan petitions:import storage/imports/completebezwaren-testdata.xlsx \
 --file-jurist=storage/imports/juristen-testdata.xlsx \
 --file-category=storage/imports/categorieen.xlsx \
 --commit
@@ -92,7 +92,7 @@ vendor/bin/sail artisan import:petitions storage/imports/completebezwaren-testda
 ### Step 4: Rollback (If Needed)
 If something goes wrong, use the batch ID from the output:
 ```bash
-vendor/bin/sail artisan import:petitions --rollback={batch-id}
+vendor/bin/sail artisan petitions:import --rollback={batch-id}
 ```
 
 ## Testing with Sample Data

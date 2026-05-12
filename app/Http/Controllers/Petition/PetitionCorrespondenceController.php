@@ -32,6 +32,7 @@ use Illuminate\Routing\Redirector;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 use function __;
+use function collect;
 
 final readonly class PetitionCorrespondenceController
 {
@@ -52,7 +53,7 @@ final readonly class PetitionCorrespondenceController
     {
         $this->gate->authorize(Ability::UPDATE, $petition);
 
-        $wordTemplates = $this->wordTemplateViewFactory->build();
+        $wordTemplates = $this->wordTemplateViewFactory->buildForDepartment($department->config_key);
 
         return $this->view->make('petition.correspondence.index', [
             'petition' => $petition,
@@ -63,6 +64,13 @@ final readonly class PetitionCorrespondenceController
     public function download(Department $department, Petition $petition, WordTemplateId $wordTemplateId): BinaryFileResponse
     {
         $this->gate->authorize(Ability::VIEW, $petition);
+
+        $allowedTemplates = $this->wordTemplateViewFactory->buildForDepartment($department->config_key);
+        $isAllowed = collect($allowedTemplates)->contains('word_template_id', $wordTemplateId->value);
+
+        if (!$isAllowed) {
+            throw new NotFoundException('Word template not available for this department');
+        }
 
         try {
             $wordTemplate = $this->wordTemplateService->get($wordTemplateId);

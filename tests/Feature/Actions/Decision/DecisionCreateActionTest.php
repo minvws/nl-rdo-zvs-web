@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Config;
 use Tests\Feature\FeatureTestCase;
 
 use function array_map;
+use function range;
 use function sprintf;
 
 class DecisionCreateActionTest extends FeatureTestCase
@@ -45,12 +46,19 @@ class DecisionCreateActionTest extends FeatureTestCase
         /** @var DecisionCreateAction $decisionCreateAction */
         $decisionCreateAction = $this->app->get(DecisionCreateAction::class);
 
-        $decisionCreateAction->execute($department, $user, [
+        $decision = $decisionCreateAction->execute($department, $user, [
             'name' => $this->faker->word(),
             'type' => $type,
         ], $petition);
 
         $this->assertDatabaseCount(ProcessingStep::class, $optionsCount);
+
+        $steps = $decision->processingSteps()->orderBy('ordering')->get();
+        $this->assertSame(
+            range(0, $optionsCount - 1),
+            $steps->pluck('ordering')->all(),
+            'Processing steps must have sequential ordering values starting from 0.',
+        );
     }
 
     public function testNoCreationOfProcessingStepsIfDisabled(): void

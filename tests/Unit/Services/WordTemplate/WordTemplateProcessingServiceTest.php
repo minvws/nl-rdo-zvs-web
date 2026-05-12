@@ -20,7 +20,7 @@ class WordTemplateProcessingServiceTest extends TestCase
     public function testProcess(): void
     {
         $disk = Config::string('word_templates.filesystem_disk');
-        $filename = Config::string(sprintf('word_templates.templates.%s.filename', WordTemplateId::C01->value));
+        $filename = Config::string(sprintf('word_templates.departments.team-c.%s.filename', WordTemplateId::C01->value));
 
         $wordTemplatePath = Storage::disk($disk)->path($filename);
 

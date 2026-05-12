@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
 use App\Enums\SuspensionType;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?int $duration
  * @property ?SuspensionType $suspension_type
  * @property ?ResultType $result_type
+ * @property ?HearingForm $hearing_form
  * @property array<array{amount: int, duration: int}> $penalties
  * @property CarbonImmutable $created_at
  */
@@ -40,6 +42,7 @@ class PetitionEvent extends EloquentModel
         'penalties' => 'array',
         'suspension_type' => SuspensionType::class,
         'result_type' => ResultType::class,
+        'hearing_form' => HearingForm::class,
     ];
 
     /**

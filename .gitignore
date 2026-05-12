@@ -25,3 +25,4 @@ _ide_helper.php
 phpunit.xml
 /.deptrac.cache
 docker-compose.override.yml
+/.php-cs-fixer.cache

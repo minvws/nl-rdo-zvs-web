@@ -72,7 +72,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
     #[Test]
     public function testRollbackWithoutFileArgumentFailsWhenBatchNotFound(): void
     {
-        $this->artisan('import:petitions', ['--rollback' => 'nonexistent_batch_id'])
+        $this->artisan('petitions:import', ['--rollback' => 'nonexistent_batch_id'])
             ->expectsOutputToContain('Batch ID not found')
             ->assertFailed();
     }
@@ -86,7 +86,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
         $batchId = 'import_rollback_test';
         Cache::put($batchId, ['petitions' => [$petition->id]], now()->addDays(30));
 
-        $this->artisan('import:petitions', ['--rollback' => $batchId])
+        $this->artisan('petitions:import', ['--rollback' => $batchId])
             ->expectsOutputToContain('Rollback completed')
             ->assertSuccessful();
 
@@ -118,7 +118,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             'petitions' => [$petition->id],
         ], now()->addDays(30));
 
-        $this->artisan('import:petitions', ['--rollback' => $batchId])
+        $this->artisan('petitions:import', ['--rollback' => $batchId])
             ->expectsOutputToContain('Deleted 1 petition custom dates')
             ->assertSuccessful();
 
@@ -151,7 +151,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             'petitions' => [$petition->id],
         ], now()->addDays(30));
 
-        $this->artisan('import:petitions', ['--rollback' => $batchId])
+        $this->artisan('petitions:import', ['--rollback' => $batchId])
             ->expectsOutputToContain('Deleted 1 contact petitions')
             ->expectsOutputToContain('Deleted 1 contacts')
             ->assertSuccessful();
@@ -171,7 +171,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
         // Include both a real and a non-existent petition ID
         Cache::put($batchId, ['petitions' => [$fakePetitionId, $petition->id]], now()->addDays(30));
 
-        $this->artisan('import:petitions', ['--rollback' => $batchId])
+        $this->artisan('petitions:import', ['--rollback' => $batchId])
             ->expectsOutputToContain('Rollback completed')
             ->assertSuccessful();
     }
@@ -181,7 +181,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
     #[Test]
     public function testFileNotFoundReturnsFailure(): void
     {
-        $this->artisan('import:petitions', ['file' => '/nonexistent/path/to/file.xlsx'])
+        $this->artisan('petitions:import', ['file' => '/nonexistent/path/to/file.xlsx'])
             ->expectsOutputToContain('File not found')
             ->assertFailed();
     }
@@ -189,7 +189,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
     #[Test]
     public function testJuristFileNotFoundReturnsFailure(): void
     {
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-jurist' => '/nonexistent/jurist.xlsx',
         ])
@@ -200,7 +200,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
     #[Test]
     public function testCategoryFileNotFoundReturnsFailure(): void
     {
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-category' => '/nonexistent/category.xlsx',
         ])
@@ -215,7 +215,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
     {
         Excel::shouldReceive('toArray')->once()->andReturn([[]]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('Excel file is empty')
             ->assertFailed();
     }
@@ -230,7 +230,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('Department wjz-bb')
             ->assertFailed();
     }
@@ -251,7 +251,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('DRY RUN MODE')
             ->assertSuccessful();
 
@@ -273,7 +273,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('DRY RUN MODE')
             ->assertSuccessful();
     }
@@ -293,7 +293,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('DRY RUN MODE')
             ->assertSuccessful();
     }
@@ -314,7 +314,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('DRY RUN MODE')
             ->assertSuccessful();
 
@@ -340,7 +340,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('DRY RUN MODE')
             ->expectsOutputToContain('Would create petition')
             ->assertSuccessful();
@@ -369,7 +369,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('DRY RUN MODE')
             ->expectsOutputToContain('Would update petition BEZ-DRY-EXIST-001')
             ->assertSuccessful();
@@ -396,7 +396,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('DRY RUN MODE')
             ->expectsOutputToContain('Would link contact')
             ->assertSuccessful();
@@ -418,7 +418,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $this->assertDatabaseHas('petitions', ['number' => 'BEZ-NEW-001']);
@@ -438,7 +438,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->expectsOutputToContain('Batch ID:')
             ->assertSuccessful();
     }
@@ -457,7 +457,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-DATE-001')->first();
@@ -486,7 +486,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $this->assertEquals(1, Petition::query()->where('number', 'BEZ-EXIST-001')->count());
@@ -528,7 +528,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->expectsOutputToContain('Updated reference for contact')
             ->assertSuccessful();
 
@@ -555,7 +555,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $this->assertDatabaseHas('contacts', ['last_name' => 'Jansen, A.']);
@@ -586,7 +586,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-DEPT-LINK-001')->first();
@@ -612,7 +612,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->expectsOutputToContain('Policy department not found')
             ->assertSuccessful();
     }
@@ -639,7 +639,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('Would link policy department')
             ->assertSuccessful();
     }
@@ -669,7 +669,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-ZWAARTE-001')->first();
@@ -710,7 +710,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('Would add Zwaarte: DryZwaar')
             ->assertSuccessful();
     }
@@ -740,7 +740,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-DICTUM-001')->first();
@@ -781,7 +781,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('Would add Dictum BOB: DryGegrond')
             ->assertSuccessful();
     }
@@ -811,7 +811,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-REDEN-001')->first();
@@ -852,7 +852,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('Would add Reden intrekking: Informeel')
             ->assertSuccessful();
     }
@@ -874,7 +874,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-DATE-BOB-001')->first();
@@ -901,7 +901,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->expectsOutputToContain('Invalid date format for datumbob')
             ->assertSuccessful();
     }
@@ -927,7 +927,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('Would add custom date datumbob')
             ->assertSuccessful();
     }
@@ -951,7 +951,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         // date_of_entry is required (NOT NULL) — petition must not be created when it is empty
@@ -976,7 +976,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-DATE-INT-001')->first();
@@ -1015,7 +1015,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('DRY RUN MODE')
             ->assertSuccessful();
 
@@ -1037,7 +1037,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->expectsOutputToContain('Jurist not found')
             ->assertSuccessful();
 
@@ -1059,7 +1059,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-JURIST-001')->first();
@@ -1099,7 +1099,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-jurist' => $this->tempJuristFile,
             '--commit' => true,
@@ -1124,7 +1124,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->expectsOutputToContain('Status not found')
             ->assertSuccessful();
 
@@ -1143,7 +1143,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->expectsOutputToContain('Category not found')
             ->assertSuccessful();
 
@@ -1169,7 +1169,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-CATEGORY-001')->first();
@@ -1212,7 +1212,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-category' => $this->tempCategoryFile,
             '--commit' => true,
@@ -1248,7 +1248,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--commit' => true,
             '--beroepen' => true,
@@ -1271,7 +1271,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--commit' => true,
             '--beroepen' => true,
@@ -1308,7 +1308,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--commit' => true,
             '--beroepen' => true,
@@ -1348,7 +1348,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--commit' => true,
             '--beroepen' => true,
@@ -1395,7 +1395,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--commit' => true,
             '--beroepen' => true,
@@ -1442,7 +1442,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--commit' => true,
             '--beroepen' => true,
@@ -1487,7 +1487,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--beroepen' => true,
         ])
@@ -1528,7 +1528,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-jurist' => $this->tempJuristFile,
             '--commit' => true,
@@ -1559,7 +1559,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-jurist' => $this->tempJuristFile,
         ])
@@ -1590,7 +1590,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-jurist' => $this->tempJuristFile,
         ])
@@ -1622,7 +1622,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-jurist' => $this->tempJuristFile,
         ])
@@ -1662,7 +1662,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-category' => $this->tempCategoryFile,
             '--commit' => true,
@@ -1693,7 +1693,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-category' => $this->tempCategoryFile,
         ])
@@ -1724,7 +1724,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-category' => $this->tempCategoryFile,
         ])
@@ -1756,7 +1756,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ],
             );
 
-        $this->artisan('import:petitions', [
+        $this->artisan('petitions:import', [
             'file' => $this->tempFile,
             '--file-category' => $this->tempCategoryFile,
         ])
@@ -1780,7 +1780,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
         // Use an invalid UUID format to trigger a PostgreSQL cast error
         Cache::put($batchId, ['petition_custom_dates' => ['not-a-valid-uuid-!@#']], now()->addDays(30));
 
-        $this->artisan('import:petitions', ['--rollback' => $batchId])
+        $this->artisan('petitions:import', ['--rollback' => $batchId])
             ->expectsOutputToContain('Rollback failed')
             ->assertFailed();
     }
@@ -1795,7 +1795,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
 
         Excel::shouldReceive('toArray')->once()->andThrow(new RuntimeException('Disk read error'));
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile])
+        $this->artisan('petitions:import', ['file' => $this->tempFile])
             ->expectsOutputToContain('Error importing Excel file')
             ->assertFailed();
     }
@@ -1816,7 +1816,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
             ],
         ]);
 
-        $this->artisan('import:petitions', ['file' => $this->tempFile, '--commit' => true])
+        $this->artisan('petitions:import', ['file' => $this->tempFile, '--commit' => true])
             ->assertSuccessful();
 
         $petition = Petition::query()->where('number', 'BEZ-NJY-001')->first();
@@ -1842,7 +1842,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ->once()
                 ->andReturn([[['zaaknummers', 'status']]]);
 
-            $this->artisan('import:petitions', [
+            $this->artisan('petitions:import', [
                 'file' => $this->tempFile,
                 '--file-jurist' => $juristFile,
             ])
@@ -1873,7 +1873,7 @@ final class ImportPetitionsCommandTest extends FeatureTestCase
                 ->once()
                 ->andReturn([[['zaaknummers', 'status']]]);
 
-            $this->artisan('import:petitions', [
+            $this->artisan('petitions:import', [
                 'file' => $this->tempFile,
                 '--file-category' => $categoryFile,
             ])

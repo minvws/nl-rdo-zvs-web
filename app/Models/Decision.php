@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Override;
 use Ramsey\Uuid\UuidInterface;
 
+use function strtolower;
+
 /**
  * @property string $name
  * @property ?string $reference
@@ -63,7 +65,9 @@ class Decision extends EloquentModel implements DepartmentAwareInterface, Timeli
      */
     public function processingSteps(): HasMany
     {
-        return $this->hasMany(ProcessingStep::class, 'decision_id')->oldest('deadline_at');
+        return $this
+            ->hasMany(ProcessingStep::class, 'decision_id')
+            ->orderBy('ordering');
     }
 
     /**
@@ -81,5 +85,10 @@ class Decision extends EloquentModel implements DepartmentAwareInterface, Timeli
             'date' => CalendarDateCast::class,
             'type' => DecisionType::class,
         ];
+    }
+
+    protected function setReferenceAttribute(?string $value): void
+    {
+        $this->attributes['reference'] = $value !== null ? strtolower($value) : null;
     }
 }

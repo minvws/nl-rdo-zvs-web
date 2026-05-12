@@ -6,12 +6,15 @@ namespace Tests\Feature\Exports;
 
 use App\Enums\CustomDateLabel;
 use App\Enums\ExportType;
+use App\Enums\PetitionEventType;
+use App\Enums\ResultType;
 use App\Exports\ExportCriteria;
 use App\Exports\PetitionInternalExcelExportPetitionSheet;
 use App\Models\Contact;
 use App\Models\CustomPetitionProperty;
 use App\Models\Petition;
 use App\Models\PetitionCustomDate as PetitionCustomDateModel;
+use App\Models\PetitionEvent;
 use App\Models\PetitionStatus;
 use App\Models\PetitionTerm;
 use App\Models\PetitionType;
@@ -20,6 +23,7 @@ use App\Models\User;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\DateRange;
 use Illuminate\Database\Eloquent\Factories\Sequence;
+use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\FeatureTestCase;
 use Tests\Helpers\ConfigHelper;
@@ -85,6 +89,7 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             $petitionCustomDateDecisionAppeal->format('Y-m-d'),
             $petition->daysPending,
             __(sprintf('petition_status.%s', $petitionStatus->status_group->value)),
+            $petitionStatus->status,
             '',
             '',
             '',
@@ -115,8 +120,10 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             ->has($customPetitionProperties)
             ->create();
 
+        $mockedPetition = $this->mockPetitionAsLegacy($petition);
+
         $petitionBeroepExcelExport = $this->makePetitionBeroepExcelExport();
-        $map = $petitionBeroepExcelExport->map($petition);
+        $map = $petitionBeroepExcelExport->map($mockedPetition);
 
         $this->assertEquals($expectedResult, $map[$key]);
     }
@@ -124,25 +131,25 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
     public static function customPetitionPropertyOptionsDataProvider(): array
     {
         return [
-            [[], 18, ''],
             [[], 19, ''],
             [[], 20, ''],
             [[], 21, ''],
             [[], 22, ''],
-            [['Binnen wettelijke termijn'], 18, 'Binnen wettelijke termijn'],
-            [['Binnen wettelijke termijn'], 19, ''],
-            [['Binnen wettelijke termijn', 'Binnen afgesproken termijn'], 18, 'Binnen wettelijke termijn, Binnen afgesproken termijn'],
-            [['Binnen wettelijke termijn', 'Onbekende optie'], 18, 'Binnen wettelijke termijn'],
-            [['Binnen wettelijke termijn', 'Onbekende optie'], 19, ''],
-            [['Doorzending'], 18, ''],
-            [['Doorzending'], 19, 'Doorzending'],
-            [['Herziening – herstel bezwaar'], 20, 'Herziening - herstel bezwaar'], // watch it: dashes are different
-            [['Herziening – herstel bezwaar', 'Informeel'], 20, 'Herziening - herstel bezwaar, Informeel'], // watch it: dashes are different
-            [['A', 'D', 'E'], 21, 'A, D, E'],
-            [['A', 'E', 'B'], 21, 'A, E, B'],
-            [['A', 'D', 'E', 'Z'], 21, 'A, D, E'],
-            [['A'], 22, ''],
-            [['Gegrond', 'Intrekking', 'Kennelijk gegrond'], 22, 'Gegrond, Intrekking, Kennelijk gegrond'],
+            [[], 23, ''],
+            [['Binnen wettelijke termijn'], 19, 'Binnen wettelijke termijn'],
+            [['Binnen wettelijke termijn'], 20, ''],
+            [['Binnen wettelijke termijn', 'Binnen afgesproken termijn'], 19, 'Binnen wettelijke termijn, Binnen afgesproken termijn'],
+            [['Binnen wettelijke termijn', 'Onbekende optie'], 19, 'Binnen wettelijke termijn'],
+            [['Binnen wettelijke termijn', 'Onbekende optie'], 20, ''],
+            [['Doorzending'], 19, ''],
+            [['Doorzending'], 20, 'Doorzending'],
+            [['Herziening – herstel bezwaar'], 21, 'Herziening - herstel bezwaar'], // watch it: dashes are different
+            [['Herziening – herstel bezwaar', 'Informeel'], 21, 'Herziening - herstel bezwaar, Informeel'], // watch it: dashes are different
+            [['A', 'D', 'E'], 22, 'A, D, E'],
+            [['A', 'E', 'B'], 22, 'A, E, B'],
+            [['A', 'D', 'E', 'Z'], 22, 'A, D, E'],
+            [['A'], 23, ''],
+            [['Gegrond', 'Intrekking', 'Kennelijk gegrond'], 23, 'Gegrond, Intrekking, Kennelijk gegrond'],
         ];
     }
 
@@ -158,5 +165,66 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
                 new DateRange($startDate, $endDate),
             ),
         );
+    }
+
+    public function testForwardingWithTermEngineConvertedReturnsDoorzending(): void
+    {
+        $petition = Petition::factory()->create();
+
+        PetitionEvent::factory()->create([
+            'petition_id' => $petition->id,
+            'type' => PetitionEventType::FINAL_RESULT,
+            'result_type' => ResultType::FORWARDED,
+            'date' => CalendarDate::today(),
+        ]);
+
+        $export = $this->makePetitionBeroepExcelExport();
+        $map = $export->map($petition);
+
+        $this->assertEquals('Doorzending', $map[20]);
+    }
+
+    public function testForwardingWithTermEngineConvertedNoForwardEventReturnsEmpty(): void
+    {
+        $petition = Petition::factory()->create();
+
+        PetitionEvent::factory()->create([
+            'petition_id' => $petition->id,
+            'type' => PetitionEventType::FINAL_RESULT,
+            'result_type' => ResultType::FINAL_DECISION,
+            'date' => CalendarDate::today(),
+        ]);
+
+        $export = $this->makePetitionBeroepExcelExport();
+        $map = $export->map($petition);
+
+        $this->assertEquals('', $map[20]);
+    }
+
+    public function testForwardingWithLegacyPetitionReturnsCustomPropertyValue(): void
+    {
+        $customProperty = CustomPetitionProperty::factory()->create([
+            'name' => 'Doorzending',
+        ]);
+
+        $petition = Petition::factory()
+            ->hasAttached($customProperty)
+            ->create();
+
+        $mockedPetition = $this->mockPetitionAsLegacy($petition);
+
+        $export = $this->makePetitionBeroepExcelExport();
+        $map = $export->map($mockedPetition);
+
+        $this->assertEquals('Doorzending', $map[20]);
+    }
+
+    private function mockPetitionAsLegacy(Petition $petition): Petition
+    {
+        return Mockery::mock($petition)
+            ->makePartial()
+            ->shouldReceive('isTermEngineConverted')
+            ->andReturn(false)
+            ->getMock();
     }
 }

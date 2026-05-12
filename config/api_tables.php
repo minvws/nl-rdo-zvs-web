@@ -19,7 +19,7 @@ return [
             'fields' => [
                 'id',
                 'name',
-                // 'email',
+                'email',
                 // 'email_verified_at',
                 // 'password',
                 // 'otp_confirmed_at',
@@ -471,6 +471,25 @@ return [
             'filterable_fields' => [
                 'created_at',
                 'updated_at',
+            ],
+        ],
+
+        'petition_timeline_items' => [
+            'table' => 'timeline_items',
+            'fields' => [
+                'internal_id',
+                'timelineable_type',
+                'timelineable_id',
+                'user_id',
+                'type',
+                'data',
+                'created_at',
+                'updated_at',
+            ],
+            'filterable_fields' => [
+                'created_at',
+                'updated_at',
+                'timelineable_id',
             ],
         ],
     ],

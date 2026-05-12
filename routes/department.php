@@ -164,6 +164,14 @@ Route::prefix('/decisions/{decision}')->group(static function (): void {
                 Route::get('/delete', [ProcessingStepController::class, 'delete'])
                     ->name(RouteName::DEPARTMENTS_DECISIONS_PROCESSING_STEPS_DELETE);
 
+                Route::post('/move-up', [ProcessingStepController::class, 'move'])
+                    ->defaults('direction', 'up')
+                    ->name(RouteName::DEPARTMENTS_DECISIONS_PROCESSING_STEPS_MOVE_UP);
+
+                Route::post('/move-down', [ProcessingStepController::class, 'move'])
+                    ->defaults('direction', 'down')
+                    ->name(RouteName::DEPARTMENTS_DECISIONS_PROCESSING_STEPS_MOVE_DOWN);
+
                 Route::prefix('/edit')->group(static function (): void {
                     Route::get('/', [ProcessingStepController::class, 'edit'])
                         ->name(RouteName::DEPARTMENTS_DECISIONS_PROCESSING_STEPS_EDIT);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\ValueObjects;
 
+use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
 use App\Enums\SuspensionType;
@@ -25,12 +26,13 @@ readonly class PetitionEventData
         public array $penalties = [],
         public ?SuspensionType $suspensionType = null,
         public ?ResultType $resultType = null,
+        public ?HearingForm $hearingForm = null,
     ) {
         $this->validateDomainRules();
     }
 
     /**
-     * @return array{type: string, date: string, duration: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, created_at: CarbonImmutable}
+     * @return array{type: string, date: string, duration: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, hearing_form?: string|null, created_at: CarbonImmutable}
      */
     public function toArray(): array
     {
@@ -55,6 +57,10 @@ readonly class PetitionEventData
             $data['result_type'] = $this->resultType->value;
         }
 
+        if ($this->hearingForm instanceof HearingForm) {
+            $data['hearing_form'] = $this->hearingForm->value;
+        }
+
         $data['created_at'] = $this->createdAt;
 
         return $data;
@@ -68,6 +74,10 @@ readonly class PetitionEventData
 
         if ($this->resultType instanceof ResultType && !$this->type->hasResultType()) {
             throw InvalidPetitionEventData::resultTypeNotAllowed($this->type);
+        }
+
+        if ($this->hearingForm instanceof HearingForm && !$this->type->hasHearingForm()) {
+            throw InvalidPetitionEventData::hearingFormNotAllowed($this->type);
         }
     }
 }

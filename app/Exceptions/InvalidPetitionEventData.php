@@ -24,4 +24,11 @@ class InvalidPetitionEventData extends DomainException
             sprintf('Event type "%s" does not support result type', $type->value),
         );
     }
+
+    public static function hearingFormNotAllowed(PetitionEventType $type): self
+    {
+        return new self(
+            sprintf('Event type "%s" does not support hearing form', $type->value),
+        );
+    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\ValueObjects;
 
+use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
 use App\Enums\SuspensionType;
@@ -105,6 +106,20 @@ class PetitionEventDataTest extends TestCase
         $this->assertSame(30, $array['duration']);
         $this->assertInstanceOf(CarbonImmutable::class, $array['created_at']);
         $this->assertSame(SuspensionType::SUSPENSION->value, $array['suspension_type']);
+    }
+
+    #[Test]
+    public function itThrowsExceptionWhenHearingFormProvidedForNonHearingEvent(): void
+    {
+        $this->expectException(InvalidPetitionEventData::class);
+        $this->expectExceptionMessage('Event type "primary_decision" does not support hearing form');
+
+        new PetitionEventData(
+            type: PetitionEventType::PRIMARY_DECISION,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+            hearingForm: HearingForm::DIGITAL,
+        );
     }
 
     #[Test]
@@ -279,6 +294,24 @@ class PetitionEventDataTest extends TestCase
         $this->assertSame('2025-01-15', $array['date']);
         $this->assertInstanceOf(CarbonImmutable::class, $array['created_at']);
         $this->assertSame(ResultType::WITHDRAWN->value, $array['result_type']);
+    }
+
+    #[Test]
+    public function itConvertsToArrayWithHearingForm(): void
+    {
+        $event = new PetitionEventData(
+            type: PetitionEventType::HEARING_DATE,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+            hearingForm: HearingForm::PHYSICAL,
+        );
+
+        $array = $event->toArray();
+
+        $this->assertSame(PetitionEventType::HEARING_DATE->value, $array['type']);
+        $this->assertSame('2025-01-15', $array['date']);
+        $this->assertInstanceOf(CarbonImmutable::class, $array['created_at']);
+        $this->assertSame(HearingForm::PHYSICAL->value, $array['hearing_form']);
     }
 
     #[Test]

@@ -40,13 +40,13 @@ enum PetitionEventType: string
     {
         $key = 'validation.rule.' . $this->value;
 
+        // @codeCoverageIgnoreStart
         if (!app()->has($key)) {
             return null;
         }
+        // @codeCoverageIgnoreEnd
 
-        $validator = resolve($key);
-
-        return $validator instanceof EventValidatorInterface ? $validator : null;
+        return resolve($key);
     }
 
     public function hasDuration(): bool
@@ -65,10 +65,10 @@ enum PetitionEventType: string
         };
     }
 
-    public function hasPenalties(): bool
+    public function hasPenalties(?PetitionTypeType $petitionType = null): bool
     {
         return match ($this) {
-            self::NOTICE_OF_DEFAULT_RECEIVED,
+            self::NOTICE_OF_DEFAULT_RECEIVED => $petitionType === PetitionTypeType::BEZWAAR,
             self::APPEAL_DECISION_NOT_TIMELY => true,
             default => false,
         };
@@ -90,6 +90,14 @@ enum PetitionEventType: string
         };
     }
 
+    public function hasHearingForm(): bool
+    {
+        return match ($this) {
+            self::HEARING_DATE => true,
+            default => false,
+        };
+    }
+
     public function isAvailableFor(PetitionTypeType $petitionType): bool
     {
         return match ($this) {
@@ -101,13 +109,15 @@ enum PetitionEventType: string
             self::OPINION_OUTSIDE_TERM,
             self::SENT_PARTIAL_DECISION => $petitionType === PetitionTypeType::WOO_VERZOEK,
 
-            self::NOTICE_OF_DEFAULT_WITHDRAWN => false,
+            self::NOTICE_OF_DEFAULT_WITHDRAWN => match ($petitionType) {
+                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => true,
+                default => false,
+            },
 
             self::MEETING_SCHEDULED,
             self::LETTER_OF_SUSPENSION_SENT,
             self::SUSPENSION_END,
             self::NOTICE_OF_DEFAULT_RECEIVED,
-            // Hier komt eventueel self::NOTICE_OF_DEFAULT_WITHDRAWN,
             self::APPEAL_DECISION_NOT_TIMELY,
             self::RECEIPT_APPEAL_NOT_TIMELY,
             self::FINAL_RESULT,
@@ -154,7 +164,8 @@ enum PetitionEventType: string
                 PetitionTypeType::BEZWAAR => [self::RECEIPT_OF_OBJECTION],
                 default => [],
             },
-            self::NOTICE_OF_DEFAULT_WITHDRAWN,
+            self::NOTICE_OF_DEFAULT_WITHDRAWN => [self::NOTICE_OF_DEFAULT_RECEIVED],
+
             self::APPEAL_DECISION_NOT_TIMELY => [self::RECEIPT_APPEAL_NOT_TIMELY],
 
             default => [],
@@ -202,10 +213,17 @@ enum PetitionEventType: string
                 self::APPEAL_DECISION_NOT_TIMELY,
                 self::FINAL_RESULT,
             ],
-            self::LETTER_OF_SUSPENSION_SENT, self::SUSPENSION_END,
-            self::NOTICE_OF_DEFAULT_RECEIVED => match ($petitionType) {
+            self::LETTER_OF_SUSPENSION_SENT, self::SUSPENSION_END => match ($petitionType) {
                 PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => [
                     self::NOTICE_OF_DEFAULT_RECEIVED,
+                    self::APPEAL_DECISION_NOT_TIMELY,
+                    self::RECEIPT_APPEAL_NOT_TIMELY,
+                    self::FINAL_RESULT,
+                ],
+                default => [],
+            },
+            self::NOTICE_OF_DEFAULT_RECEIVED => match ($petitionType) {
+                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => [
                     self::APPEAL_DECISION_NOT_TIMELY,
                     self::RECEIPT_APPEAL_NOT_TIMELY,
                     self::FINAL_RESULT,
@@ -285,6 +303,15 @@ enum PetitionEventType: string
     public function label(?PetitionTypeType $petitionType = null): string
     {
         return $this->translate('label', $petitionType);
+    }
+
+    public function requiresPrecedingLastEvent(bool $isRepeat): ?self
+    {
+        return match ($this) {
+            self::NOTICE_OF_DEFAULT_WITHDRAWN => self::NOTICE_OF_DEFAULT_RECEIVED,
+            self::NOTICE_OF_DEFAULT_RECEIVED => $isRepeat ? self::NOTICE_OF_DEFAULT_WITHDRAWN : null,
+            default => null,
+        };
     }
 
     public function description(?PetitionTypeType $petitionType = null): string

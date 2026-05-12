@@ -20,6 +20,8 @@ class PetitionEventAvailabilityService
         PetitionEventType::LETTER_OF_SUSPENSION_SENT,
         PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
         PetitionEventType::SUSPENSION_END,
+        PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+        PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
     ];
 
     /**
@@ -72,8 +74,8 @@ class PetitionEventAvailabilityService
 
         return array_values(array_filter(
             $availableForType,
-            function (PetitionEventType $eventType) use ($petitionType, $usedTypes): bool {
-                return $this->canAddEventType($eventType, $petitionType, $usedTypes);
+            function (PetitionEventType $eventType) use ($petitionType, $usedTypes, $currentEvents): bool {
+                return $this->canAddEventType($eventType, $petitionType, $usedTypes, $currentEvents->last());
             },
         ));
     }
@@ -85,6 +87,7 @@ class PetitionEventAvailabilityService
         PetitionEventType $eventType,
         PetitionTypeType $petitionType,
         array $usedTypes,
+        ?PetitionEventData $lastEvent,
     ): bool {
         $conflicts = $eventType->getConflicts($petitionType);
 
@@ -95,6 +98,13 @@ class PetitionEventAvailabilityService
         $dependencies = $eventType->getDependencies($petitionType);
 
         if (!$this->hasDependencies($dependencies, $usedTypes)) {
+            return false;
+        }
+
+        $isRepeat = in_array($eventType->value, $usedTypes, true);
+        $requiredLast = $eventType->requiresPrecedingLastEvent($isRepeat);
+
+        if ($requiredLast instanceof PetitionEventType && $lastEvent?->type !== $requiredLast) {
             return false;
         }
 

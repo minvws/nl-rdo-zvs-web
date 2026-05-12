@@ -1,11 +1,12 @@
 services:
     laravel.test: &app
         build:
-            context: ./vendor/laravel/sail/runtimes/8.4
+            context: ./vendor/laravel/sail/runtimes/8.5
             dockerfile: Dockerfile
             args:
                 WWWGROUP: '${WWWGROUP}'
-        image: sail-8.4/app
+        image: sail-8.5/app
+        pull_policy: build
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
@@ -128,7 +129,8 @@ services:
             retries: 3
 
     minio-setup:
-        image: sail-8.4/app
+        image: sail-8.5/app
+        pull_policy: never
         depends_on:
             minio:
                 condition: service_healthy

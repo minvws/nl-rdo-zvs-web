@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Petition;
 
+use App\Actions\Petition\QuerysnapshotUpdateAction;
 use App\Enums\Authorization\Permission;
 use App\Enums\QuerysnapshotType;
 use App\Enums\RouteName;
@@ -12,6 +13,7 @@ use App\Models\Petition;
 use App\Models\PetitionQuerysnapshot;
 use App\Models\PetitionType;
 use App\Models\User;
+use Illuminate\Database\DatabaseManager;
 use Tests\Feature\FeatureTestCase;
 use Tests\Helpers\ConfigHelper;
 
@@ -253,6 +255,57 @@ class PetitionQuerysnapshotsControllerTest extends FeatureTestCase
             'querysnapshot_id' => $petitionQuerysnapshot1NewId,
         ]);
         $this->assertDatabaseCount(PetitionQuerysnapshot::class, 1);
+    }
+
+    public function testUpdateQuerysnapshotUpdatesExistingInsteadOfCreatingDuplicates(): void
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create();
+        $petition = Petition::factory()->recycle($department)->recycle($petitionType)->create();
+
+        $originalQuerysnapshotDocumentId = 'original-doc-id';
+        $originalQuerysnapshotChatId = 'original-chat-id';
+
+        $existingDocument = PetitionQuerysnapshot::factory()
+            ->for($petition)
+            ->create([
+                'querysnapshot_type' => QuerysnapshotType::DOCUMENT,
+                'querysnapshot_id' => $originalQuerysnapshotDocumentId,
+            ]);
+        PetitionQuerysnapshot::factory()
+            ->for($petition)
+            ->create([
+                'querysnapshot_type' => QuerysnapshotType::CHAT,
+                'querysnapshot_id' => $originalQuerysnapshotChatId,
+            ]);
+
+        $existingDocumentId = $existingDocument->id;
+
+        // Call action directly instead of through controller
+        $action = new QuerysnapshotUpdateAction($this->app->make(DatabaseManager::class));
+        $user = User::factory()->create();
+
+        $action->execute($petition, $user, [
+            'querysnapshots' => [
+                ['querysnapshot_type' => QuerysnapshotType::DOCUMENT->value, 'querysnapshot_id' => 'new-doc-id'],
+            ],
+        ]);
+
+        $petition->refresh();
+
+        $querysnapshots = $petition->querysnapshots()->get();
+
+        $this->assertSame(1, $querysnapshots->count(), 'Expected exactly 1 querysnapshot record. Found: ' . $querysnapshots->count());
+
+        $updatedDocument = $querysnapshots->first();
+
+        $this->assertNotNull($updatedDocument, 'Expected a querysnapshot record to exist');
+        $this->assertEquals(
+            $existingDocumentId,
+            $updatedDocument->id,
+            'The existing record should be updated, not replaced with a new one',
+        );
+        $this->assertSame('new-doc-id', $updatedDocument->querysnapshot_id, 'The querysnapshot_id should be updated');
     }
 
     public function testEditShowsAllConfiguredFieldsEvenWhenSomeValuesAreEmpty(): void

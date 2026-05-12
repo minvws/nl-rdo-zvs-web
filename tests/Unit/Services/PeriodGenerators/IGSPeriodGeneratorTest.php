@@ -228,6 +228,145 @@ class IGSPeriodGeneratorTest extends TestCase
     }
 
     #[Test]
+    public function testWithdrawnIGSGeneratesNoCalendarDays(): void
+    {
+        $generator = new IGSPeriodGenerator();
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::parse('2025-01-01'),
+                duration: 3,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::parse('2025-01-05'),
+            ),
+        ]);
+        $calendar = new EventCalendar();
+
+        $generator->generate($events, $calendar);
+
+        $this->assertEmpty($calendar->all());
+    }
+
+    #[Test]
+    public function testSecondIGSAfterWithdrawalGeneratesCalendarDays(): void
+    {
+        $generator = new IGSPeriodGenerator();
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::parse('2025-01-01'),
+                duration: 2,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::parse('2025-01-05'),
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-02-01'),
+                createdAt: CarbonImmutable::parse('2025-02-01'),
+                duration: 2,
+            ),
+        ]);
+        $calendar = new EventCalendar();
+
+        $generator->generate($events, $calendar);
+
+        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-02')));
+        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-03')));
+
+        $this->assertNotNull($calendar->findDay(CalendarDate::create('2025-02-02')));
+        $this->assertNotNull($calendar->findDay(CalendarDate::create('2025-02-03')));
+    }
+
+    #[Test]
+    public function testAllWithdrawnIGSEventsGenerateNoCalendarDays(): void
+    {
+        $generator = new IGSPeriodGenerator();
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::parse('2025-01-01'),
+                duration: 2,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::parse('2025-01-05'),
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-02-01'),
+                createdAt: CarbonImmutable::parse('2025-02-01'),
+                duration: 2,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+                date: CalendarDate::create('2025-02-10'),
+                createdAt: CarbonImmutable::parse('2025-02-10'),
+            ),
+        ]);
+        $calendar = new EventCalendar();
+
+        $generator->generate($events, $calendar);
+
+        $this->assertEmpty($calendar->all());
+    }
+
+    #[Test]
+    public function testOnlyLastActiveIGSGeneratesCalendarDaysWhenMultiplePairs(): void
+    {
+        $generator = new IGSPeriodGenerator();
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::parse('2025-01-01'),
+                duration: 2,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::parse('2025-01-05'),
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-02-01'),
+                createdAt: CarbonImmutable::parse('2025-02-01'),
+                duration: 2,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+                date: CalendarDate::create('2025-02-10'),
+                createdAt: CarbonImmutable::parse('2025-02-10'),
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-03-01'),
+                createdAt: CarbonImmutable::parse('2025-03-01'),
+                duration: 3,
+            ),
+        ]);
+        $calendar = new EventCalendar();
+
+        $generator->generate($events, $calendar);
+
+        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-02')));
+        $this->assertNull($calendar->findDay(CalendarDate::create('2025-02-02')));
+
+        $this->assertNotNull($calendar->findDay(CalendarDate::create('2025-03-02')));
+        $this->assertNotNull($calendar->findDay(CalendarDate::create('2025-03-03')));
+        $this->assertNotNull($calendar->findDay(CalendarDate::create('2025-03-04')));
+    }
+
+    #[Test]
     public function testMarksCorrectFirstAndLastDaysInBudget(): void
     {
         $generator = new IGSPeriodGenerator();

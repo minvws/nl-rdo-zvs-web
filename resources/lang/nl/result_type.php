@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'final_decision' => 'Finaal besluit',
     'partial_decision' => 'Deelbesluit',

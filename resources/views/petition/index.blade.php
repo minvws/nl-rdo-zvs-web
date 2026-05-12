@@ -111,6 +111,30 @@
                         @endforeach
                     </select>
                 </div>
+                @if ($usedCustomProperties->isNotEmpty())
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("petition.custom_property")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="petition-custom-property"
+                            :content="__('petition.custom_property')" />
+                        <select
+                            data-auto-submit="input"
+                            id="petition-custom-property"
+                            name="filter[{{ PetitionCriteria::CUSTOM_PROPERTY->value }}]"
+                            class="form-select">
+                            <option value="">{{ __("petition.filter.no_filter") }}</option>
+                            @foreach ($usedCustomProperties as $property)
+                                <option
+                                    value="{{ $property->id }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::CUSTOM_PROPERTY->value)) === $property->id->toString())>
+                                    {{ $property->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
                 <div
                     class="form-filter-group"

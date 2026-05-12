@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Factories;
 
+use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Factories\PetitionEventDataFactory;
 use App\Models\PetitionEvent;
@@ -18,7 +19,7 @@ class PetitionEventDataFactoryTest extends FeatureTestCase
     public function mapsPetitionEventModelToPetitionEventData(): void
     {
         $event = new PetitionEvent();
-        $event->type = PetitionEventType::cases()[0];
+        $event->type = PetitionEventType::HEARING_DATE;
         $event->date = CarbonImmutable::now()->toDateString();
         $event->created_at = CarbonImmutable::now()->subDay();
         $event->duration = 15;
@@ -28,6 +29,7 @@ class PetitionEventDataFactoryTest extends FeatureTestCase
         ];
         $event->suspension_type = null;
         $event->result_type = null;
+        $event->hearing_form = HearingForm::DIGITAL;
 
         $data = PetitionEventDataFactory::fromModel($event);
 
@@ -40,6 +42,7 @@ class PetitionEventDataFactoryTest extends FeatureTestCase
             ['amount' => 4, 'duration' => 20],
         ], $arr['penalties']);
         $this->assertInstanceOf(CarbonImmutable::class, $arr['created_at']);
+        $this->assertSame(HearingForm::DIGITAL->value, $arr['hearing_form']);
     }
 
     #[Test]

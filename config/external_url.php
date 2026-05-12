@@ -10,6 +10,12 @@ return [
         ExternalUrlType::PUBLICATION_PAGE->value,
         ExternalUrlType::DECISION_PAGE->value,
     ],
-    PetitionTypeType::BEROEP->value => [],
-    PetitionTypeType::BEZWAAR->value => [],
+    PetitionTypeType::BEROEP->value => [
+        ExternalUrlType::PUBLICATION_PAGE->value,
+        ExternalUrlType::DECISION_PAGE->value,
+    ],
+    PetitionTypeType::BEZWAAR->value => [
+        ExternalUrlType::PUBLICATION_PAGE->value,
+        ExternalUrlType::DECISION_PAGE->value,
+    ],
 ];

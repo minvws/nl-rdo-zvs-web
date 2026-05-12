@@ -34,7 +34,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->singleton(WordTemplateRepositoryInterface::class, FilesystemWordTemplateRepository::class);
 
         $this->app->when(FilesystemWordTemplateRepository::class)
-            ->needs('$templates')
-            ->giveConfig('word_templates.templates');
+            ->needs('$departments')
+            ->giveConfig('word_templates.departments');
     }
 }

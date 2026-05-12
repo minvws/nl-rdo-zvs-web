@@ -294,6 +294,7 @@
             <property name="minDigitsBeforeDecimalPoint" value="5"/>
             <property name="minDigitsAfterDecimalPoint" value="5"/>
         </properties>
+        <exclude-pattern>./config/*</exclude-pattern>
     </rule>
     <rule ref="SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall"/>
     <rule ref="SlevomatCodingStandard.PHP.OptimizedFunctionsWithoutUnpacking"/>

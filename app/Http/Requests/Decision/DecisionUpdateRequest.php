@@ -6,6 +6,7 @@ namespace App\Http\Requests\Decision;
 
 use App\Enums\RouteName;
 use App\Http\Requests\FormRequest;
+use App\Models\Decision;
 use App\Models\Department;
 use App\Rules\CalendarDateRule;
 use Illuminate\Routing\Route;
@@ -13,6 +14,7 @@ use Override;
 use Webmozart\Assert\Assert;
 
 use function route;
+use function strtolower;
 
 class DecisionUpdateRequest extends FormRequest
 {
@@ -21,11 +23,26 @@ class DecisionUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $decision = $this->route('decision');
+        $decisionId = $decision instanceof Decision ? $decision->id : null;
+
         return [
             'name' => ['required', 'string'],
-            'reference' => ['string', 'nullable'],
+            'reference' => [
+                'nullable',
+                'string',
+                'unique:decisions,reference,' . $decisionId,
+            ],
             'date' => ['nullable', new CalendarDateRule()],
         ];
+    }
+
+    #[Override]
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('reference')) {
+            $this->merge(['reference' => strtolower($this->string('reference')->toString())]);
+        }
     }
 
     #[Override]

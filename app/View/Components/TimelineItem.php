@@ -98,32 +98,44 @@ class TimelineItem extends Component
 
     private function renderAssignmentOccurrence(): View
     {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'current_assigned_user_id');
+        Assert::keyExists($data, 'previous_assigned_user_id');
+
         return $this->view
             ->make('petition.timeline.assignment_occurrence')
             ->with([
                 'timelineItem' => $this->timelineItem,
-                'currentAssignedUser' => User::query()->find($this->timelineItem->data->current_assigned_user_id),
-                'previousAssignedUser' => User::query()->find($this->timelineItem->data->previous_assigned_user_id),
+                'currentAssignedUser' => User::query()->find($data['current_assigned_user_id']),
+                'previousAssignedUser' => User::query()->find($data['previous_assigned_user_id']),
             ]);
     }
 
     private function renderContactAttached(): View
     {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'contact_id');
+        Assert::string($data['contact_id']);
+
         return $this->view
             ->make('petition.timeline.contact_attached')
             ->with([
                 'timelineItem' => $this->timelineItem,
-                'contact' => Contact::query()->findSole($this->timelineItem->data->contact_id),
+                'contact' => Contact::query()->findSole($data['contact_id']),
             ]);
     }
 
     private function renderContactDetached(): View
     {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'contact_id');
+        Assert::string($data['contact_id']);
+
         return $this->view
             ->make('petition.timeline.contact_detached')
             ->with([
                 'timelineItem' => $this->timelineItem,
-                'contact' => Contact::query()->findSole($this->timelineItem->data->contact_id),
+                'contact' => Contact::query()->findSole($data['contact_id']),
             ]);
     }
 
@@ -143,18 +155,26 @@ class TimelineItem extends Component
 
     private function renderNote(): View
     {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'attachmentIds');
+        Assert::isArray($data['attachmentIds']);
+
         return $this->view
             ->make('petition.timeline.note')
             ->with([
                 'timelineItem' => $this->timelineItem,
-                'attachments' => Attachment::query()->whereIn('id', $this->timelineItem->data->attachmentIds)->get(),
+                'attachments' => Attachment::query()->whereIn('id', $data['attachmentIds'])->get(),
             ]);
     }
 
     private function renderPolicyDepartmentChanged(): View
     {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'policy_department_ids');
+        Assert::isArray($data['policy_department_ids']);
+
         /** @var PolicyDepartmentCollection $policyDepartments */
-        $policyDepartments = PolicyDepartment::query()->whereIn('id', $this->timelineItem->data->policy_department_ids)->get();
+        $policyDepartments = PolicyDepartment::query()->whereIn('id', $data['policy_department_ids'])->get();
 
         return $this->view
             ->make('petition.timeline.policy_department_changed')
@@ -166,8 +186,12 @@ class TimelineItem extends Component
 
     private function renderPetitionCustomPropertiesChanged(): View
     {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'custom_petition_properties');
+        Assert::isArray($data['custom_petition_properties']);
+
         /** @var CustomPetitionPropertyCollection $customProperties */
-        $customProperties = CustomPetitionProperty::query()->whereIn('id', $this->timelineItem->data->custom_petition_properties)->get();
+        $customProperties = CustomPetitionProperty::query()->whereIn('id', $data['custom_petition_properties'])->get();
 
         $customPropertiesString = $customProperties->isNotEmpty()
             ? sprintf('%s %s', $customProperties->toString(), __('timeline.checked'))
@@ -183,7 +207,11 @@ class TimelineItem extends Component
 
     private function renderPetitionCustomDatesChanged(): View
     {
-        $customDatesCollection = new Collection($this->timelineItem->data->custom_dates);
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'custom_dates');
+        Assert::isArray($data['custom_dates']);
+
+        $customDatesCollection = new Collection($data['custom_dates']);
         $customDatesCollection->filter(static function (mixed $item): bool {
             return $item['date'] !== null;
         });
@@ -234,11 +262,15 @@ class TimelineItem extends Component
 
     private function renderCustomCostsUpdated(): View
     {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'custom_costs');
+        Assert::isArray($data['custom_costs']);
+
         return $this->view
             ->make('petition.timeline.petition_custom_costs_changed')
             ->with([
                 'timelineItem' => $this->timelineItem,
-                'customCostsCollection' => new Collection($this->timelineItem->data->custom_costs),
+                'customCostsCollection' => new Collection($data['custom_costs']),
             ]);
     }
 

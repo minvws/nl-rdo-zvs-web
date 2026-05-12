@@ -10,6 +10,7 @@ use App\Enums\PetitionCriteria;
 use App\Enums\StatusGroup;
 use App\Models\Builder\Petition\PetitionQueryBuilder;
 use App\Models\Contact;
+use App\Models\CustomPetitionProperty;
 use App\Models\Petition;
 use App\Models\PetitionStatus;
 use App\Models\PolicyDepartment;
@@ -197,6 +198,30 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
             $filterPetition->petitionStatus->status_group->value,
             ['petition_status_id' => PetitionStatus::factory()->state(['status_group' => StatusGroup::CLOSED])],
         );
+    }
+
+    public function testCustomPropertyFilter(): void
+    {
+        $property = CustomPetitionProperty::factory()->create(['name' => 'Chatbesluit']);
+        $filterPetition = Petition::factory()->create();
+        $filterPetition->customPetitionProperties()->attach($property);
+
+        $this->assertSingleFilterResult(PetitionCriteria::CUSTOM_PROPERTY, $property->id->toString());
+    }
+
+    public function testCustomPropertyFilterDoesNotMatchOtherPetitions(): void
+    {
+        $property = CustomPetitionProperty::factory()->create(['name' => 'Chatbesluit']);
+        $otherProperty = CustomPetitionProperty::factory()->create(['name' => 'Andere eigenschap']);
+        $filterPetition = Petition::factory()->create();
+        $filterPetition->customPetitionProperties()->attach($property);
+        Petition::factory()->count(2)->create()
+            ->each(fn ($p) => $p->customPetitionProperties()->attach($otherProperty));
+
+        $request = new Request([
+            'filter' => [PetitionCriteria::CUSTOM_PROPERTY->value => $property->id->toString()],
+        ]);
+        $this->assertEquals(1, PetitionQueryBuilder::make($request)->count());
     }
 
     /**

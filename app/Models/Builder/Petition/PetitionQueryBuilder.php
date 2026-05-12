@@ -9,6 +9,7 @@ use App\Models\Builder\Filters\ArchiveFilter;
 use App\Models\Builder\Petition\Filters\ApplicantFilter;
 use App\Models\Builder\Petition\Filters\AssignedUserFilter;
 use App\Models\Builder\Petition\Filters\CategoryFilter;
+use App\Models\Builder\Petition\Filters\CustomPropertyFilter;
 use App\Models\Builder\Petition\Filters\PetitionStatusFilter;
 use App\Models\Builder\Petition\Filters\PetitionStatusGroupFilter;
 use App\Models\Builder\Petition\Filters\PetitionTypeFilter;
@@ -65,6 +66,7 @@ readonly class PetitionQueryBuilder
             AllowedFilter::custom(PetitionCriteria::ARCHIVE->value, new ArchiveFilter()),
             AllowedFilter::custom(PetitionCriteria::ASSIGNED_USER->value, new AssignedUserFilter()),
             AllowedFilter::custom(PetitionCriteria::CATEGORY->value, new CategoryFilter()),
+            AllowedFilter::custom(PetitionCriteria::CUSTOM_PROPERTY->value, new CustomPropertyFilter()),
             AllowedFilter::custom(PetitionCriteria::PETITION_TYPE->value, new PetitionTypeFilter()),
             AllowedFilter::custom(PetitionCriteria::POLICY_DEPARTMENT->value, new PolicyDepartmentFilter()),
             AllowedFilter::custom(PetitionCriteria::SEARCH->value, new SearchFilter()),

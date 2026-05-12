@@ -33,13 +33,15 @@ class FilesystemWordTemplateRepositoryTest extends TestCase
                 ->once()
                 ->andReturn($path);
         });
-        $templates = [
-            $wordTemplateId->value => [
-                'filename' => $filename,
+        $departments = [
+            'TEST' => [
+                $wordTemplateId->value => [
+                    'filename' => $filename,
+                ],
             ],
         ];
 
-        $filesystemWordTemplateRepository = new FilesystemWordTemplateRepository($filesystem, $templates);
+        $filesystemWordTemplateRepository = new FilesystemWordTemplateRepository($filesystem, $departments);
         $result = $filesystemWordTemplateRepository->getById($wordTemplateId);
 
         $this->assertEquals($wordTemplateId, $result->id);
@@ -52,9 +54,9 @@ class FilesystemWordTemplateRepositoryTest extends TestCase
     {
         /** @var Filesystem&MockObject $filesystem */
         $filesystem = $this->mock(Filesystem::class);
-        $templates = [];
+        $departments = [];
 
-        $filesystemWordTemplateRepository = new FilesystemWordTemplateRepository($filesystem, $templates);
+        $filesystemWordTemplateRepository = new FilesystemWordTemplateRepository($filesystem, $departments);
 
         $this->expectException(WordTemplateNotFoundException::class);
         $filesystemWordTemplateRepository->getById($this->faker->randomElement(WordTemplateId::cases()));
@@ -72,13 +74,15 @@ class FilesystemWordTemplateRepositoryTest extends TestCase
                 ->once()
                 ->andReturn(false);
         });
-        $templates = [
-            $wordTemplateId->value => [
-                'filename' => $this->faker->word(),
+        $departments = [
+            'TEST' => [
+                $wordTemplateId->value => [
+                    'filename' => $this->faker->word(),
+                ],
             ],
         ];
 
-        $filesystemWordTemplateRepository = new FilesystemWordTemplateRepository($filesystem, $templates);
+        $filesystemWordTemplateRepository = new FilesystemWordTemplateRepository($filesystem, $departments);
 
         $this->expectException(WordTemplateNotFoundException::class);
         $filesystemWordTemplateRepository->getById($wordTemplateId);

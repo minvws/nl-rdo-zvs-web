@@ -9,7 +9,6 @@ use App\Models\CustomCost;
 use App\Models\Petition;
 use App\Models\User;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Support\Collection;
 use Webmozart\Assert\Assert;
 
 use function collect;
@@ -28,7 +27,7 @@ readonly class CustomCostUpdateAction
     public function execute(Petition $petition, User $user, array $attributes): void
     {
         $this->databaseManager->transaction(function () use ($petition, $attributes, $user): void {
-            $this->deleteAllExistingCustomCostsForPetition($petition->customCosts);
+            $petition->customCosts()->delete();
             $this->createNewCustomCosts($attributes, $petition);
             $this->createTimelineItem($petition, $attributes, $user);
         });
@@ -44,18 +43,6 @@ readonly class CustomCostUpdateAction
             'type' => TimelineType::CUSTOM_COST_UPDATED,
             'data' => $attributes,
         ]);
-    }
-
-    /**
-     * @param Collection<int, CustomCost> $currentCustomCosts
-     */
-    private function deleteAllExistingCustomCostsForPetition(Collection $currentCustomCosts): void
-    {
-        $currentCustomCosts->each(function (CustomCost $customCost): self {
-            $customCost->delete();
-
-            return $this;
-        });
     }
 
     /**

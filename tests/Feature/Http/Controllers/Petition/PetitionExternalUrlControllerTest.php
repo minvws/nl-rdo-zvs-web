@@ -25,9 +25,6 @@ class PetitionExternalUrlControllerTest extends FeatureTestCase
         $petition = Petition::factory()->recycle($department)->create();
 
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
-        $this->beUser($authUser);
-
-        $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
             ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_EXTERNAL_URLS_EDIT, [
                 'department' => $department,

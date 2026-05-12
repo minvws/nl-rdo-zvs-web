@@ -24,7 +24,8 @@ iRealisatie is developing a modern case management system to support these proce
         -u "$(id -u):$(id -g)" \
         -v "$(pwd):/var/www/html" \
         -w /var/www/html \
-        laravelsail/php84-composer:latest \
+        -e TELESCOPE_ENABLED=false \
+        composer:latest \
         composer install --ignore-platform-reqs
     ```
 

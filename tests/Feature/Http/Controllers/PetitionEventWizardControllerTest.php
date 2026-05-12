@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers;
 
 use App\Enums\Authorization\Permission;
+use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionTypeType;
 use App\Enums\ResultType;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Session;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 
+use function __;
 use function now;
 use function route;
 use function sprintf;
@@ -900,6 +902,30 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     }
 
     #[Test]
+    public function testCreateActionShowsHearingFormFieldForHearingDate(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
+                'department' => $department,
+                'petition' => $petition,
+                'type' => PetitionEventType::HEARING_DATE,
+            ]));
+
+        $response->assertOk();
+        $response->assertSee(__('petition_event.hearing_form'));
+        $response->assertSee(HearingForm::TELEPHONE->label());
+        $response->assertSee(HearingForm::DIGITAL->label());
+        $response->assertSee(HearingForm::PHYSICAL->label());
+    }
+
+    #[Test]
     public function testProcessEventDataWithAllFieldsPresent(): void
     {
         ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
@@ -1214,6 +1240,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
             ]), [
                 'type' => PetitionEventType::HEARING_DATE->value,
                 'date' => now()->addDays(5)->toDateString(),
+                'hearing_form' => HearingForm::DIGITAL->value,
             ]);
 
         $response->assertRedirect();
@@ -1398,17 +1425,37 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testEnumHasPenaltiesMethod(): void
     {
         // Test events that have penalties
-        $this->assertTrue(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->hasPenalties());
-        $this->assertTrue(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->hasPenalties());
+        // BEZWAAR: heeft penalties bij Notice of Default en BNT
+        $this->assertTrue(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->hasPenalties(PetitionTypeType::BEZWAAR));
+        $this->assertTrue(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->hasPenalties(PetitionTypeType::BEZWAAR));
+        // WOO_VERZOEK: alleen BNT heeft penalties
+        $this->assertFalse(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        $this->assertTrue(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        // Controleer overige combinaties (er zouden nooit penalties moeten zijn)
+        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->hasPenalties(PetitionTypeType::BEZWAAR));
+        $this->assertFalse(PetitionEventType::RECEIPT_OF_OBJECTION->hasPenalties(PetitionTypeType::BEZWAAR));
+        $this->assertFalse(PetitionEventType::LETTER_OF_SUSPENSION_SENT->hasPenalties(PetitionTypeType::BEZWAAR));
+        $this->assertFalse(PetitionEventType::MEETING_SCHEDULED->hasPenalties(PetitionTypeType::BEZWAAR));
+        $this->assertFalse(PetitionEventType::SUSPENSION_END->hasPenalties(PetitionTypeType::BEZWAAR));
+        $this->assertFalse(PetitionEventType::HEARING_DATE->hasPenalties(PetitionTypeType::BEZWAAR));
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasPenalties(PetitionTypeType::BEZWAAR));
 
-        // Test events that don't have penalties
-        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->hasPenalties());
-        $this->assertFalse(PetitionEventType::RECEIPT_OF_OBJECTION->hasPenalties());
-        $this->assertFalse(PetitionEventType::LETTER_OF_SUSPENSION_SENT->hasPenalties());
-        $this->assertFalse(PetitionEventType::MEETING_SCHEDULED->hasPenalties());
-        $this->assertFalse(PetitionEventType::SUSPENSION_END->hasPenalties());
-        $this->assertFalse(PetitionEventType::HEARING_DATE->hasPenalties());
-        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasPenalties());
+        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::RECEIPT_OF_OBJECTION->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::LETTER_OF_SUSPENSION_SENT->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::MEETING_SCHEDULED->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::SUSPENSION_END->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::HEARING_DATE->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+    }
+
+    #[Test]
+    public function testEnumHasHearingFormMethod(): void
+    {
+        $this->assertTrue(PetitionEventType::HEARING_DATE->hasHearingForm());
+
+        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->hasHearingForm());
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasHearingForm());
     }
 
     #[Test]
@@ -1455,6 +1502,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
         $this->assertNotNull(PetitionEventType::RECEIPT_OF_OBJECTION->rule());
         $this->assertNotNull(PetitionEventType::LETTER_OF_SUSPENSION_SENT->rule());
         $this->assertNotNull(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->rule());
+        $this->assertNotNull(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->rule());
         $this->assertNotNull(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule());
         $this->assertNotNull(PetitionEventType::SUSPENSION_END->rule());
         $this->assertNotNull(PetitionEventType::MEETING_SCHEDULED->rule());
@@ -1462,9 +1510,6 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
         $this->assertNotNull(PetitionEventType::FINAL_RESULT->rule());
         $this->assertNotNull(PetitionEventType::UNSPECIFIED_ADJOURNMENT->rule());
         $this->assertNotNull(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule());
-
-        // Test validators that return null
-        $this->assertNull(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->rule());
     }
 
     /**

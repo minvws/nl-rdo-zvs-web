@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Requests\PetitionEvent;
 
 use App\Enums\Authorization\Permission;
+use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionTypeType;
 use App\Enums\RouteName;
@@ -14,6 +15,10 @@ use App\Models\Petition;
 use App\Models\PetitionStatus;
 use App\Models\PetitionType;
 use App\Models\User;
+use App\ValueObjects\CalendarDate;
+use App\ValueObjects\PetitionEventData;
+use App\ValueObjects\WizardEventCollection;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Session;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
@@ -86,6 +91,126 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
 
         $response->assertRedirect();
         $response->assertSessionHasErrors('date');
+    }
+
+    #[Test]
+    public function testHearingFormIsRequiredForHearingDateEvents(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->subDays(10)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->subDays(5)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::HEARING_DATE->value,
+                'date' => now()->toDateString(),
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('hearing_form');
+    }
+
+    #[Test]
+    public function testHearingFormAcceptsValidValueForHearingDateEvents(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->subDays(10)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->subDays(5)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::HEARING_DATE->value,
+                'date' => now()->toDateString(),
+                'hearing_form' => HearingForm::DIGITAL->value,
+            ]);
+
+        $response->assertRedirect();
+
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+        $lastEvent = $events->last();
+        $this->assertSame(HearingForm::DIGITAL, $lastEvent->hearingForm);
+    }
+
+    #[Test]
+    public function testInvalidHearingFormIsRejected(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->subDays(10)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->subDays(5)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::HEARING_DATE->value,
+                'date' => now()->toDateString(),
+                'hearing_form' => 'not-a-hearing-form',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('hearing_form');
     }
 
     #[Test]

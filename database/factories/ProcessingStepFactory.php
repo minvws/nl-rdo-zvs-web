@@ -23,12 +23,12 @@ class ProcessingStepFactory extends Factory
     public function definition(): array
     {
         return [
-
             'name' => $this->faker->word(),
             'status' => $this->faker->randomElement(ProcessingStepStatus::cases()),
             'decision_id' => Decision::factory(),
             'deadline_at' => $this->faker->optional()->calendarDate(),
             'assigned_to' => User::factory(),
+            'ordering' => $this->faker->numberBetween(0, 100),
         ];
     }
 }

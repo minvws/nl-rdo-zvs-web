@@ -12,6 +12,7 @@ use App\Collections\PolicyDepartmentCollection;
 use App\Collections\UserCollection;
 use App\Enums\ArchiveFilter;
 use App\Models\Builder\Petition\PetitionQueryBuilder;
+use App\Models\CustomPetitionProperty;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionCategory;
@@ -46,6 +47,7 @@ final readonly class PetitionIndexService
      *     usedPetitionCategories: PetitionCategoryCollection,
      *     usedPetitionTypes: PetitionTypeCollection,
      *     usedPetitionStatuses: PetitionStatusCollection,
+     *     usedCustomProperties: Collection<int, CustomPetitionProperty>,
      *     department: Department,
      *     hasSavedFilters: bool,
      *     archiveFilters: array<ArchiveFilter>
@@ -74,6 +76,7 @@ final readonly class PetitionIndexService
             'usedPetitionCategories' => $this->getUsedPetitionCategories($department),
             'usedPetitionTypes' => $this->getUsedPetitionTypes($department),
             'usedPetitionStatuses' => $this->getUsedPetitionStatuses($department),
+            'usedCustomProperties' => $this->getUsedCustomProperties($department),
             'department' => $department,
             'hasSavedFilters' => $this->hasUserSavedFilters($user, $department),
             'archiveFilters' => ArchiveFilter::cases(),
@@ -116,6 +119,19 @@ final readonly class PetitionIndexService
     {
         return PetitionStatus::query()
             ->usedByDepartment($department)
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, CustomPetitionProperty>
+     */
+    private function getUsedCustomProperties(Department $department): Collection
+    {
+        return CustomPetitionProperty::query()
+            ->whereHas('petitions', static function ($query) use ($department): void {
+                $query->where('department_id', $department->id);
+            })
+            ->orderBy('name')
             ->get();
     }
 

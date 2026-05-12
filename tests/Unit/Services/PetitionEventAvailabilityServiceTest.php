@@ -763,7 +763,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
     }
 
-    public function testNoticeOfDefaultWithdrawnNotVisibleBecauseTemporarilyDisabledForBezwaar(): void
+    public function testNoticeOfDefaultWithdrawnVisibleWhenLastEventIsReceivedForBezwaar(): void
     {
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
@@ -772,10 +772,10 @@ class PetitionEventAvailabilityServiceTest extends TestCase
 
         $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
 
-        $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
+        $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
     }
 
-    public function testNoticeOfDefaultWithdrawnNotVisibleBecauseTemporarilyDisabledForWooVerzoek(): void
+    public function testNoticeOfDefaultWithdrawnVisibleWhenLastEventIsReceivedForWooVerzoek(): void
     {
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
@@ -783,7 +783,67 @@ class PetitionEventAvailabilityServiceTest extends TestCase
 
         $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
 
+        $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
+    }
+
+    public function testNoticeOfDefaultWithdrawnNotVisibleWhenLastEventIsNotReceivedForBezwaar(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
+    }
+
+    public function testNoticeOfDefaultWithdrawnNotVisibleWhenLastEventIsNotReceivedForWooVerzoek(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+
+        $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
+    }
+
+    public function testNoticeOfDefaultReceivedAvailableAgainAfterWithdrawalForBezwaar(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, '2025-03-15'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+
+        $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
+    }
+
+    public function testNoticeOfDefaultReceivedAvailableAgainAfterWithdrawalForWooVerzoek(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, '2025-03-15'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+
+        $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
+    }
+
+    public function testNoticeOfDefaultReceivedNotAvailableAgainWhenLastEventIsNotWithdrawn(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, '2025-03-15'))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-04-01'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+
+        $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
     }
 
     public function testNoticeOfDefaultWithdrawnNotVisibleWhenAlreadyExistsForBezwaar(): void

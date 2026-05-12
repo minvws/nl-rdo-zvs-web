@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Validation;
 
 use App\Enums\Authorization\Permission;
+use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionTypeType;
 use App\Enums\ResultType;
@@ -192,6 +193,7 @@ class ContextAwareValidationTest extends FeatureTestCase
             ]), [
                 'type' => PetitionEventType::HEARING_DATE->value,
                 'date' => now()->toDateString(),
+                'hearing_form' => HearingForm::DIGITAL->value,
             ]);
 
         $response->assertRedirect();

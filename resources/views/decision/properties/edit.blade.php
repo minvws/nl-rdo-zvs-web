@@ -57,6 +57,9 @@
                 <x-input-label
                     for="decision-reference"
                     :content="__('decision.reference')" />
+                <x-input-error
+                    id="reference-error"
+                    :messages="$errors->get('reference')" />
                 <x-text-input
                     id="decision-reference"
                     :hasError="$errors->has('reference')"

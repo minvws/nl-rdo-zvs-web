@@ -8,6 +8,9 @@ use App\Enums\DecisionType;
 use App\Http\Requests\FormRequest;
 use App\Rules\CalendarDateRule;
 use Illuminate\Validation\Rules\Enum;
+use Override;
+
+use function strtolower;
 
 class DecisionCreateRequest extends FormRequest
 {
@@ -18,9 +21,17 @@ class DecisionCreateRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string'],
-            'reference' => ['string', 'nullable'],
+            'reference' => ['nullable', 'string', 'unique:decisions,reference'],
             'date' => ['nullable', new CalendarDateRule()],
             'type' => ['required', new Enum(DecisionType::class)],
         ];
+    }
+
+    #[Override]
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('reference')) {
+            $this->merge(['reference' => strtolower($this->string('reference')->toString())]);
+        }
     }
 }

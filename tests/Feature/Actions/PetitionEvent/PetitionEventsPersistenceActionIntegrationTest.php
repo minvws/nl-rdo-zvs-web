@@ -6,6 +6,7 @@ namespace Tests\Feature\Actions\PetitionEvent;
 
 use App\Actions\PetitionEvent\PetitionEventsPersistenceAction;
 use App\Enums\Authorization\Permission;
+use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionTypeType;
 use App\Models\Department;
@@ -18,6 +19,7 @@ use App\ValueObjects\CalendarDate;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
+use Tests\Helpers\ConfigHelper;
 
 use function app;
 
@@ -109,6 +111,8 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     #[Test]
     public function testDeletingAllEventsDoesNotResetDeadline(): void
     {
+        ConfigHelper::set('app.features.term_engine_v2', false);
+
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
@@ -236,8 +240,46 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     }
 
     #[Test]
+    public function testPersistingHearingFormStoresTheColumn(): void
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+
+        $petition = Petition::factory()
+            ->recycle($department)
+            ->for($petitionType)
+            ->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $petitionEventDataArray = [
+            [
+                'date' => '2025-01-13',
+                'type' => PetitionEventType::HEARING_DATE->value,
+                'hearing_form' => HearingForm::DIGITAL->value,
+                'created_at' => CarbonImmutable::now(),
+            ],
+        ];
+
+        $action = app(PetitionEventsPersistenceAction::class);
+        $action->execute($petition, $petitionEventDataArray, $user);
+
+        $this->assertDatabaseHas(PetitionEvent::class, [
+            'petition_id' => $petition->id,
+            'type' => PetitionEventType::HEARING_DATE->value,
+            'hearing_form' => HearingForm::DIGITAL->value,
+        ]);
+    }
+
+    #[Test]
     public function testDeletingAllEventsDoesNotResetCachedTotals(): void
     {
+        $this->app['config']->set('app.features.term_engine_v2', false);
+
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();

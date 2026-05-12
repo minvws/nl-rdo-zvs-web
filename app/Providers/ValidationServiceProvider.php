@@ -37,6 +37,7 @@ class ValidationServiceProvider extends ServiceProvider
         $this->registerPrimaryDecisionValidator();
         $this->registerReceiptOfObjectionValidator();
         $this->registerNoticeOfDefaultReceivedValidator();
+        $this->registerNoticeOfDefaultWithdrawnValidator();
         $this->registerReceiptAppealNotTimelyValidator();
         $this->registerAppealDecisionNotTimelyValidator();
         $this->registerFinalResultValidator();
@@ -90,6 +91,19 @@ class ValidationServiceProvider extends ServiceProvider
                     ]),
                     $app->make(DateMustBeLatestEventRule::class),
                     new DateMustNotBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
+                ]);
+            },
+        );
+    }
+
+    private function registerNoticeOfDefaultWithdrawnValidator(): void
+    {
+        $this->app->bind(
+            'validation.rule.' . PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->value,
+            static function (Application $app): ComposableValidator {
+                return new ComposableValidator([
+                    new LastEventMustBeOneOfRule([PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED]),
+                    $app->make(DateMustBeLatestEventRule::class),
                 ]);
             },
         );

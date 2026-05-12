@@ -68,7 +68,8 @@ class GenericApiControllerTest extends FeatureTestCase
         $userData = $response->json('data.0');
         $this->assertArrayHasKey('id', $userData);
         $this->assertArrayHasKey('name', $userData);
-        $this->assertArrayNotHasKey('email', $userData);
+        $this->assertArrayHasKey('email', $userData);
+        $this->assertArrayNotHasKey('password', $userData);
     }
 
     public function testPaginationWorks(): void

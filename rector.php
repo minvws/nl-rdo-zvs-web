@@ -19,6 +19,9 @@ return RectorConfig::configure()
         //        __DIR__ . '/tests',
         __DIR__ . '/utils',
     ])
+    ->withSkip([
+        __DIR__ . '/bootstrap/cache',
+    ])
     ->withComposerBased(phpunit: true, laravel: true)
     // uncomment to reach your current PHP version
     // ->withPhpSets()

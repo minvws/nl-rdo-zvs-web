@@ -32,7 +32,13 @@ Na iedere deployment moeten:
 
 ### DEVELOP
 
-- Verwerk migraties in `database/sql` v0.0.x
+- 
+
+### v1.19.2
+
+- Verwerk migraties in `database/sql` v0.0.45
+- Run `php artisan processing-steps:reorder` om bestaande processtappen te herordenen
+- Upgrade de php versie op de server naar PHP 8.5
 
 ### v1.17.0
 

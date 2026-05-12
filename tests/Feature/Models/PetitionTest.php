@@ -17,6 +17,7 @@ use App\ValueObjects\CalendarDate;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
+use Tests\Helpers\ConfigHelper;
 
 use function now;
 
@@ -135,6 +136,8 @@ class PetitionTest extends FeatureTestCase
 
     public function testTermsV2(): void
     {
+        // config is gebruikt in Model, dat moet uiteindelijk weg
+        ConfigHelper::set('app.features.term_engine_v2', false);
         $petition = Petition::factory()->create();
         $this->assertFalse($petition->isTermEngineConverted());
 

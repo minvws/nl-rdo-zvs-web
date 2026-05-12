@@ -154,4 +154,69 @@ class IGSValidatorTest extends TestCase
         $this->assertTrue($result->isValid());
         $this->assertEmpty($result->getErrors());
     }
+
+    #[Test]
+    public function testWithdrawnValidatorPassesWhenLastEventIsReceived(): void
+    {
+        $validator = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->rule();
+        $state = new DerivedState();
+        $state->addEvents(collect([
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-03-01'),
+                createdAt: CarbonImmutable::parse('2025-03-01'),
+                duration: 14,
+            ),
+        ]));
+
+        $result = $validator->validate(new PetitionEventData(
+            type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+            date: CalendarDate::create('2025-03-15'),
+            createdAt: CarbonImmutable::now(),
+        ), $state);
+
+        $this->assertTrue($result->isValid());
+        $this->assertEmpty($result->getErrors());
+    }
+
+    #[Test]
+    public function testWithdrawnValidatorFailsWhenNoEventsExist(): void
+    {
+        $validator = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->rule();
+        $state = new DerivedState();
+        $state->addEvents(collect([]));
+
+        $result = $validator->validate(new PetitionEventData(
+            type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+            date: CalendarDate::create('2025-03-15'),
+            createdAt: CarbonImmutable::now(),
+        ), $state);
+
+        $this->assertFalse($result->isValid());
+        $this->assertArrayHasKey('general', $result->getErrors());
+    }
+
+    #[Test]
+    public function testWithdrawnValidatorFailsWhenLastEventIsNotReceived(): void
+    {
+        $validator = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->rule();
+        $state = new DerivedState();
+        $state->addEvents(collect([
+            new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-01-15'),
+                createdAt: CarbonImmutable::parse('2025-01-15'),
+                duration: 42,
+            ),
+        ]));
+
+        $result = $validator->validate(new PetitionEventData(
+            type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+            date: CalendarDate::create('2025-03-15'),
+            createdAt: CarbonImmutable::now(),
+        ), $state);
+
+        $this->assertFalse($result->isValid());
+        $this->assertArrayHasKey('general', $result->getErrors());
+    }
 }
