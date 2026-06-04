@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Factories;
 
-use App\Enums\HearingForm;
+use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
 use App\Factories\PetitionEventDataFactory;
 use App\Models\PetitionEvent;
@@ -19,7 +19,7 @@ class PetitionEventDataFactoryTest extends FeatureTestCase
     public function mapsPetitionEventModelToPetitionEventData(): void
     {
         $event = new PetitionEvent();
-        $event->type = PetitionEventType::HEARING_DATE;
+        $event->type = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END;
         $event->date = CarbonImmutable::now()->toDateString();
         $event->created_at = CarbonImmutable::now()->subDay();
         $event->duration = 15;
@@ -29,7 +29,8 @@ class PetitionEventDataFactoryTest extends FeatureTestCase
         ];
         $event->suspension_type = null;
         $event->result_type = null;
-        $event->hearing_form = HearingForm::DIGITAL;
+        $event->hearing_form = null;
+        $event->adjournment_end_reason = AdjournmentEndReason::Withdrawal;
 
         $data = PetitionEventDataFactory::fromModel($event);
 
@@ -42,7 +43,8 @@ class PetitionEventDataFactoryTest extends FeatureTestCase
             ['amount' => 4, 'duration' => 20],
         ], $arr['penalties']);
         $this->assertInstanceOf(CarbonImmutable::class, $arr['created_at']);
-        $this->assertSame(HearingForm::DIGITAL->value, $arr['hearing_form']);
+        $this->assertArrayNotHasKey('hearing_form', $arr);
+        $this->assertSame(AdjournmentEndReason::Withdrawal->value, $arr['adjournment_end_reason']);
     }
 
     #[Test]

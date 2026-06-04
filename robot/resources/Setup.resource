@@ -10,7 +10,7 @@ Library             String
 
 
 *** Variables ***
-${BASE_URL}             %{BASE_URL}
+${BASE_URL}             %{BASE_URL=127.0.0.1}
 ${BROWSER_TIMEOUT}      %{BROWSER_TIMEOUT=3s}
 
 
@@ -70,8 +70,9 @@ Seed Database
 
 Open App
     [Documentation]    Opens the browser to the base URL.
+    ${HEADLESS}=    Get Variable Value    ${HEADLESS}    ${True}
     VAR    @{list}    --disable-web-security    --allow-running-insecure-content    --ignore-certificate-errors
-    New Browser    chromium    args=${list}    slowMo=1
+    New Browser    chromium    headless=${HEADLESS}    args=${list}    slowMo=1
     New Context
     ...    baseURL=${BASE_URL}
     ...    acceptDownloads=True

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Enums\AssignmentRole;
 use App\Enums\Authorization\Permission;
 use App\Enums\OptionalFormFieldSetting;
 use App\Enums\RouteName;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionAssignment;
 use App\Models\PetitionCategory;
 use App\Models\PetitionStatus;
 use App\Models\PetitionType;
@@ -40,7 +42,7 @@ class DepartmentIsolationDropdownTest extends FeatureTestCase
         ]);
 
         ConfigHelper::set(
-            sprintf('petition_type_type.%s.optional_form_fields.petition_category_id', $petitionType1->type->value),
+            sprintf('petition_variant.%s.optional_form_fields.petition_category_id', $petitionType1->type->value),
             OptionalFormFieldSetting::REQUIRED,
         );
 
@@ -73,7 +75,7 @@ class DepartmentIsolationDropdownTest extends FeatureTestCase
         ]);
 
         ConfigHelper::set(
-            sprintf('petition_type_type.%s.optional_form_fields.petition_category_id', $petition->petitionType->type->value),
+            sprintf('petition_variant.%s.optional_form_fields.petition_category_id', $petition->petitionType->type->value),
             OptionalFormFieldSetting::REQUIRED,
         );
 
@@ -252,9 +254,12 @@ class DepartmentIsolationDropdownTest extends FeatureTestCase
             ->recycle($usedPetitionType)
             ->recycle($usedPetitionStatus)
             ->recycle($usedPetitionCategory)
-            ->create([
-                'assigned_to' => $usedUser->id,
-            ]);
+            ->create();
+
+        PetitionAssignment::factory()->recycle($petition)->create([
+            'user_id' => $usedUser->id,
+            'assignment_role' => AssignmentRole::PRIMARY,
+        ]);
 
         $petition->policyDepartments()->sync([$usedPolicyDepartment->id->toString()]);
 

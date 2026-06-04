@@ -72,7 +72,9 @@
                                 <th scope="col">{{ __('decision.date') }}</th>
                                 <th scope="col">{{ __('decision.reference') }}</th>
                                 <th scope="col">{{ __('decision.deadline') }}</th>
-                                <th scope="col">{{ __('decision.finished') }}</th>
+                                <th scope="col">{{ __('decision.processing_steps_in_progress') }}</th>
+                                <th scope="col">{{ __('decision.processing_steps_completed') }}</th>
+                                <th scope="col">{{ __('decision.final') }}</th>
                                 <th
                                     class="action-column"
                                     scope="col">
@@ -96,9 +98,23 @@
                                     </td>
                                     <td>
                                         @if ($decision->processingSteps->isNotEmpty())
+                                            {{ implode(', ', $decision->processingSteps->getInProgressNames()) }}
+                                        @else
+                                            {{ '-' }}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($decision->processingSteps->isNotEmpty())
                                             {{ $decision->processingSteps->countCompleted() . '/' . $decision->processingSteps->countTotal() }}
                                         @else
                                             {{ '-' }}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($decision->pivot->is_final)
+                                            {{ __('general.yes') }}
+                                        @else
+                                            <span class="visually-hidden">{{ __('general.no') }}</span>
                                         @endif
                                     </td>
 
@@ -148,7 +164,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="3">
+                                <td colspan="4">
                                     @can(Ability::UPDATE, $petition)
                                         <div class="button-container">
                                             <a
@@ -158,6 +174,10 @@
                                             <a
                                                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_DECISION_ATTACH_FORM, ['department' => $department, 'petition' => $petition]) }}">
                                                 {{ __('decision.link') }}
+                                            </a>
+                                            <a
+                                                href="{{ route(RouteName::DEPARTMENTS_PETITIONS_FINAL_DECISION_EDIT, ['department' => $department, 'petition' => $petition]) }}">
+                                                {{ __('decision.set_final_decision') }}
                                             </a>
                                         </div>
                                     @endcan

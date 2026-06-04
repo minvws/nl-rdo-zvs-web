@@ -6,6 +6,7 @@ use App\Enums\Ability;
 use App\Enums\RouteName;
 use App\Http\Controllers\DecisionAttachController;
 use App\Http\Controllers\DecisionController;
+use App\Http\Controllers\Petition\FinalDecisionController;
 use App\Models\Decision;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,12 @@ Route::prefix('/decisions')->group(static function (): void {
         Route::post('/', [DecisionController::class, 'store'])
             ->can(Ability::CREATE, Decision::class)
             ->name(RouteName::DEPARTMENTS_PETITIONS_DECISIONS_STORE);
+    });
+    Route::prefix('/final-decision')->group(static function (): void {
+        Route::get('/', [FinalDecisionController::class, 'edit'])
+            ->name(RouteName::DEPARTMENTS_PETITIONS_FINAL_DECISION_EDIT);
+        Route::post('/', [FinalDecisionController::class, 'update'])
+            ->name(RouteName::DEPARTMENTS_PETITIONS_FINAL_DECISION_UPDATE);
     });
     Route::prefix('/{relatedDecision}')->group(static function (): void {
         Route::post('/detach', [DecisionAttachController::class, 'detachDecisionFromPetition'])

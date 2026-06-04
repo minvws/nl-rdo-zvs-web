@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Services\Petition\WordTemplate;
 
+use App\Enums\AssignmentRole;
 use App\Enums\CustomDateLabel;
 use App\Facades\DisplayDate;
 use App\Models\Contact;
@@ -31,7 +32,6 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
                 'date_of_message' => $this->faker->calendarDate(),
                 'decision_reference' => null,
                 'decision_date' => null,
-                'assigned_to' => null,
             ]);
 
         $expected = [
@@ -40,11 +40,13 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
             'DATUM_BESTREDEN_BESLUIT' => 'DATUM_BESTREDEN_BESLUIT',
             'DATUM_ONTVANGEN_BERICHT' => DisplayDate::date($petition->date_of_message),
             'EMAIL_ADRES' => 'EMAIL_ADRES',
+            'KENMERK_BESTREDEN_BESLUIT' => 'KENMERK_BESTREDEN_BESLUIT',
             'KENMERK_ONTVANGEN_BERICHT' => $petition->message,
             'KENMERK_ZVS_NUMMER' => $petition->number,
             'NAAM_BEHANDELAAR' => 'NAAM_BEHANDELAAR',
             'NAAM_BEZWAARDE' => 'NAAM_BEZWAARDE',
             'NAAM_CONTACT' => 'NAAM_CONTACT',
+            'NAAM_ADRES' => 'NAAM_ADRES',
             'NAAM_ZAAK' => $petition->name,
             'TELEFOON_CONTACT' => 'TELEFOON_CONTACT',
             'VANDAAG' => DisplayDate::date(CarbonImmutable::now()),
@@ -65,7 +67,6 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
                 'date_of_message' => $this->faker->calendarDate(),
                 'decision_reference' => null,
                 'decision_date' => null,
-                'assigned_to' => null,
             ]);
 
         $mapper = $this->getWordTemplateReplacementsMapper();
@@ -83,7 +84,6 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
             'date_of_message' => $this->faker->calendarDate(),
             'decision_reference' => null,
             'decision_date' => null,
-            'assigned_to' => null,
         ]);
 
         $mapper = $this->getWordTemplateReplacementsMapper();
@@ -191,9 +191,13 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
         $user = User::factory()->create();
 
         $petition = Petition::factory()->create([
-            'assigned_to' => $user->id,
             'applicant_id' => null,
             'representative_id' => null,
+        ]);
+
+        $petition->assignments()->create([
+            'user_id' => $user->id,
+            'assignment_role' => AssignmentRole::PRIMARY,
         ]);
 
         $mapper = $this->getWordTemplateReplacementsMapper();
@@ -205,7 +209,6 @@ class WordTemplateReplacementsMapperTest extends FeatureTestCase
     public function testMapWithoutAssignedUser(): void
     {
         $petition = Petition::factory()->create([
-            'assigned_to' => null,
             'applicant_id' => null,
             'representative_id' => null,
         ]);

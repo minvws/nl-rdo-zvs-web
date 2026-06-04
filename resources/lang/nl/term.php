@@ -26,6 +26,8 @@ return [
     'start_date' => 'Startdatum',
     'end_date' => 'Einddatum',
     'date_of_message' => 'Ontvangstdatum',
+    'sent_partial_decision' => 'Deelbesluit verzonden',
+    'opinion_outside_term' => 'Zienswijze buiten termijn',
     'date_appealed_decision' => 'Datum besluit waartegen bezwaar wordt gemaakt',
     'no_records' => 'Er zijn nog geen termijnen ingevoerd.',
     'manage_terms' => 'Beheer gebeurtenissen en termijnen',
@@ -51,11 +53,17 @@ return [
     // Events
     'actual_disclosure' => 'Feitelijke verstrekking',
     'adjournment' => 'Verdagingsbrief verzonden',
-    'appeal_decision_not_timely' => 'Besluit BNT',
+    'appeal_decision_not_timely' => 'Uitspraak BNT',
     'final_result' => [
         'final_decision' => 'Finaal besluit',
         'forwarded' => 'Doorgezonden',
         'withdrawn' => 'Ingetrokken',
+        'partial_decision' => 'Deelbesluit',
+        'rejected' => 'Afgewezen',
+        'dismissed' => 'Buiten behandeling gesteld',
+        'reconsidered' => 'Bij nader inzien burgervraag',
+        'already_public' => 'Verzoek betrof reeds openbare informatie',
+        'other' => 'Anders',
     ],
     'hearing_date' => 'Hoorzitting',
     'letter_of_suspension_sent' => [
@@ -64,7 +72,7 @@ return [
         'specification' => 'Opschortingbrief verzonden (precisiering)',
         'consultation' => 'Opschortingbrief verzonden (zienswijze)',
     ],
-    'meeting_scheduled' => 'Meeting gepland',
+    'meeting_scheduled' => 'Afspraak nieuwe beslistermijn',
     'notice_of_default_received' => 'Ontvangst ingebrekestelling',
     'notice_of_default_withdrawn' => 'Ingebrekestelling ingetrokken',
     'petition_received' => 'Ontvangst Woo-verzoek',
@@ -75,6 +83,7 @@ return [
     'suspension_end' => 'Einde opschorting',
     'unspecified_adjournment' => 'Ongespecificeerde aanhouding',
     'unspecified_adjournment_end' => 'Gebeurtenis',
+    'unspecified_adjournment_end_withdrawal' => 'Intrekking ongespecificeerde aanhouding',
 
     // Terms
     'appeal_not_timely.default' => 'Behandeltermijn BNT',
@@ -138,7 +147,7 @@ return [
             'event_requires_dependency_any' => ':event kan alleen worden toegevoegd als één van de volgende gebeurtenissen bestaat: :required_events',
             'event_not_allowed_in_term_type' => ':event is niet toegestaan in dit termijntype',
             'date_not_allowed_in_term' => ':event is niet toegestaan tijdens :term',
-            'date_must_be_in_term' => ':event moet binnen de toegestane termijnen vallen',
+            'date_must_be_in_term' => ':event kan alleen binnen de termijn',
             'date_already_in_suspension' => 'Er is al een actieve opschortingsperiode op deze datum',
             'date_must_be_after_dependency' => 'De datum van :event moet na de datum van :dependency liggen',
             'date_must_be_in_suspension' => 'De datum valt niet binnen een actieve opschortingsperiode',

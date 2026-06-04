@@ -8,6 +8,7 @@ use App\Models\Concerns\HasId;
 use App\Models\Concerns\HasTimestamps;
 use Carbon\CarbonImmutable;
 use Database\Factories\DepartmentFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,14 +31,13 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read Collection<int, UserDepartmentFilter> $departmentFilters
  */
 #[UseFactory(DepartmentFactory::class)]
+#[Table('departments')]
 class Department extends EloquentModel
 {
     /** @use HasFactory<DepartmentFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'departments';
 
     #[Override]
     public function getRouteKeyName(): string

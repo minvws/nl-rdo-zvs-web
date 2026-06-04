@@ -1,4 +1,4 @@
-@use(App\Enums\PetitionTypeType)
+@use(App\Enums\PetitionVariant)
 @use(App\Enums\RouteName)
 @use(App\Facades\Form)
 
@@ -39,7 +39,7 @@
                     class="form-select"
                     id="petition-type-type"
                     name="type">
-                    @foreach (PetitionTypeType::cases() as $type)
+                    @foreach (PetitionVariant::cases() as $type)
                         <option
                             value="{{ $type->value }}"
                             @selected($type->value === Form::old('type'))>

@@ -35,6 +35,13 @@
                 </div>
             @endif
 
+            @if ($petition->team)
+                <div class="description-list--item">
+                    <dt>{{ __('team.model_singular') }}</dt>
+                    <dd>{{ $petition->team->name }}</dd>
+                </div>
+            @endif
+
             <div class="description-list--item">
                 <dt>{{ __('petition.number') }}</dt>
                 <dd>{{ $petition->number }}</dd>
@@ -67,6 +74,27 @@
                 <dt>{{ __('petition.deadline_at') }}</dt>
                 <dd>{{ $petition->deadline_at ? DisplayDate::date($petition->deadline_at) : '-' }}</dd>
             </div>
+            @if ($petition->isTermEngineConverted())
+                <div class="description-list__item">
+                    <dt>{{ __('petition.deadline_decision_period') }}</dt>
+                    <dd>
+                        {{ $petition->deadline_decision_period ? DisplayDate::date($petition->deadline_decision_period) : '-' }}
+                    </dd>
+                </div>
+                <div class="description-list__item">
+                    <dt>{{ __('petition.deadline_notice_of_default') }}</dt>
+                    <dd>
+                        {{ $petition->deadline_notice_of_default ? DisplayDate::date($petition->deadline_notice_of_default) : '-' }}
+                    </dd>
+                </div>
+                <div class="description-list__item">
+                    <dt>{{ __('petition.deadline_appeal_not_timely') }}</dt>
+                    <dd>
+                        {{ $petition->deadline_appeal_not_timely ? DisplayDate::date($petition->deadline_appeal_not_timely) : '-' }}
+                    </dd>
+                </div>
+                <x-petition.term-exceeded :petition="$petition" />
+            @endif
         </dl>
     </div>
 </div>

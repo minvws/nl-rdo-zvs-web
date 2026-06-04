@@ -32,7 +32,17 @@ readonly class PetitionUpdateAction
         }
 
         $this->databaseManager->transaction(static function () use ($petition, $user, $attributes): void {
+            $previousTeamId = $petition->team_id;
             $petition->update($attributes);
+
+            if (isset($attributes['team_id']) && $previousTeamId !== $attributes['team_id']) {
+                $petition->refresh();
+                $petition->timelineItems()->create([
+                    'user_id' => $user->id,
+                    'type' => TimelineType::TEAM_CHANGED,
+                    'data' => new ArrayObject(['team' => $petition->team?->name]),
+                ]);
+            }
 
             $petition->timelineItems()->create([
                 'user_id' => $user->id,

@@ -194,10 +194,11 @@ class DerivedStateTest extends FeatureTestCase
         $derivedState = new DerivedState();
         $calendar = $derivedState->addEvents($events)->buildCalendar()->getCalendar();
 
+        // Last budget day is Saturday, so deadline shifts to Monday (ATW)
         $day = $calendar->findDay(CalendarDate::create('2025-02-08'));
         $this->assertTrue($day->isLastDayOfBudget);
-        $this->assertTrue($day->isDeadline);
-        $this->assertFalse($day->isATW);
+        $this->assertFalse($day->isDeadline); // Deadline shifts due to ATW
+        $this->assertTrue($day->isATW);
         $this->assertTrue($day->applicableTerm === TermType::NOTICE_OF_DEFAULT->value);
 
         $day = $calendar->findDay(CalendarDate::create('2025-02-07'));
@@ -206,16 +207,42 @@ class DerivedStateTest extends FeatureTestCase
         $this->assertFalse($day->isATW);
         $this->assertTrue($day->applicableTerm === TermType::NOTICE_OF_DEFAULT->value);
 
+        // ATW day (Sunday)
         $day = $calendar->findDay(CalendarDate::create('2025-02-09'));
-        $this->assertEquals(26, $day->penaltyTodayInEuros);
+        $this->assertFalse($day->isLastDayOfBudget);
+        $this->assertFalse($day->isDeadline);
+        $this->assertTrue($day->isATW);
+        $this->assertTrue($day->applicableTerm === TermType::NOTICE_OF_DEFAULT->value);
+
+        // Actual deadline (after ATW shift to Monday)
+        $day = $calendar->findDay(CalendarDate::create('2025-02-10'));
+        $this->assertTrue($day->isLastDayOfBudget); // ATW deadline is marked as last day
+        $this->assertTrue($day->isDeadline);
+        $this->assertFalse($day->isATW);
+        $this->assertTrue($day->applicableTerm === TermType::NOTICE_OF_DEFAULT->value);
+
+        $day = $calendar->findDay(CalendarDate::create('2025-02-09'));
+        $this->assertEquals(0, $day->penaltyTodayInEuros ?? 0);
 
         $day = $calendar->findDay(CalendarDate::create('2025-02-11'));
+        $this->assertEquals(26, $day->penaltyTodayInEuros);
+
+        $day = $calendar->findDay(CalendarDate::create('2025-02-12'));
+        $this->assertEquals(26, $day->penaltyTodayInEuros);
+
+        $day = $calendar->findDay(CalendarDate::create('2025-02-13'));
         $this->assertEquals(35, $day->penaltyTodayInEuros);
 
         $day = $calendar->findDay(CalendarDate::create('2025-02-14'));
+        $this->assertEquals(35, $day->penaltyTodayInEuros);
+
+        $day = $calendar->findDay(CalendarDate::create('2025-02-15'));
         $this->assertEquals(45, $day->penaltyTodayInEuros);
 
-        $this->assertEquals(212, $derivedState->forfeited('2025-02-15'));
+        $day = $calendar->findDay(CalendarDate::create('2025-02-16'));
+        $this->assertEquals(45, $day->penaltyTodayInEuros);
+
+        $this->assertEquals(212, $derivedState->forfeited('2025-02-17'));
     }
 
     public function testBNT(): void
@@ -355,7 +382,8 @@ class DerivedStateTest extends FeatureTestCase
         $this->assertTrue($day->isDeadline);
 
         $day = $calendar->findDay(CalendarDate::create('2025-02-15'));
-        $this->assertNull($day);
+        $this->assertTrue($day->applicableTerm === TermType::PENALTY_PERIOD->value);
+        $this->assertEquals(45, $day->penaltyTodayInEuros);
     }
 
     public function testBezwaartermijnHasDeadline(): void

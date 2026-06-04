@@ -30,6 +30,11 @@ class ConfirmShowRequest extends FormRequest
                 'string',
                 'max:500',
             ],
+            'method' => [
+                'required',
+                'string',
+                'in:POST,PUT,PATCH,DELETE',
+            ],
         ];
     }
 
@@ -40,6 +45,7 @@ class ConfirmShowRequest extends FormRequest
             'confirm_url' => Crypt::decryptString($this->string('confirm_url')->toString()),
             'cancel_url' => Crypt::decryptString($this->string('cancel_url')->toString()),
             'message' => $this->string('message')->toString(),
+            'method' => $this->string('method')->toString(),
         ]);
     }
 }

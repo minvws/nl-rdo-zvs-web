@@ -9,6 +9,7 @@ use App\Enums\CustomDateLabel;
 use App\Models\Casts\UuidCast;
 use Database\Factories\PetitionTypeCustomDateLabelFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,13 +22,11 @@ use Ramsey\Uuid\UuidInterface;
  */
 #[CollectedBy(PetitionTypeCustomDateLabelCollection::class)]
 #[UseFactory(PetitionTypeCustomDateLabelFactory::class)]
+#[Table('petition_type_custom_dates_labels', key: 'internal_id')]
 class PetitionTypeCustomDateLabel extends EloquentModel
 {
     /** @use HasFactory<PetitionTypeCustomDateLabelFactory> */
     use HasFactory;
-
-    public $primaryKey = 'internal_id';
-    protected $table = 'petition_type_custom_dates_labels';
 
     /**
      * @return BelongsTo<PetitionType, $this>

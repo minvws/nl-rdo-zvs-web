@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\PetitionEvent;
 
+use App\Enums\AdjournmentEndReason;
 use App\Enums\Authorization\Permission;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\RouteName;
 use App\Enums\SuspensionType;
 use App\Models\Department;
@@ -211,6 +212,99 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
 
         $response->assertRedirect();
         $response->assertSessionHasErrors('hearing_form');
+    }
+
+    #[Test]
+    public function testAdjournmentEndReasonIsRequiredForUnspecifiedAdjournmentEndEvents(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->subDays(20)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->subDays(15)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                date: CalendarDate::create(now()->subDays(10)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 5,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->value,
+                'date' => now()->subDay()->toDateString(),
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('adjournment_end_reason');
+    }
+
+    #[Test]
+    public function testAdjournmentEndReasonAcceptsValidValueForUnspecifiedAdjournmentEndEvents(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->subDays(20)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->subDays(15)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                date: CalendarDate::create(now()->subDays(10)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 5,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->value,
+                'date' => now()->subDay()->toDateString(),
+                'adjournment_end_reason' => AdjournmentEndReason::Withdrawal->value,
+            ]);
+
+        $response->assertRedirect();
+
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+        $lastEvent = $events->last();
+        $this->assertSame(AdjournmentEndReason::Withdrawal, $lastEvent->adjournmentEndReason);
     }
 
     #[Test]
@@ -420,7 +514,7 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
     private function createPetitionSetup(): array
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         $petitionStatus = PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->create([
             'petition_type_id' => $petitionType->id,

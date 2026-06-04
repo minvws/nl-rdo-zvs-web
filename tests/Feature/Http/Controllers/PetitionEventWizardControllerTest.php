@@ -7,7 +7,7 @@ namespace Tests\Feature\Http\Controllers;
 use App\Enums\Authorization\Permission;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 use App\Enums\RouteName;
 use App\Enums\SuspensionType;
@@ -62,7 +62,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testStartLoadsExistingWizardSessionWhenWizardIdProvided(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -98,7 +98,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testStartLoadsExistingEventsFromDatabaseWhenNoSessionExists(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -140,7 +140,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testStartShowsSelectedTypeFormWhenSelectedTypeProvided(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -165,7 +165,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testSelectTypeRedirectsToStartWithSelectedType(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -190,7 +190,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testAddEventStoresEventInSessionAndRedirects(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -227,7 +227,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testAddEventWithPenaltiesStoresPenaltiesInExtraData(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -272,7 +272,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testAddMultipleEventsSequentially(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -316,7 +316,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testDeleteLastRemovesLastEventFromSession(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -364,7 +364,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testDeleteLastOnEmptySessionDoesNothing(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -392,7 +392,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testStoreSavesEventsToDatabase(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -442,7 +442,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testStoreDeletesExistingEventsBeforeSaving(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -501,7 +501,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testStoreClearsWizardSession(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -541,7 +541,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testStoreWithPenaltiesSavesExtraData(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -586,7 +586,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testProcessEventDataFiltersOutEmptyPenalties(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -629,7 +629,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testAddEventWithInvalidTypeDoesNotStoreEvent(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -662,7 +662,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testStartCreatesEmptyWizardSessionForNewPetition(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -1426,27 +1426,27 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     {
         // Test events that have penalties
         // BEZWAAR: heeft penalties bij Notice of Default en BNT
-        $this->assertTrue(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->hasPenalties(PetitionTypeType::BEZWAAR));
-        $this->assertTrue(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->hasPenalties(PetitionTypeType::BEZWAAR));
+        $this->assertTrue(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->hasPenalties(PetitionVariant::BEZWAAR));
+        $this->assertTrue(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->hasPenalties(PetitionVariant::BEZWAAR));
         // WOO_VERZOEK: alleen BNT heeft penalties
-        $this->assertFalse(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->hasPenalties(PetitionTypeType::WOO_VERZOEK));
-        $this->assertTrue(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->hasPenalties(PetitionVariant::WOO_VERZOEK));
+        $this->assertTrue(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->hasPenalties(PetitionVariant::WOO_VERZOEK));
         // Controleer overige combinaties (er zouden nooit penalties moeten zijn)
-        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->hasPenalties(PetitionTypeType::BEZWAAR));
-        $this->assertFalse(PetitionEventType::RECEIPT_OF_OBJECTION->hasPenalties(PetitionTypeType::BEZWAAR));
-        $this->assertFalse(PetitionEventType::LETTER_OF_SUSPENSION_SENT->hasPenalties(PetitionTypeType::BEZWAAR));
-        $this->assertFalse(PetitionEventType::MEETING_SCHEDULED->hasPenalties(PetitionTypeType::BEZWAAR));
-        $this->assertFalse(PetitionEventType::SUSPENSION_END->hasPenalties(PetitionTypeType::BEZWAAR));
-        $this->assertFalse(PetitionEventType::HEARING_DATE->hasPenalties(PetitionTypeType::BEZWAAR));
-        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasPenalties(PetitionTypeType::BEZWAAR));
+        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->hasPenalties(PetitionVariant::BEZWAAR));
+        $this->assertFalse(PetitionEventType::RECEIPT_OF_OBJECTION->hasPenalties(PetitionVariant::BEZWAAR));
+        $this->assertFalse(PetitionEventType::LETTER_OF_SUSPENSION_SENT->hasPenalties(PetitionVariant::BEZWAAR));
+        $this->assertFalse(PetitionEventType::MEETING_SCHEDULED->hasPenalties(PetitionVariant::BEZWAAR));
+        $this->assertFalse(PetitionEventType::SUSPENSION_END->hasPenalties(PetitionVariant::BEZWAAR));
+        $this->assertFalse(PetitionEventType::HEARING_DATE->hasPenalties(PetitionVariant::BEZWAAR));
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasPenalties(PetitionVariant::BEZWAAR));
 
-        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->hasPenalties(PetitionTypeType::WOO_VERZOEK));
-        $this->assertFalse(PetitionEventType::RECEIPT_OF_OBJECTION->hasPenalties(PetitionTypeType::WOO_VERZOEK));
-        $this->assertFalse(PetitionEventType::LETTER_OF_SUSPENSION_SENT->hasPenalties(PetitionTypeType::WOO_VERZOEK));
-        $this->assertFalse(PetitionEventType::MEETING_SCHEDULED->hasPenalties(PetitionTypeType::WOO_VERZOEK));
-        $this->assertFalse(PetitionEventType::SUSPENSION_END->hasPenalties(PetitionTypeType::WOO_VERZOEK));
-        $this->assertFalse(PetitionEventType::HEARING_DATE->hasPenalties(PetitionTypeType::WOO_VERZOEK));
-        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasPenalties(PetitionTypeType::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->hasPenalties(PetitionVariant::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::RECEIPT_OF_OBJECTION->hasPenalties(PetitionVariant::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::LETTER_OF_SUSPENSION_SENT->hasPenalties(PetitionVariant::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::MEETING_SCHEDULED->hasPenalties(PetitionVariant::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::SUSPENSION_END->hasPenalties(PetitionVariant::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::HEARING_DATE->hasPenalties(PetitionVariant::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasPenalties(PetitionVariant::WOO_VERZOEK));
     }
 
     #[Test]
@@ -1518,7 +1518,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     private function createPetitionSetup(): array
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         $petitionStatus = PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->create([
             'petition_type_id' => $petitionType->id,
@@ -1536,7 +1536,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     public function testStoreCreatesTimelineItem(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 

@@ -7,7 +7,7 @@ namespace Tests\Feature\Validation;
 use App\Enums\Authorization\Permission;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 use App\Enums\RouteName;
 use App\Models\Department;
@@ -32,7 +32,7 @@ class ContextAwareValidationTest extends FeatureTestCase
     public function testFinalDecisionRequiresReceiptOfObjectionForBezwaar(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->create(['type' => PetitionVariant::BEZWAAR]);
         $petition = Petition::factory()->for($petitionType)->for($department)->create();
 
         $user = User::factory()
@@ -78,7 +78,7 @@ class ContextAwareValidationTest extends FeatureTestCase
     public function testFinalDecisionRequiresPetitionReceivedForWooVerzoek(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+        $petitionType = PetitionType::factory()->create(['type' => PetitionVariant::WOO_VERZOEK]);
         $petition = Petition::factory()->for($petitionType)->for($department)->create();
 
         $user = User::factory()
@@ -117,7 +117,7 @@ class ContextAwareValidationTest extends FeatureTestCase
     public function testFinalDecisionFailsWithoutStartingEventForBezwaar(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->create(['type' => PetitionVariant::BEZWAAR]);
         $petition = Petition::factory()->for($petitionType)->for($department)->create();
 
         $user = User::factory()
@@ -144,7 +144,7 @@ class ContextAwareValidationTest extends FeatureTestCase
     public function testFinalResultFailsWithoutStartingEventForWooVerzoek(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+        $petitionType = PetitionType::factory()->create(['type' => PetitionVariant::WOO_VERZOEK]);
         $petition = Petition::factory()->for($petitionType)->for($department)->create();
 
         $user = User::factory()
@@ -171,7 +171,7 @@ class ContextAwareValidationTest extends FeatureTestCase
     public function testHearingDateAcceptsEitherStartingEvent(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+        $petitionType = PetitionType::factory()->create(['type' => PetitionVariant::WOO_VERZOEK]);
         $petition = Petition::factory()->for($petitionType)->for($department)->create();
 
         $user = User::factory()
@@ -210,7 +210,7 @@ class ContextAwareValidationTest extends FeatureTestCase
     public function testNoticeOfDefaultReceivedAcceptsEitherStartingEvent(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+        $petitionType = PetitionType::factory()->create(['type' => PetitionVariant::WOO_VERZOEK]);
         $petition = Petition::factory()->for($petitionType)->for($department)->create();
 
         $user = User::factory()

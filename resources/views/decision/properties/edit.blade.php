@@ -84,6 +84,41 @@
                     step="1"
                     value="{{ Form::old("date", $decision->date) }}" />
             </div>
+            <div>
+                <x-input-label
+                    for="decision-reviewbatch"
+                    :content="__('decision.reviewbatch')" />
+                <x-input-error
+                    id="reviewbatch-error"
+                    :messages="$errors->get('reviewbatch')" />
+                <x-text-input
+                    id="decision-reviewbatch"
+                    :hasError="$errors->has('reviewbatch')"
+                    name="reviewbatch"
+                    type="text"
+                    maxlength="128"
+                    aria-describedby="reviewbatch-error"
+                    value="{{ Form::old('reviewbatch', $decision->reviewbatch) }}" />
+            </div>
+
+            <div>
+                <x-input-label
+                    for="decision-team-id"
+                    :content="__('team.model_singular')" />
+                <select
+                    class="form-select"
+                    id="decision-team-id"
+                    name="team_id">
+                    <option value="">{{ __("general.select") }}</option>
+                    @foreach ($teams as $team)
+                        <option
+                            value="{{ $team->id }}"
+                            @selected($team->id->toString() === Form::old("team_id", $decision->team_id?->toString()))>
+                            {{ $team->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
             @if ($errors->any())
                 <x-notification type="danger">

@@ -54,6 +54,21 @@
         </div>
         <div class="form-group">
             <x-input-label
+                for="reviewbatch"
+                :content="__('decision.reviewbatch')" />
+            <x-input-error
+                id="reviewbatch-error"
+                :messages="$errors->get('reviewbatch')" />
+            <x-text-input
+                id="reviewbatch"
+                class="form-control"
+                :hasError="$errors->has('reviewbatch')"
+                name="reviewbatch"
+                maxlength="128"
+                aria-describedby="reviewbatch-error" />
+        </div>
+        <div class="form-group">
+            <x-input-label
                 for="type"
                 required
                 :content="__('decision.type.label')" />
@@ -71,6 +86,25 @@
                         value="{{ $decisionType->value }}"
                         @selected(old('type') === $decisionType->value)>
                         {{ $decisionType->label() }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="form-group">
+            <x-input-label
+                for="team"
+                :content="__('team.model_singular')" />
+            <select
+                id="team"
+                name="team_id"
+                class="form-select">
+                <option value="">{{ __('general.select') }}</option>
+                @foreach ($teams as $team)
+                    <option
+                        value="{{ $team->id }}"
+                        @selected($team->id->toString() === old('team_id'))>
+                        {{ $team->name }}
                     </option>
                 @endforeach
             </select>

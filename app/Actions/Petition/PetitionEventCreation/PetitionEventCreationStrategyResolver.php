@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Petition\PetitionEventCreation;
 
 use App\Actions\Petition\Contracts\PetitionEventsCreationStrategyInterface;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 
 readonly class PetitionEventCreationStrategyResolver
 {
@@ -16,12 +16,12 @@ readonly class PetitionEventCreationStrategyResolver
     ) {
     }
 
-    public function resolve(PetitionTypeType $type): PetitionEventsCreationStrategyInterface
+    public function resolve(PetitionVariant $type): PetitionEventsCreationStrategyInterface
     {
         return match ($type) {
-            PetitionTypeType::BEROEP => $this->beroepStrategy,
-            PetitionTypeType::BEZWAAR => $this->bezwaarStrategy,
-            PetitionTypeType::WOO_VERZOEK => $this->wooVerzoekStrategy,
+            PetitionVariant::BEROEP => $this->beroepStrategy,
+            PetitionVariant::BEZWAAR => $this->bezwaarStrategy,
+            PetitionVariant::WOO_VERZOEK => $this->wooVerzoekStrategy,
         };
     }
 }

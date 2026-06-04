@@ -6,6 +6,7 @@ namespace App\Enums;
 
 enum StatusGroup: string
 {
+    case NOT_CLOSED = 'not_closed';
     case INTAKE = 'intake';
     case PENDING = 'pending';
     case FINISHED = 'finished';

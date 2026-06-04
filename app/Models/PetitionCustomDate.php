@@ -13,6 +13,8 @@ use App\Models\Concerns\HasTimestamps;
 use App\ValueObjects\CalendarDate;
 use Database\Factories\PetitionCustomDateFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,21 +30,15 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read Petition $petition
  */
 #[CollectedBy(PetitionCustomDateCollection::class)]
+#[Fillable(['petition_id', 'date_label', 'date'])]
 #[UseFactory(PetitionCustomDateFactory::class)]
+#[Table('petition_custom_dates')]
 class PetitionCustomDate extends EloquentModel
 {
     /** @use HasFactory<PetitionCustomDateFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'petition_custom_dates';
-
-    protected $fillable = [
-        'petition_id',
-        'date_label',
-        'date',
-    ];
 
     /**
      * @return BelongsTo<Petition, $this>

@@ -6,7 +6,7 @@ namespace App\Console\Commands\Petition;
 
 use App\Enums\CustomDateLabel;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 use App\Enums\SuspensionType;
 use App\Enums\TermType;
@@ -65,7 +65,7 @@ class MigratePetitionTermsCommand extends Command
             return self::FAILURE;
         }
 
-        if ($petition->petitionType->type === PetitionTypeType::BEROEP) {
+        if ($petition->petitionType->type === PetitionVariant::BEROEP) {
             $this->error(sprintf('Deze zaak %s is van het type beroep en heeft geen termijnen', $zaaknummer));
 
             return self::FAILURE;
@@ -149,17 +149,17 @@ class MigratePetitionTermsCommand extends Command
 
     private function migrateTermsToEvents(Petition $petition): void
     {
-        $petitionTypeType = $petition->petitionType->type;
+        $petitionVariant = $petition->petitionType->type;
 
         foreach ($petition->petitionTerms as $term) {
-            $mapping = $this->getTermMapping($term->type, $petitionTypeType);
+            $mapping = $this->getTermMapping($term->type, $petitionVariant);
 
             if ($mapping === null) {
                 $this->warn(sprintf('Geen event type gevonden voor term type "%s"', $term->type->value));
                 continue;
             }
 
-            $eventDate = $this->calculateEventDate($term, $petition, $petitionTypeType);
+            $eventDate = $this->calculateEventDate($term, $petition, $petitionVariant);
 
             PetitionEvent::query()->create([
                 'petition_id' => $petition->id,
@@ -173,14 +173,14 @@ class MigratePetitionTermsCommand extends Command
 
     private function migrateCustomDatesToEvents(Petition $petition): void
     {
-        $petitionTypeType = $petition->petitionType->type;
+        $petitionVariant = $petition->petitionType->type;
 
         foreach ($petition->customDates as $customDate) {
             if ($customDate->date === null) {
                 continue;
             }
 
-            $mapping = $this->getCustomDateMapping($customDate->date_label, $petitionTypeType);
+            $mapping = $this->getCustomDateMapping($customDate->date_label, $petitionVariant);
 
             if ($mapping === null) {
                 $this->warn(
@@ -204,9 +204,9 @@ class MigratePetitionTermsCommand extends Command
     private function calculateEventDate(
         PetitionTerm $term,
         Petition $petition,
-        PetitionTypeType $petitionTypeType,
+        PetitionVariant $petitionVariant,
     ): CalendarDate {
-        if ($petitionTypeType === PetitionTypeType::BEZWAAR && $term->type === TermType::FIRST) {
+        if ($petitionVariant === PetitionVariant::BEZWAAR && $term->type === TermType::FIRST) {
             return $petition->date_of_entry;
         }
 
@@ -216,9 +216,9 @@ class MigratePetitionTermsCommand extends Command
     /**
      * @return array{event_type: PetitionEventType, suspension_type?: SuspensionType}|null
      */
-    private function getTermMapping(TermType $termType, PetitionTypeType $petitionTypeType): ?array
+    private function getTermMapping(TermType $termType, PetitionVariant $petitionVariant): ?array
     {
-        if ($petitionTypeType === PetitionTypeType::WOO_VERZOEK) {
+        if ($petitionVariant === PetitionVariant::WOO_VERZOEK) {
             return match ($termType) {
                 TermType::FIRST => ['event_type' => PetitionEventType::PETITION_RECEIVED],
                 TermType::SECOND => ['event_type' => PetitionEventType::ADJOURNMENT],
@@ -232,7 +232,7 @@ class MigratePetitionTermsCommand extends Command
             };
         }
 
-        if ($petitionTypeType === PetitionTypeType::BEZWAAR) {
+        if ($petitionVariant === PetitionVariant::BEZWAAR) {
             return match ($termType) {
                 TermType::FIRST => ['event_type' => PetitionEventType::RECEIPT_OF_OBJECTION],
                 TermType::SECOND => ['event_type' => PetitionEventType::ADJOURNMENT],
@@ -260,9 +260,9 @@ class MigratePetitionTermsCommand extends Command
      */
     private function getCustomDateMapping(
         CustomDateLabel $customDateLabel,
-        PetitionTypeType $petitionTypeType,
+        PetitionVariant $petitionVariant,
     ): ?array {
-        if ($petitionTypeType === PetitionTypeType::BEZWAAR) {
+        if ($petitionVariant === PetitionVariant::BEZWAAR) {
             return match ($customDateLabel) {
                 CustomDateLabel::DATE_DECISION_ON_APPEAL => [
                     'event_type' => PetitionEventType::FINAL_RESULT,
@@ -277,7 +277,7 @@ class MigratePetitionTermsCommand extends Command
             };
         }
 
-        if ($petitionTypeType === PetitionTypeType::WOO_VERZOEK) {
+        if ($petitionVariant === PetitionVariant::WOO_VERZOEK) {
             return match ($customDateLabel) {
                 CustomDateLabel::DATE_OF_LAST_DECISION => [
                     'event_type' => PetitionEventType::FINAL_RESULT,

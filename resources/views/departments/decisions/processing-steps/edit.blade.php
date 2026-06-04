@@ -85,25 +85,52 @@
 
                 <div class="form-group">
                     <x-input-label
-                        for="assigned_to"
+                        for="first_assignee"
                         :content="__('processing-step.assigned_to')" />
                     <x-input-error
-                        id="assigned_to-error"
-                        :messages="$errors->get('assigned_to')" />
+                        id="first_assignee-error"
+                        :messages="$errors->get('first_assignee')" />
                     <select
-                        class="form-select @error('assigned_to') input-error @enderror"
-                        id="assigned_to"
-                        name="assigned_to"
-                        aria-describedby="assigned_to-error">
+                        class="form-select @error('first_assignee') input-error @enderror"
+                        id="first_assignee"
+                        name="first_assignee"
+                        aria-describedby="first_assignee-error">
                         <option
                             value=""
-                            @selected('' === old('assigned_to'))>
+                            @selected('' === old('first_assignee'))>
                             {{ __('general.none') }}
                         </option>
                         @foreach ($users as $id => $name)
                             <option
                                 value="{{ $id }}"
-                                @selected($id === old('assigned_to', $processingStep->assigned_to?->toString()))>
+                                @selected($id === old('first_assignee', $processingStep->firstAssignee?->user_id?->toString()))>
+                                {{ $name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <x-input-label
+                        for="second_assignee"
+                        :content="__('processing-step.secondary_assigned_to')" />
+                    <x-input-error
+                        id="second_assignee-error"
+                        :messages="$errors->get('second_assignee')" />
+                    <select
+                        class="form-select @error('second_assignee') input-error @enderror"
+                        id="second_assignee"
+                        name="second_assignee"
+                        aria-describedby="second_assignee-error">
+                        <option
+                            value=""
+                            @selected('' === old('second_assignee'))>
+                            {{ __('general.none') }}
+                        </option>
+                        @foreach ($users as $id => $name)
+                            <option
+                                value="{{ $id }}"
+                                @selected($id === old('second_assignee', $processingStep->secondAssignee?->user_id?->toString()))>
                                 {{ $name }}
                             </option>
                         @endforeach

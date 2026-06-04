@@ -23,10 +23,9 @@ class DepartmentFactory extends Factory
         $hideColumnOptions = ['zaaksoort', 'categorie', 'status', 'indiener'];
 
         return [
-
             'name' => $this->faker->company(),
             'slug' => $this->faker->unique()->slug(),
-            'config_key' => $this->faker->unique()->word(),
+            'config_key' => $this->faker->word(),
             'abbreviation' => $this->faker->regexify('[A-Z]{1,3}'),
             'hide_column_defaults' => Arr::join($this->faker->randomElements($hideColumnOptions, $this->faker->numberBetween(0, 3)), ','),
         ];

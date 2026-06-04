@@ -31,6 +31,7 @@ class EventCalendarDay
         public readonly array $petitionEvents = [],
         public readonly bool $isUnspecifiedAdjournment = false,
         public readonly ?string $penaltySourceTerm = null,
+        public readonly bool $isUnspecifiedAdjournmentWithdrawal = false,
     ) {
     }
 
@@ -51,6 +52,7 @@ class EventCalendarDay
          *     penaltyInEurosForfeited?: int,
          *     petitionEvents?: array<PetitionEventData>,
          *     penaltySourceTerm?: string|null,
+         *     isUnspecifiedAdjournmentWithdrawal?: bool,
          * } $typedProperties */
         $typedProperties = $properties;
 
@@ -85,6 +87,7 @@ class EventCalendarDay
             'penaltyTodayInEuros' => $this->penaltyTodayInEuros,
             'petitionEvents' => $petitionEventValues ?: null,
             'isUnspecifiedAdjournment' => $this->isUnspecifiedAdjournment,
+            'isUnspecifiedAdjournmentWithdrawal' => $this->isUnspecifiedAdjournmentWithdrawal,
         ])
             ->reject(static fn ($value): bool => $value === 0 || ($value === '' || $value === '0') || $value === null)
             ->map(static fn ($value, string $key): string => sprintf('%s: %s', $key, $value))

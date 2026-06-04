@@ -10,7 +10,9 @@ use App\Models\Decision;
 use App\Models\Department;
 use App\Rules\CalendarDateRule;
 use Illuminate\Routing\Route;
+use Illuminate\Validation\Rule;
 use Override;
+use Ramsey\Uuid\UuidInterface;
 use Webmozart\Assert\Assert;
 
 use function route;
@@ -18,9 +20,9 @@ use function strtolower;
 
 class DecisionUpdateRequest extends FormRequest
 {
-    /**
-     * @return array<string, mixed>
-     */
+     /**
+      * @return array<string, mixed>
+      */
     public function rules(): array
     {
         $decision = $this->route('decision');
@@ -34,6 +36,12 @@ class DecisionUpdateRequest extends FormRequest
                 'unique:decisions,reference,' . $decisionId,
             ],
             'date' => ['nullable', new CalendarDateRule()],
+            'reviewbatch' => ['nullable', 'string', 'max:128'],
+            'team_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('teams', 'id')->where('department_id', $this->getDepartmentId()->toString()),
+            ],
         ];
     }
 
@@ -43,6 +51,14 @@ class DecisionUpdateRequest extends FormRequest
         if ($this->filled('reference')) {
             $this->merge(['reference' => strtolower($this->string('reference')->toString())]);
         }
+    }
+
+    private function getDepartmentId(): UuidInterface
+    {
+        $department = $this->route('department');
+        Assert::isInstanceOf($department, Department::class);
+
+        return $department->id;
     }
 
     #[Override]

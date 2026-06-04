@@ -8,7 +8,7 @@ use App\Actions\PetitionEvent\PetitionEventsPersistenceAction;
 use App\Enums\Authorization\Permission;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionEvent;
@@ -29,7 +29,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     public function testPersistingBezwaarEventsUpdatesDateOfEntryAndDeadline(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
 
         $petition = Petition::factory()
@@ -74,7 +74,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     public function testPersistingWooVerzoekEventsUpdatesDateOfEntryAndDeadline(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::WOO_VERZOEK]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
 
         $petition = Petition::factory()
@@ -114,7 +114,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
         ConfigHelper::set('app.features.term_engine_v2', false);
 
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
 
         $petition = Petition::factory()
@@ -153,7 +153,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     public function testUpdatingEventsRecalculatesDeadline(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
 
         $petition = Petition::factory()
@@ -198,7 +198,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     public function testPersistingEventsCalculatesAndCachesSuspensionDays(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
 
         $petition = Petition::factory()
@@ -243,7 +243,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     public function testPersistingHearingFormStoresTheColumn(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
 
         $petition = Petition::factory()
@@ -281,7 +281,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
         $this->app['config']->set('app.features.term_engine_v2', false);
 
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
 
         $petition = Petition::factory()
@@ -334,7 +334,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     public function testPersistingIGSEventCalculatesIGSPenaltyMaximum(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
 
         $petition = Petition::factory()
@@ -382,7 +382,7 @@ final class PetitionEventsPersistenceActionIntegrationTest extends FeatureTestCa
     public function testPersistingBNTEventCalculatesBNTPenaltyMaximum(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
 
         $petition = Petition::factory()

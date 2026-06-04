@@ -32,6 +32,16 @@
                 <dt>{{ __('decision.date') }}</dt>
                 <dd>{{ $decision->date ? DisplayDate::date($decision->date) : '-' }}</dd>
             </div>
+            <div class="description-list--item">
+                <dt>{{ __('decision.reviewbatch') }}</dt>
+                <dd>{{ $decision->reviewbatch ? $decision->reviewbatch : '-' }}</dd>
+            </div>
+            @if ($decision->team)
+                <div class="description-list--item">
+                    <dt>{{ __('team.model_singular') }}</dt>
+                    <dd>{{ $decision->team->name }}</dd>
+                </div>
+            @endif
         </dl>
     </div>
 </div>

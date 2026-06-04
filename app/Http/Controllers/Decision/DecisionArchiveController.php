@@ -11,8 +11,8 @@ use App\Models\Decision;
 use App\Models\Department;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Throwable;
 
@@ -20,13 +20,13 @@ final readonly class DecisionArchiveController
 {
     public function __construct(
         private Redirector $redirector,
-        private Gate $gate,
     ) {
     }
 
     /**
      * @throws Throwable
      */
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function __invoke(
         Department $department,
         Decision $decision,
@@ -34,8 +34,6 @@ final readonly class DecisionArchiveController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $action->execute($decision, $user);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_DECISIONS_SHOW, [

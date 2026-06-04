@@ -47,13 +47,8 @@ class ProcessingStepControllerMoveTest extends FeatureTestCase
 
         // Verify orderings were swapped
         $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $secondStep->id,
-            'ordering' => 1,
-        ]);
-
-        $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $firstStep->id,
-            'ordering' => 2,
+            ['id' => $secondStep->id, 'ordering' => 1],
+            ['id' => $firstStep->id, 'ordering' => 2],
         ]);
     }
 
@@ -89,13 +84,8 @@ class ProcessingStepControllerMoveTest extends FeatureTestCase
 
         // Verify orderings were swapped
         $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $firstStep->id,
-            'ordering' => 2,
-        ]);
-
-        $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $secondStep->id,
-            'ordering' => 1,
+            ['id' => $firstStep->id, 'ordering' => 2],
+            ['id' => $secondStep->id, 'ordering' => 1],
         ]);
     }
 
@@ -142,21 +132,11 @@ class ProcessingStepControllerMoveTest extends FeatureTestCase
                 'processingStep' => $step3,
             ]);
 
-        // Verify step1 remained unchanged
+        // Verify step1 remained unchanged, step2 and step3 swapped
         $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $step1->id,
-            'ordering' => 1,
-        ]);
-
-        // Verify step2 and step3 swapped
-        $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $step2->id,
-            'ordering' => 3,
-        ]);
-
-        $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $step3->id,
-            'ordering' => 2,
+            ['id' => $step1->id, 'ordering' => 1],
+            ['id' => $step2->id, 'ordering' => 3],
+            ['id' => $step3->id, 'ordering' => 2],
         ]);
     }
 
@@ -183,21 +163,11 @@ class ProcessingStepControllerMoveTest extends FeatureTestCase
                 'processingStep' => $step1,
             ]);
 
-        // Verify step1 and step2 swapped
+        // Verify step1 and step2 swapped, step3 remained unchanged
         $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $step1->id,
-            'ordering' => 2,
-        ]);
-
-        $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $step2->id,
-            'ordering' => 1,
-        ]);
-
-        // Verify step3 remained unchanged
-        $this->assertDatabaseHas(ProcessingStep::class, [
-            'id' => $step3->id,
-            'ordering' => 3,
+            ['id' => $step1->id, 'ordering' => 2],
+            ['id' => $step2->id, 'ordering' => 1],
+            ['id' => $step3->id, 'ordering' => 3],
         ]);
     }
 }

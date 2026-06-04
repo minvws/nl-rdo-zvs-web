@@ -90,23 +90,10 @@ final class ReorderProcessingStepsCommandTest extends FeatureTestCase
             ->assertSuccessful();
 
         $this->assertDatabaseHas('processing_steps', [
-            'id' => $step1a->id,
-            'ordering' => 1,
-        ]);
-
-        $this->assertDatabaseHas('processing_steps', [
-            'id' => $step1b->id,
-            'ordering' => 2,
-        ]);
-
-        $this->assertDatabaseHas('processing_steps', [
-            'id' => $step2a->id,
-            'ordering' => 1,
-        ]);
-
-        $this->assertDatabaseHas('processing_steps', [
-            'id' => $step2b->id,
-            'ordering' => 2,
+            ['id' => $step1a->id, 'ordering' => 1],
+            ['id' => $step1b->id, 'ordering' => 2],
+            ['id' => $step2a->id, 'ordering' => 1],
+            ['id' => $step2b->id, 'ordering' => 2],
         ]);
     }
 
@@ -207,18 +194,9 @@ final class ReorderProcessingStepsCommandTest extends FeatureTestCase
             ->assertSuccessful();
 
         $this->assertDatabaseHas('processing_steps', [
-            'id' => $step2->id,
-            'ordering' => 1,
-        ]);
-
-        $this->assertDatabaseHas('processing_steps', [
-            'id' => $step1->id,
-            'ordering' => 2,
-        ]);
-
-        $this->assertDatabaseHas('processing_steps', [
-            'id' => $step3->id,
-            'ordering' => 3,
+            ['id' => $step2->id, 'ordering' => 1],
+            ['id' => $step1->id, 'ordering' => 2],
+            ['id' => $step3->id, 'ordering' => 3],
         ]);
     }
 

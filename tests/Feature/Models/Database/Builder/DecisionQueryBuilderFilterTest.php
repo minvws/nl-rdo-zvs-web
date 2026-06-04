@@ -8,6 +8,7 @@ use App\Enums\DecisionCriteria;
 use App\Models\Builder\Decision\DecisionQueryBuilder;
 use App\Models\Decision;
 use App\Models\Department;
+use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
@@ -72,6 +73,29 @@ class DecisionQueryBuilderFilterTest extends FeatureTestCase
         Decision::factory()->recycle($department)->create([
             'name' => $this->faker->unique()->words(2, true),
             'reference' => $this->faker->unique()->word() . '-' . $this->faker->unique()->word(),
+        ]);
+
+        $this->assertEquals(1, DecisionQueryBuilder::make($request)->count());
+    }
+
+    #[Test]
+    public function testSearchInReviewbatchField(): void
+    {
+        $department = Department::factory()->create();
+        $searchTerm = Str::random(5); // Random search term to ensure uniqueness
+        $request = new Request([
+            'filter' => [
+                DecisionCriteria::SEARCH->value => $searchTerm,
+            ],
+        ]);
+
+        Decision::factory()->recycle($department)->create([
+            'name' => $this->faker->unique()->words(2, true),
+            'reviewbatch' => $searchTerm . '-' . $this->faker->unique()->word(),
+        ]);
+        Decision::factory()->recycle($department)->create([
+            'name' => $this->faker->unique()->words(2, true),
+            'reviewbatch' => $this->faker->unique()->word() . '-' . $this->faker->unique()->word(),
         ]);
 
         $this->assertEquals(1, DecisionQueryBuilder::make($request)->count());
@@ -145,5 +169,53 @@ class DecisionQueryBuilderFilterTest extends FeatureTestCase
         ]);
 
         $this->assertEquals(2, DecisionQueryBuilder::make($request)->count());
+    }
+
+    #[Test]
+    public function testTeamFilter(): void
+    {
+        $department = Department::factory()->create();
+        $team = Team::factory()->for($department)->create();
+        $filterDecision = Decision::factory()->for($team, 'team')->for($department)->create();
+
+        $this->assertSingleFilterResult(DecisionCriteria::TEAM, $filterDecision->team->id->toString());
+    }
+
+    #[Test]
+    public function testTeamFilterDoesNotMatchOtherDecisions(): void
+    {
+        $department = Department::factory()->create();
+        $team = Team::factory()->for($department)->create();
+        Decision::factory()->for($team, 'team')->for($department)->create();
+        Decision::factory()->for($department)->count(2)->create();
+
+        $request = new Request([
+            'filter' => [
+                DecisionCriteria::TEAM->value => $team->id->toString(),
+            ],
+        ]);
+
+        $this->assertEquals(1, DecisionQueryBuilder::make($request)->count());
+    }
+
+    /**
+     * @param array<string, mixed> $decisionAttributes
+     */
+    private function assertSingleFilterResult(DecisionCriteria $decisionCriteria, string $value, array $decisionAttributes = []): void
+    {
+        $department = Department::factory()->create();
+
+        Decision::factory()
+            ->for($department)
+            ->count($this->faker->numberBetween(1, 3))
+            ->create($decisionAttributes);
+
+        $request = new Request([
+            'filter' => [
+                $decisionCriteria->value => $value,
+            ],
+        ]);
+
+        $this->assertEquals(1, DecisionQueryBuilder::make($request)->count());
     }
 }

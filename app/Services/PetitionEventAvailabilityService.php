@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
 
@@ -22,14 +22,16 @@ class PetitionEventAvailabilityService
         PetitionEventType::SUSPENSION_END,
         PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
         PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
+        PetitionEventType::SENT_PARTIAL_DECISION,
+        PetitionEventType::MEETING_SCHEDULED,
     ];
 
     /**
      * @return array<PetitionEventType>
      */
-    public function getAvailableEventTypes(PetitionTypeType $type, WizardEventCollection $currentEvents): array
+    public function getAvailableEventTypes(PetitionVariant $type, WizardEventCollection $currentEvents): array
     {
-        if ($type === PetitionTypeType::BEROEP) {
+        if ($type === PetitionVariant::BEROEP) {
             return [];
         }
 
@@ -43,11 +45,11 @@ class PetitionEventAvailabilityService
     /**
      * @return array<PetitionEventType>
      */
-    private function getInitialEventForType(PetitionTypeType $petitionType): array
+    private function getInitialEventForType(PetitionVariant $petitionType): array
     {
         return match ($petitionType) {
-            PetitionTypeType::BEZWAAR => [PetitionEventType::PRIMARY_DECISION],
-            PetitionTypeType::WOO_VERZOEK => [PetitionEventType::PETITION_RECEIVED],
+            PetitionVariant::BEZWAAR => [PetitionEventType::PRIMARY_DECISION],
+            PetitionVariant::WOO_VERZOEK => [PetitionEventType::PETITION_RECEIVED],
             default => [],
         };
     }
@@ -55,7 +57,7 @@ class PetitionEventAvailabilityService
     /**
      * @return array<PetitionEventType>
      */
-    private function filterAvailableTypes(PetitionTypeType $petitionType, WizardEventCollection $currentEvents): array
+    private function filterAvailableTypes(PetitionVariant $petitionType, WizardEventCollection $currentEvents): array
     {
         $usedTypes = $currentEvents->all()->map(
             static function (PetitionEventData $event) {
@@ -85,7 +87,7 @@ class PetitionEventAvailabilityService
      */
     private function canAddEventType(
         PetitionEventType $eventType,
-        PetitionTypeType $petitionType,
+        PetitionVariant $petitionType,
         array $usedTypes,
         ?PetitionEventData $lastEvent,
     ): bool {

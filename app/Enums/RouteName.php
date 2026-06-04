@@ -46,6 +46,12 @@ enum RouteName: string
     case DEPARTMENTS_ADMIN_PETITION_CATEGORIES_DELETE = 'departments.admin.petition-categories.delete';
     case DEPARTMENTS_ADMIN_PETITION_CATEGORIES_INDEX = 'departments.admin.petition-categories.index';
 
+    // departments.admin.teams
+    case DEPARTMENTS_ADMIN_TEAMS_CREATE = 'departments.admin.teams.create';
+    case DEPARTMENTS_ADMIN_TEAMS_EDIT = 'departments.admin.teams.edit';
+    case DEPARTMENTS_ADMIN_TEAMS_DELETE = 'departments.admin.teams.delete';
+    case DEPARTMENTS_ADMIN_TEAMS_INDEX = 'departments.admin.teams.index';
+
     // departments.contacts
     case DEPARTMENTS_CONTACTS_INDEX = 'departments.contacts.index';
     case DEPARTMENTS_CONTACTS_INDEX_FILTER = 'departments.contacts.index_filter';
@@ -62,6 +68,7 @@ enum RouteName: string
     case DEPARTMENTS_PETITIONS_CREATE = 'departments.petitions.create';
     case DEPARTMENTS_PETITIONS_CHANGE_STATUS_EDIT = 'departments.petitions.change-status.edit';
     case DEPARTMENTS_PETITIONS_CHANGE_STATUS_UPDATE = 'departments.petitions.change-status.update';
+    case DEPARTMENTS_PETITIONS_CHANGE_STATUS_DESTROY = 'departments.petitions.change-status.destroy';
     case DEPARTMENTS_PETITIONS_CREATE_REFRESH_DEADLINE = 'departments.petitions.create.refresh-deadline';
 
     // departments.petitions.properties
@@ -69,10 +76,15 @@ enum RouteName: string
     case DEPARTMENTS_PETITIONS_PROPERTIES_EDIT = 'departments.petitions.properties.edit';
     case DEPARTMENTS_PETITIONS_PROPERTIES_UPDATE = 'departments.petitions.properties.update';
 
-    // departments.petitions.assign-user
-    case DEPARTMENTS_PETITIONS_ASSIGN_USER_SHOW = 'departments.petitions.assign-user.show';
-    case DEPARTMENTS_PETITIONS_ASSIGN_USER_EDIT = 'departments.petitions.assign-user.edit';
-    case DEPARTMENTS_PETITIONS_ASSIGN_USER_UPDATE = 'departments.petitions.assign-user.update';
+    // departments.petitions.assign-primary
+    case DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_SHOW = 'departments.petitions.assign-primary.show';
+    case DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_EDIT = 'departments.petitions.assign-primary.edit';
+    case DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE = 'departments.petitions.assign-primary.update';
+
+    // departments.petitions.assign-secondary
+    case DEPARTMENTS_PETITIONS_ASSIGN_SECONDARY_SHOW = 'departments.petitions.assign-secondary.show';
+    case DEPARTMENTS_PETITIONS_ASSIGN_SECONDARY_EDIT = 'departments.petitions.assign-secondary.edit';
+    case DEPARTMENTS_PETITIONS_ASSIGN_SECONDARY_UPDATE = 'departments.petitions.assign-secondary.update';
 
     // departments.petitions.contacts
     case DEPARTMENTS_PETITIONS_CONTACTS_ATTACH_FORM = 'departments.petitions.contacts.attach_form';
@@ -176,6 +188,8 @@ enum RouteName: string
     case DEPARTMENTS_PETITIONS_DECISION_ATTACH_FORM = 'departments.petitions.decisions.attach-form';
     case DEPARTMENTS_PETITIONS_DECISION_ATTACH = 'departments.petitions.decisions.attach';
     case DEPARTMENTS_PETITIONS_DECISION_DETACH = 'departments.petitions.decisions.detach';
+    case DEPARTMENTS_PETITIONS_FINAL_DECISION_EDIT = 'departments.petitions.final-decision.edit';
+    case DEPARTMENTS_PETITIONS_FINAL_DECISION_UPDATE = 'departments.petitions.final-decision.update';
 
     // departments.decision.petition.attach
     case DEPARTMENTS_DECISION_PETITION_ATTACH_FORM = 'departments.decision.petitions.attach-form';

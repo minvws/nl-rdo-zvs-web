@@ -11,8 +11,8 @@ use App\Models\Department;
 use App\Models\Petition;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Throwable;
 
@@ -20,13 +20,13 @@ final readonly class PetitionArchiveController
 {
     public function __construct(
         private Redirector $redirector,
-        private Gate $gate,
     ) {
     }
 
     /**
      * @throws Throwable
      */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function store(
         Department $department,
         Petition $petition,
@@ -34,8 +34,6 @@ final readonly class PetitionArchiveController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $user);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [

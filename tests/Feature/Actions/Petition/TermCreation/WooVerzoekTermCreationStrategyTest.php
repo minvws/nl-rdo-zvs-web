@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Actions\Petition\TermCreation;
 
 use App\Actions\Petition\TermCreation\WooVerzoekTermCreationStrategy;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\TermType;
 use App\Models\Department;
 use App\Models\DepartmentTermTypeSetting;
@@ -44,7 +44,7 @@ class WooVerzoekTermCreationStrategyTest extends FeatureTestCase
         ]);
 
         $petitionType = PetitionType::factory()->for($department)->create([
-            'type' => PetitionTypeType::WOO_VERZOEK,
+            'type' => PetitionVariant::WOO_VERZOEK,
         ]);
         $petition = Petition::factory()->create([
             'department_id' => $department->id,
@@ -95,7 +95,7 @@ class WooVerzoekTermCreationStrategyTest extends FeatureTestCase
         ]);
 
         $petitionType = PetitionType::factory()->for($department)->create([
-            'type' => PetitionTypeType::WOO_VERZOEK,
+            'type' => PetitionVariant::WOO_VERZOEK,
         ]);
         $petition = Petition::factory()->create([
             'department_id' => $department->id,
@@ -141,7 +141,7 @@ class WooVerzoekTermCreationStrategyTest extends FeatureTestCase
         ]);
 
         $petitionType = PetitionType::factory()->for($department)->create([
-            'type' => PetitionTypeType::WOO_VERZOEK,
+            'type' => PetitionVariant::WOO_VERZOEK,
         ]);
         $petition = Petition::factory()->create([
             'department_id' => $department->id,

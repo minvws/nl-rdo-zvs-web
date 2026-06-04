@@ -22,16 +22,16 @@ Create Internal Export For 'Bezwaarprocedure' In Team WJZ
     Select Options By    select#export-type    label    Intern
     Select Options By    select#petition-type    label    Bezwaar
     ${selector}    Get Element    id=date-from
-    Type Date    ${selector}    01-06-2025
+    Type Date    ${selector}    01-01-2000
     ${selector}    Get Element    id=date-to
-    Type Date    ${selector}    10-07-2025
+    Type Date    ${selector}    31-12-2030
     Click    text=Export maken
     Check For Notification    Export is gegenereerd
 
-    ${row}    Select Export Row From Table    "01-06-2025"
+    ${row}    Select Export Row From Table    "01-01-2000"
 
     ${download_url}    Get Attribute    ${row} >> "Export downloaden" >> ..    href
-    ${download_info}    Download    ${download_url}    export-10-07-2025.xlsx
+    ${download_info}    Download    ${download_url}    export-31-12-2030.xlsx
 
     Open Excel Document    ${download_info}[saveAs]    export-internal-report
     ${actual}    Read Excel Column    6    2    10    petition_sheet
@@ -47,7 +47,7 @@ Delete Internal Export
 
     Go To    ${BASE_URL}/wjz-bb/exports
 
-    ${row}    Select Export Row From Table    "01-06-2025"
+    ${row}    Select Export Row From Table    "01-01-2000"
 
     Click    ${row} >> "Export verwijderen" >> ..
 

@@ -19,6 +19,7 @@ enum TimelineType: string
     case CONTACT_DETACHED = 'contact_detached';
     case REFERENCED_OCCURRENCE = 'referenced_occurrence';
     case POLICY_DEPARTMENT_CHANGED = 'policy_department_changed';
+    case TEAM_CHANGED = 'team_changed';
     case PETITION_CUSTOM_PROPERTIES_CHANGED = 'petition_custom_properties_changed';
     case PETITION_CUSTOM_DATES_CHANGED = 'petition_custom_dates_changed';
     case PETITION_UPDATED = 'petition_updated';
@@ -40,4 +41,5 @@ enum TimelineType: string
     case DECISION_ARCHIVED = 'decision_archived';
     case DECISION_UNARCHIVED = 'decision_unarchived';
     case PETITION_EVENTS_CREATED = 'petition_events_created';
+    case FINAL_DECISION_SET = 'final_decision_set';
 }

@@ -6,4 +6,5 @@ return [
     'telephone' => 'Telefonisch',
     'digital' => 'Digitaal',
     'physical' => 'Fysiek',
+    'committee' => 'Commisiehoorzitting',
 ];

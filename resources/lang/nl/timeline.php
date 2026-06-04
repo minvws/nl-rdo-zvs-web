@@ -14,6 +14,8 @@ return [
     'assignment' => [
         'assigned_to' => 'heeft de zaak toegewezen aan :assignee',
         'dismissed' => 'heeft de behandelaar van de zaak gehaald',
+        'secondary_assigned_to' => 'heeft :assignee als achtervang toegewezen',
+        'secondary_dismissed' => 'heeft de achtervang van de zaak gehaald',
     ],
     'contact_detached' => [
         'body' => ':contact is losgekoppeld als :role',
@@ -30,10 +32,17 @@ return [
         'status_changes' => 'Status wijzigingen',
         'term_adjustments' => 'Termijn aanpassingen',
         'assignments' => 'Toewijzingen',
+        'event_changes' => 'Kalender aangepast',
     ],
 
     'filter_by_group' => 'Filter',
     'all_timeline_items' => '(Geen filter)',
 
     'fallback_message' => 'Activiteit kan niet meer gevonden worden (type: :type, id: :id): neem contact op met :contact.',
+    'team_changed' => 'Team gewijzigd',
+
+    'final_decision_set' => [
+        'with_decision' => ':decision gemarkeerd als finaal besluit',
+        'without_decision' => 'het finale besluit is verwijderd',
+    ],
 ];

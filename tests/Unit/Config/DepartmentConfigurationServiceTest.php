@@ -7,7 +7,7 @@ namespace Tests\Unit\Config;
 use App\Config\DepartmentConfigurationService;
 use App\Enums\DecisionType;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Models\Department;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -102,7 +102,7 @@ class DepartmentConfigurationServiceTest extends TestCase
     public function testGetEventConfigurationReturnsSpecificConfiguration(): void
     {
         $department = Department::factory()->make(['slug' => 'test-dept']);
-        $petitionType = PetitionTypeType::BEZWAAR;
+        $petitionType = PetitionVariant::BEZWAAR;
         $eventType = PetitionEventType::RECEIPT_OF_OBJECTION;
         $expectedConfig = ['duration' => 10];
 
@@ -119,7 +119,7 @@ class DepartmentConfigurationServiceTest extends TestCase
     public function testGetEventConfigurationReturnsDefaultConfiguration(): void
     {
         $department = Department::factory()->make(['slug' => 'test-dept']);
-        $petitionType = PetitionTypeType::BEZWAAR;
+        $petitionType = PetitionVariant::BEZWAAR;
         $eventType = PetitionEventType::RECEIPT_OF_OBJECTION;
         $defaultConfig = ['duration' => 20];
 
@@ -142,7 +142,7 @@ class DepartmentConfigurationServiceTest extends TestCase
     public function testGetEventConfigurationReturnsEmptyArrayWhenNotConfigured(): void
     {
         $department = Department::factory()->make(['slug' => 'test-dept']);
-        $petitionType = PetitionTypeType::BEZWAAR;
+        $petitionType = PetitionVariant::BEZWAAR;
         $eventType = PetitionEventType::RECEIPT_OF_OBJECTION;
 
         // Ensure neither specific nor default config is set

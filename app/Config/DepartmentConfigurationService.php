@@ -6,7 +6,7 @@ namespace App\Config;
 
 use App\Enums\DecisionType;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Models\Department;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Collection;
@@ -60,7 +60,7 @@ readonly class DepartmentConfigurationService
      */
     public function getEventConfiguration(
         Department $department,
-        PetitionTypeType $petitionType,
+        PetitionVariant $petitionType,
         PetitionEventType $eventType,
     ): array {
         $key = sprintf('petition_events.%s.%s.%s', $department->slug, $petitionType->value, $eventType->value);

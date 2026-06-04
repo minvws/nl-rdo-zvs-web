@@ -25,7 +25,6 @@ parameters:
         - storage/
         - tests/
         - vendor/
-        - app/Console/Commands/Petition/ImportPetitionsCommand.php
     level: max
     exceptions:
         check:

@@ -13,15 +13,16 @@ use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionCategory;
 use App\Models\PetitionStatus;
+use App\Models\Team;
 use App\Models\User;
 use App\View\HtmxHelper;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Throwable;
 
@@ -34,16 +35,14 @@ final readonly class PetitionPropertiesController
         private Redirector $redirector,
         private Factory $view,
         private HtmxHelper $htmxHelper,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function edit(Request $request, Department $department, Petition $petition): Response
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $petitionTypeConfiguration = Config::array(
-            sprintf('petition_type_type.%s.optional_form_fields', $petition->petitionType->type->value),
+            sprintf('petition_variant.%s.optional_form_fields', $petition->petitionType->type->value),
         );
 
         return $this->htmxHelper->makeFormViewResponse($request, 'petition.properties.edit', [
@@ -51,18 +50,22 @@ final readonly class PetitionPropertiesController
             'petitionCategories' => PetitionCategory::query()
                 ->where('department_id', $department->id)
                 ->active()->get(),
+            'teams' => Team::query()
+                ->where('department_id', $department->id)
+                ->active()
+                ->orderBy('name')
+                ->get(),
             'petitionStatuses' => PetitionStatus::query()->orderBy('order')->limit(100)->get(),
             'petitionTypeConfiguration' => $petitionTypeConfiguration,
             'department' => $department,
         ]);
     }
 
+    #[Authorize(Ability::VIEW, 'petition')]
     public function show(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::VIEW, $petition);
-
         $petitionTypeConfiguration = Config::array(
-            sprintf('petition_type_type.%s.optional_form_fields', $petition->petitionType->type->value),
+            sprintf('petition_variant.%s.optional_form_fields', $petition->petitionType->type->value),
         );
 
         return $this->view->make('petition.properties.show', [
@@ -75,6 +78,7 @@ final readonly class PetitionPropertiesController
     /**
      * @throws Throwable
      */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function update(
         Request $request,
         Department $department,
@@ -84,8 +88,6 @@ final readonly class PetitionPropertiesController
         #[CurrentUser]
         User $user,
     ): RedirectResponse|View {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $user, $petitionUpdateRequest->validated());
 
         if ($this->htmxHelper->isHtmxRequest($request)) {

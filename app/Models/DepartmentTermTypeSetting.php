@@ -8,6 +8,7 @@ use App\Enums\TermType;
 use App\Models\Builder\DepartmentTermTypeSettingBuilder;
 use App\Models\Concerns\HasId;
 use Database\Factories\DepartmentTermTypeSettingFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,14 +27,12 @@ use Ramsey\Uuid\UuidInterface;
  */
 #[UseEloquentBuilder(DepartmentTermTypeSettingBuilder::class)]
 #[UseFactory(DepartmentTermTypeSettingFactory::class)]
+#[Table('department_term_type_settings', timestamps: false)]
 class DepartmentTermTypeSetting extends EloquentModel
 {
     /** @use HasFactory<DepartmentTermTypeSettingFactory> */
     use HasFactory;
     use HasId;
-
-    public $timestamps = false;
-    protected $table = 'department_term_type_settings';
 
     /**
      * @return array<string, class-string<TermType>|string>

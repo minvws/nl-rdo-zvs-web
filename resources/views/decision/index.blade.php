@@ -106,6 +106,52 @@
                     </select>
                 </div>
 
+                <div
+                    class="form-filter-group"
+                    data-filter-group="team">
+                    <x-input-label
+                        class="form-label"
+                        for="filter_team"
+                        :content="__('team.model_singular')" />
+                    <select
+                        data-auto-submit="input"
+                        id="filter_team"
+                        name="{{ sprintf('filter[%s]', DecisionCriteria::TEAM->value) }}"
+                        class="form-select">
+                        <option value="">{{ __('decision.filter.type.all') }}</option>
+                        @foreach ($usedTeams as $team)
+                            <option
+                                value="{{ $team->id }}"
+                                @selected(request(sprintf('filter.%s', DecisionCriteria::TEAM->value)) === $team->id->toString())>
+                                {{ $team->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div
+                    class="form-filter-group"
+                    data-filter-group="processing_steps_in_progress">
+                    <x-input-label
+                        class="form-label"
+                        for="filter_processing_steps_in_progress"
+                        :content="__('decision.filter.processing_steps_in_progress.label')" />
+                    <select
+                        data-auto-submit="input"
+                        id="filter_processing_steps_in_progress"
+                        name="{{ sprintf('filter[%s]', DecisionCriteria::PROCESSING_STEPS_IN_PROGRESS->value) }}"
+                        class="form-select">
+                        <option value="">{{ __('decision.filter.processing_steps_in_progress.all') }}</option>
+                        @foreach ($processingStepsInProgress as $stepName)
+                            <option
+                                value="{{ $stepName }}"
+                                @selected(request(sprintf('filter.%s', DecisionCriteria::PROCESSING_STEPS_IN_PROGRESS->value)) === $stepName)>
+                                {{ $stepName }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="filters__actions">
                     <button
                         formaction="{{ route(RouteName::DEPARTMENTS_DECISIONS_INDEX_FILTER, ['department' => $department]) }}"
@@ -185,9 +231,13 @@
                                         class="sort-link"
                                         href="{{ $sortHelper->getLink(DecisionCriteria::PROGRESS) }}">
                                         <span class="visually-hidden">{{ __('general.sort_by') }}</span>
-                                        {{ __('decision.progress') }}
+                                        {{ __('decision.processing_steps_completed') }}
                                         <x-sort-icon />
                                     </a>
+                                </th>
+
+                                <th scope="col">
+                                    {{ __('decision.processing_steps_in_progress') }}
                                 </th>
 
                                 <th scope="col">&nbsp;</th>
@@ -217,6 +267,13 @@
                                         @endif
                                     </td>
                                     <td>
+                                        @if ($decision->processingSteps->getInProgressNames())
+                                            {{ implode(', ', $decision->processingSteps->getInProgressNames()) }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>
                                         <a
                                             class="icon-only"
                                             href="{{ route(RouteName::DEPARTMENTS_DECISIONS_SHOW, ['department' => $department, 'decision' => $decision]) }}"
@@ -230,7 +287,7 @@
                             @empty
                                 <tr>
                                     <td
-                                        colspan="6"
+                                        colspan="7"
                                         class="text-center">
                                         {{ __('decision.no_decisions_found') }}
                                     </td>

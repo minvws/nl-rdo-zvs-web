@@ -26,7 +26,7 @@ final readonly class ProcessingStepDeleteAction
                 'data' => new ArrayObject([
                     'name' => $processingStep->name,
                     'deadline_at' => $processingStep->deadline_at?->format('Y-m-d'),
-                    'assigned_to' => $processingStep->assigned_to?->toString(),
+                    'assigned_to' => $processingStep->firstAssignee?->user->id->toString(),
                     'status' => $processingStep->status,
                 ]),
             ]);

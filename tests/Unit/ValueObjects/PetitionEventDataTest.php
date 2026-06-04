@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\ValueObjects;
 
+use App\Enums\AdjournmentEndReason;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
@@ -119,6 +120,20 @@ class PetitionEventDataTest extends TestCase
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
             hearingForm: HearingForm::DIGITAL,
+        );
+    }
+
+    #[Test]
+    public function itThrowsExceptionWhenAdjournmentEndReasonProvidedForUnsupportedEvent(): void
+    {
+        $this->expectException(InvalidPetitionEventData::class);
+        $this->expectExceptionMessage('Event type "primary_decision" does not support adjournment end reason');
+
+        new PetitionEventData(
+            type: PetitionEventType::PRIMARY_DECISION,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+            adjournmentEndReason: AdjournmentEndReason::Withdrawal,
         );
     }
 
@@ -312,6 +327,21 @@ class PetitionEventDataTest extends TestCase
         $this->assertSame('2025-01-15', $array['date']);
         $this->assertInstanceOf(CarbonImmutable::class, $array['created_at']);
         $this->assertSame(HearingForm::PHYSICAL->value, $array['hearing_form']);
+    }
+
+    #[Test]
+    public function itConvertsToArrayWithAdjournmentEndReason(): void
+    {
+        $event = new PetitionEventData(
+            type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+            adjournmentEndReason: AdjournmentEndReason::Withdrawal,
+        );
+
+        $array = $event->toArray();
+
+        $this->assertSame(AdjournmentEndReason::Withdrawal->value, $array['adjournment_end_reason']);
     }
 
     #[Test]

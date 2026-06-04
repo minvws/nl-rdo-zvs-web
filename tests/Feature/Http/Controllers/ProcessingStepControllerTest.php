@@ -72,7 +72,7 @@ class ProcessingStepControllerTest extends FeatureTestCase
                 'decision_id' => $decision->id->toString(),
                 'deadline_at' => $deadline,
                 'status' => $status,
-                'assigned_to' => $user->id->toString(),
+                'first_assignee' => $user->id->toString(),
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirectToRoute(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
@@ -85,7 +85,6 @@ class ProcessingStepControllerTest extends FeatureTestCase
             'name' => $stepName,
             'deadline_at' => $deadline,
             'status' => $status,
-            'assigned_to' => $user->id,
             'decision_id' => $decision->id,
         ]);
     }
@@ -157,7 +156,7 @@ class ProcessingStepControllerTest extends FeatureTestCase
                 'name' => $updatedName,
                 'deadline_at' => $updatedDeadline,
                 'status' => $updatedStatus,
-                'assigned_to' => $user->id->toString(), // Using UUID string instead of ID
+                'first_assignee' => $user->id->toString(), // Using UUID string instead of ID
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirectToRoute(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
@@ -171,7 +170,6 @@ class ProcessingStepControllerTest extends FeatureTestCase
             'name' => $updatedName,
             'deadline_at' => $updatedDeadline,
             'status' => $updatedStatus,
-            'assigned_to' => $user->id,
         ]);
     }
 

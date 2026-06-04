@@ -18,7 +18,7 @@ class ViewComponentServiceProvider extends ServiceProvider
             PetitionTermsTable::class,
             PetitionTermCreateButtons::class,
         ])
-            ->needs('$petitionTypeTypeConfig')
-            ->giveConfig('petition_type_type');
+            ->needs('$petitionVariantConfig')
+            ->giveConfig('petition_variant');
     }
 }

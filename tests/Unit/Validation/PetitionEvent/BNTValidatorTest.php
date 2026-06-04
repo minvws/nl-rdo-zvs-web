@@ -144,13 +144,13 @@ class BNTValidatorTest extends TestCase
                 type: PetitionEventType::PRIMARY_DECISION,
                 date: CalendarDate::create('2025-01-01'),
                 createdAt: CarbonImmutable::now(),
-                duration: 42,
+                duration: 6,
             ),
             new PetitionEventData(
                 type: PetitionEventType::RECEIPT_OF_OBJECTION,
                 date: CalendarDate::create('2025-01-10'),
                 createdAt: CarbonImmutable::now(),
-                duration: 50,
+                duration: 10,
             ),
             new PetitionEventData(
                 type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,

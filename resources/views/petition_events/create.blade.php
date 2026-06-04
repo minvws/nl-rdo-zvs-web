@@ -5,9 +5,11 @@
 @use(App\Enums\SuspensionType)
 @use(App\Enums\HearingForm)
 @use(App\Enums\ResultType)
+@use(App\Enums\AdjournmentEndReason)
+@use(Illuminate\Support\Facades\Lang)
 
 @php
-    $title = Str::lower($selectedType->label($petition->petitionType->type)) . ' ' . Str::lower(__('petition_event.create'));
+    $title = Str::ucfirst($selectedType->label($petition->petitionType->type)) . ' ' . Str::lower(__('petition_event.create'));
 @endphp
 
 @section('pageTitle', __('petition.create_in') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
@@ -146,12 +148,39 @@
                         </div>
                     @endif
 
+                    @if ($selectedType->hasAdjournmentEndReason())
+                        <div class="form-input-group">
+                            <x-input-label
+                                for="adjournment_end_reason"
+                                required
+                                :content="__('petition_event.adjournment_end_reason')" />
+                            <x-input-error
+                                id="adjournment_end_reason-error"
+                                :messages="$errors->get('adjournment_end_reason')" />
+                            <select
+                                id="adjournment_end_reason"
+                                name="adjournment_end_reason"
+                                class="form-control @error('adjournment_end_reason') input-error @enderror"
+                                aria-describedby="adjournment_end_reason-error"
+                                required>
+                                <option value="">{{ __('general.select') }}</option>
+                                @foreach (AdjournmentEndReason::cases() as $reason)
+                                    <option
+                                        value="{{ $reason->value }}"
+                                        @selected(old('adjournment_end_reason') === $reason->value)>
+                                        {{ $reason->label() }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
                     @if ($selectedType->hasDuration())
                         <div class="form-input-group">
                             <x-input-label
                                 for="duration"
                                 required
-                                :content="__('petition_event.default.label.'. $selectedType->value )" />
+                                :content="Lang::has('petition_event.duration.' . $selectedType->value) ? __('petition_event.duration.' . $selectedType->value) : __('petition_event.default.label.term_duration')" />
                             <x-input-error
                                 id="duration-error"
                                 :messages="$errors->get('duration')" />
@@ -164,11 +193,26 @@
                                 required
                                 value="{{ Form::old('duration', $config['duration'] ?? null) }}" />
                         </div>
+                        <div class="form-input-group js-only">
+                            <x-input-label
+                                for="term_deadline"
+                                :content="__('petition_event.default.label.term_deadline' )" />
+                            <x-input-error
+                                id="term_deadline-error"
+                                :messages="$errors->get('term_deadline')" />
+                            <x-text-input
+                                id="term_deadline"
+                                :hasError="$errors->has('term_deadline')"
+                                name="term_deadline"
+                                type="date"
+                                aria-describedby="term_deadline-error"
+                                value="{{ old('term_deadline', $config['term_deadline'] ?? null) }}" />
+                        </div>
                     @endif
 
                     @if ($selectedType->hasPenalties($petition->petitionType->type))
                         <fieldset class="form-group">
-                            <legend>Boetes (max. 3) - vul alleen in wat nodig is</legend>
+                            <legend>Dwangsommen (meestal 1, maximaal 3) - vul alleen in wat nodig is</legend>
 
                             <table>
                                 <thead>

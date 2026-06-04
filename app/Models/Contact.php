@@ -13,6 +13,7 @@ use App\Models\Concerns\HasTimestamps;
 use App\Models\Contracts\DepartmentAwareInterface;
 use App\QueryBuilders\ContactQueryBuilder;
 use Database\Factories\ContactFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -58,6 +59,7 @@ use function implode;
 
 #[UseEloquentBuilder(ContactQueryBuilder::class)]
 #[UseFactory(ContactFactory::class)]
+#[Table('contacts')]
 class Contact extends EloquentModel implements DepartmentAwareInterface
 {
     use HasArchivedAt;
@@ -66,8 +68,6 @@ class Contact extends EloquentModel implements DepartmentAwareInterface
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'contacts';
 
     /**
      * @return array<string, string>

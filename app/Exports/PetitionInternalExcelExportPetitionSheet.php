@@ -11,7 +11,9 @@ use App\Facades\DisplayDate;
 use App\Models\Decision;
 use App\Models\Petition;
 use App\ValueObjects\CalendarDate;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Override;
 
 use function __;
 
@@ -20,6 +22,15 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
     public function __construct(ExportCriteria $criteria)
     {
         parent::__construct('petition_sheet', $criteria);
+    }
+
+    /**
+     * @return Builder<Petition>
+     */
+    #[Override]
+    public function query(): Builder
+    {
+        return parent::query()->with(['team']);
     }
 
     /**
@@ -33,10 +44,11 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
             $row->number,
             $row->name ?? '-',
             $row->applicant->first()?->display_name,
-            $row->assignedUser ? $row->assignedUser->name : __('petition.not_assigned'),
+            $row->firstAssignee?->user->name ?? __('petition.not_assigned'),
             $row->policyDepartments->toString(),
             $row->petitionType->name,
             $row->petitionCategory?->name,
+            $row->team->name ?? '-',
             DisplayDate::date($row->date_of_entry),
             $row->date_appealed_decision ? DisplayDate::date($row->date_appealed_decision) : '-',
             $row->deadline_at ? DisplayDate::date($row->deadline_at) : '-',
@@ -95,6 +107,7 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
             __('policy_department.model_singular'),
             __('petition.type'),
             __('petition.category'),
+            __('team.model_singular'),
             __('petition.date_of_entry.bezwaar'),
             __('petition.date_appealed_decision.bezwaar'),
             __('petition.deadline_at'),

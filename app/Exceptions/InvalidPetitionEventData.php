@@ -31,4 +31,11 @@ class InvalidPetitionEventData extends DomainException
             sprintf('Event type "%s" does not support hearing form', $type->value),
         );
     }
+
+    public static function adjournmentEndReasonNotAllowed(PetitionEventType $type): self
+    {
+        return new self(
+            sprintf('Event type "%s" does not support adjournment end reason', $type->value),
+        );
+    }
 }

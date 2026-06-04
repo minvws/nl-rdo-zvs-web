@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\AssignmentRole;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionAssignment;
 use App\Models\PetitionCategory;
 use App\Models\PetitionStatus;
 use App\Models\PetitionType;
-use App\Models\User;
+use App\Models\Team;
 use Carbon\CarbonImmutable;
 
 use function sprintf;
@@ -32,10 +34,10 @@ class PetitionFactory extends Factory
             'petition_type_id' => PetitionType::factory(),
             'petition_status_id' => PetitionStatus::factory(),
             'petition_category_id' => PetitionCategory::factory(),
+            'team_id' => Team::factory(),
             'name' => $this->faker->sentence(3),
             'message' => $this->faker->optional()->regexify('ZK-AFD-[A-Z]-[0-9]{4}'),
             'description' => $this->faker->optional()->text(),
-            'assigned_to' => $this->faker->optional()->randomElement([User::factory()]),
             'date_of_entry' => $this->faker->calendarDate(),
             'date_of_message' => $this->faker->optional()->calendarDate(),
             'deadline_at' => $this->faker->optional()->calendarDate(),
@@ -47,7 +49,7 @@ class PetitionFactory extends Factory
 
     public function configure(): static
     {
-        return $this->afterMaking(function (Petition $petition): void {
+        $this->afterMaking->push(function (Petition $petition): void {
             if ($petition->number !== null) {
                 return;
             }
@@ -57,8 +59,30 @@ class PetitionFactory extends Factory
             $abbreviation = $department->abbreviation;
             $uniqueNumber = $this->faker->unique()->regexify('[0-9]{6}');
             $petition->number = sprintf('%s%s%s', $year, $abbreviation, $uniqueNumber);
-        })->afterCreating(function (Petition $petition): void {
+        });
+
+        $this->afterCreating->push(function (Petition $petition): void {
             $this->createCustomDates($petition);
+        });
+
+        return $this;
+    }
+
+    public function withFirstAssignee(): static
+    {
+        return $this->afterCreating(function (Petition $petition): void {
+            PetitionAssignment::factory()->for($petition)->create([
+                'assignment_role' => AssignmentRole::PRIMARY,
+            ]);
+        });
+    }
+
+    public function withSecondAssignee(): static
+    {
+        return $this->afterCreating(function (Petition $petition): void {
+            PetitionAssignment::factory()->for($petition)->create([
+                'assignment_role' => AssignmentRole::SECONDARY,
+            ]);
         });
     }
 

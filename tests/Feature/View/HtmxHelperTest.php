@@ -19,7 +19,7 @@ class HtmxHelperTest extends FeatureTestCase
     public function testMakeFormViewOrFragmentReturnsFormInLayout(): void
     {
         $response = $this->getHtmxHelper()
-            ->makeFormViewResponse(Request::create($this->faker->word()), 'petition.assign-user.edit', [
+            ->makeFormViewResponse(Request::create($this->faker->word()), 'petition.assign-primary.edit', [
                 'petition' => Petition::factory()->create(),
                 'users' => new Collection(),
                 'errors' => new ViewErrorBag(),
@@ -30,7 +30,7 @@ class HtmxHelperTest extends FeatureTestCase
 
     public function testMakeFormViewReturnsFormOnly(): void
     {
-        $viewName = 'petition.assign-user.edit';
+        $viewName = 'petition.assign-primary.edit';
         $response = $this->getHtmxHelper()->makeFormViewResponse($this->createRequestWithHtmxHeader(), $viewName, [
             'petition' => Petition::factory()->create(),
             'users' => new Collection(),

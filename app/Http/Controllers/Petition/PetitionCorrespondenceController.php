@@ -21,13 +21,13 @@ use App\Services\Petition\WordTemplate\WordTemplateService;
 use App\Services\Petition\WordTemplate\WordTemplateViewFactory;
 use App\View\HtmxHelper;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -45,14 +45,12 @@ final readonly class PetitionCorrespondenceController
         private WordTemplateProcessingService $wordTemplateProcessingService,
         private WordTemplateReplacementsMapper $wordTemplateReplacementsMapper,
         private WordTemplateViewFactory $wordTemplateViewFactory,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function index(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $wordTemplates = $this->wordTemplateViewFactory->buildForDepartment($department->config_key);
 
         return $this->view->make('petition.correspondence.index', [
@@ -61,10 +59,9 @@ final readonly class PetitionCorrespondenceController
         ]);
     }
 
+    #[Authorize(Ability::VIEW, 'petition')]
     public function download(Department $department, Petition $petition, WordTemplateId $wordTemplateId): BinaryFileResponse
     {
-        $this->gate->authorize(Ability::VIEW, $petition);
-
         $allowedTemplates = $this->wordTemplateViewFactory->buildForDepartment($department->config_key);
         $isAllowed = collect($allowedTemplates)->contains('word_template_id', $wordTemplateId->value);
 
@@ -82,26 +79,25 @@ final readonly class PetitionCorrespondenceController
         }
     }
 
+    #[Authorize(Ability::VIEW, 'petition')]
     public function show(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::VIEW, $petition);
-
         return $this->view->make('petition.correspondence.show', [
             'petition' => $petition,
             'department' => $department,
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function edit(Request $request, Department $department, Petition $petition): Response
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         return $this->htmxHelper->makeFormViewResponse($request, 'petition.correspondence.edit', [
             'petition' => $petition,
             'department' => $department,
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function update(
         Request $request,
         Department $department,
@@ -111,8 +107,6 @@ final readonly class PetitionCorrespondenceController
         #[CurrentUser]
         User $user,
     ): RedirectResponse|View {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $messageUpdateRequest->validated(), $user);
 
         $petition->refresh();

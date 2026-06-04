@@ -13,6 +13,7 @@ use App\Models\Concerns\HasTimestamps;
 use App\ValueObjects\CalendarDate;
 use Database\Factories\PetitionDeliverableFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,14 +30,13 @@ use Ramsey\Uuid\UuidInterface;
  */
 #[CollectedBy(PetitionDeliverableCollection::class)]
 #[UseFactory(PetitionDeliverableFactory::class)]
+#[Table('petition_deliverables')]
 class PetitionDeliverable extends EloquentModel
 {
     /** @use HasFactory<PetitionDeliverableFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'petition_deliverables';
 
     /**
      * @return BelongsTo<Petition, $this>

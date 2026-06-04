@@ -328,10 +328,8 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::SENT_PARTIAL_DECISION->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(DateMustBeLatestEventRule::class),
-                ]);
+            static function (): ComposableValidator {
+                return new ComposableValidator([]);
             },
         );
     }

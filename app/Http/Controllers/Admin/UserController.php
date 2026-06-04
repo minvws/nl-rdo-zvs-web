@@ -14,7 +14,6 @@ use App\Http\Requests\User\UserCreateRequest;
 use App\Http\Requests\User\UserUpdateRequest;
 use App\Models\Department;
 use App\Models\User;
-use App\Models\UserGlobalRole;
 use App\Services\User\UserRoleService;
 use Illuminate\Container\Attributes\Config;
 use Illuminate\Contracts\View\Factory;
@@ -52,10 +51,7 @@ final readonly class UserController
             'departmentRoles' => DepartmentRole::cases(),
             'globalRoles' => GlobalRole::cases(),
             'user' => $user,
-            'userGlobalRoles' => UserGlobalRole::query()->where('user_id', $user->id)
-                ->get()
-                ->pluck('role')
-                ->toArray(),
+            'userGlobalRoles' => $user->globalRoles()->pluck('role')->toArray(),
             'userDepartmentRoles' => $this->userRoleService->getDepartmentRoles($user->id),
         ]);
     }

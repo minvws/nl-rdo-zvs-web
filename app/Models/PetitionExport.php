@@ -11,12 +11,11 @@ use App\Models\Concerns\HasDepartment;
 use App\Models\Concerns\HasId;
 use App\Models\Concerns\HasTimestamps;
 use App\Models\Contracts\DepartmentAwareInterface;
-use App\Policies\PetitionExportPolicy;
 use App\ValueObjects\CalendarDate;
 use Carbon\CarbonImmutable;
 use Database\Factories\PetitionExportFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Override;
@@ -35,7 +34,7 @@ use Override;
  * @property-read Department $department
  */
 #[UseFactory(PetitionExportFactory::class)]
-#[UsePolicy(PetitionExportPolicy::class)]
+#[Table('petition_exports')]
 class PetitionExport extends EloquentModel implements DepartmentAwareInterface
 {
     use HasDepartment;
@@ -43,8 +42,6 @@ class PetitionExport extends EloquentModel implements DepartmentAwareInterface
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'petition_exports';
 
     /**
      * @return HasOne<PetitionType, $this>

@@ -65,10 +65,10 @@ enum PetitionEventType: string
         };
     }
 
-    public function hasPenalties(?PetitionTypeType $petitionType = null): bool
+    public function hasPenalties(?PetitionVariant $petitionType = null): bool
     {
         return match ($this) {
-            self::NOTICE_OF_DEFAULT_RECEIVED => $petitionType === PetitionTypeType::BEZWAAR,
+            self::NOTICE_OF_DEFAULT_RECEIVED => $petitionType === PetitionVariant::BEZWAAR,
             self::APPEAL_DECISION_NOT_TIMELY => true,
             default => false,
         };
@@ -98,19 +98,27 @@ enum PetitionEventType: string
         };
     }
 
-    public function isAvailableFor(PetitionTypeType $petitionType): bool
+    public function hasAdjournmentEndReason(): bool
+    {
+        return match ($this) {
+            self::UNSPECIFIED_ADJOURNMENT_END => true,
+            default => false,
+        };
+    }
+
+    public function isAvailableFor(PetitionVariant $petitionType): bool
     {
         return match ($this) {
             self::PRIMARY_DECISION,
             self::RECEIPT_OF_OBJECTION,
-            self::HEARING_DATE => $petitionType === PetitionTypeType::BEZWAAR,
+            self::HEARING_DATE => $petitionType === PetitionVariant::BEZWAAR,
 
             self::PETITION_RECEIVED, self::PUBLICATION_DATE, self::ACTUAL_DISCLOSURE,
             self::OPINION_OUTSIDE_TERM,
-            self::SENT_PARTIAL_DECISION => $petitionType === PetitionTypeType::WOO_VERZOEK,
+            self::SENT_PARTIAL_DECISION => $petitionType === PetitionVariant::WOO_VERZOEK,
 
             self::NOTICE_OF_DEFAULT_WITHDRAWN => match ($petitionType) {
-                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => true,
+                PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => true,
                 default => false,
             },
 
@@ -132,7 +140,7 @@ enum PetitionEventType: string
      *
      * @return array<PetitionEventType>
      */
-    public function getDependencies(PetitionTypeType $petitionType): array
+    public function getDependencies(PetitionVariant $petitionType): array
     {
         return match ($this) {
             self::ACTUAL_DISCLOSURE => [self::FINAL_RESULT],
@@ -149,8 +157,8 @@ enum PetitionEventType: string
             self::OPINION_OUTSIDE_TERM,
             self::SENT_PARTIAL_DECISION,
             self::FINAL_RESULT => match ($petitionType) {
-                PetitionTypeType::BEZWAAR => [self::RECEIPT_OF_OBJECTION],
-                PetitionTypeType::WOO_VERZOEK => [self::PETITION_RECEIVED],
+                PetitionVariant::BEZWAAR => [self::RECEIPT_OF_OBJECTION],
+                PetitionVariant::WOO_VERZOEK => [self::PETITION_RECEIVED],
                 default => [],
             },
 
@@ -161,7 +169,7 @@ enum PetitionEventType: string
             self::UNSPECIFIED_ADJOURNMENT_END => [self::UNSPECIFIED_ADJOURNMENT],
 
             self::HEARING_DATE => match ($petitionType) {
-                PetitionTypeType::BEZWAAR => [self::RECEIPT_OF_OBJECTION],
+                PetitionVariant::BEZWAAR => [self::RECEIPT_OF_OBJECTION],
                 default => [],
             },
             self::NOTICE_OF_DEFAULT_WITHDRAWN => [self::NOTICE_OF_DEFAULT_RECEIVED],
@@ -179,11 +187,11 @@ enum PetitionEventType: string
      *
      * @return array<PetitionEventType>
      */
-    public function getConflicts(PetitionTypeType $petitionType): array
+    public function getConflicts(PetitionVariant $petitionType): array
     {
         return match ($this) {
             self::PRIMARY_DECISION => match ($petitionType) {
-                PetitionTypeType::BEZWAAR => [
+                PetitionVariant::BEZWAAR => [
                     self::RECEIPT_OF_OBJECTION,
                     self::LETTER_OF_SUSPENSION_SENT,
                     self::SUSPENSION_END,
@@ -214,7 +222,7 @@ enum PetitionEventType: string
                 self::FINAL_RESULT,
             ],
             self::LETTER_OF_SUSPENSION_SENT, self::SUSPENSION_END => match ($petitionType) {
-                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => [
+                PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::NOTICE_OF_DEFAULT_RECEIVED,
                     self::APPEAL_DECISION_NOT_TIMELY,
                     self::RECEIPT_APPEAL_NOT_TIMELY,
@@ -223,7 +231,7 @@ enum PetitionEventType: string
                 default => [],
             },
             self::NOTICE_OF_DEFAULT_RECEIVED => match ($petitionType) {
-                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => [
+                PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::APPEAL_DECISION_NOT_TIMELY,
                     self::RECEIPT_APPEAL_NOT_TIMELY,
                     self::FINAL_RESULT,
@@ -231,8 +239,7 @@ enum PetitionEventType: string
                 default => [],
             },
             self::MEETING_SCHEDULED => match ($petitionType) {
-                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => [
-                    self::MEETING_SCHEDULED,
+                PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::NOTICE_OF_DEFAULT_RECEIVED,
                     self::APPEAL_DECISION_NOT_TIMELY,
                     self::FINAL_RESULT,
@@ -240,7 +247,7 @@ enum PetitionEventType: string
                 default => [],
             },
             self::ADJOURNMENT => match ($petitionType) {
-                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => [
+                PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::ADJOURNMENT,
                     self::NOTICE_OF_DEFAULT_RECEIVED,
                     self::APPEAL_DECISION_NOT_TIMELY,
@@ -249,7 +256,7 @@ enum PetitionEventType: string
                 default => [],
             },
             self::UNSPECIFIED_ADJOURNMENT => match ($petitionType) {
-                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => [
+                PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::UNSPECIFIED_ADJOURNMENT,
                     self::NOTICE_OF_DEFAULT_RECEIVED,
                     self::APPEAL_DECISION_NOT_TIMELY,
@@ -258,7 +265,7 @@ enum PetitionEventType: string
                 default => [],
             },
             self::UNSPECIFIED_ADJOURNMENT_END => match ($petitionType) {
-                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => [
+                PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::UNSPECIFIED_ADJOURNMENT_END,
                     self::NOTICE_OF_DEFAULT_RECEIVED,
                     self::APPEAL_DECISION_NOT_TIMELY,
@@ -267,16 +274,16 @@ enum PetitionEventType: string
                 default => [],
             },
             self::HEARING_DATE => match ($petitionType) {
-                PetitionTypeType::BEZWAAR => [
+                PetitionVariant::BEZWAAR => [
                     self::FINAL_RESULT,
                 ],
-                PetitionTypeType::WOO_VERZOEK => [
+                PetitionVariant::WOO_VERZOEK => [
                     self::PETITION_RECEIVED,
                 ],
                 default => [],
             },
             self::NOTICE_OF_DEFAULT_WITHDRAWN => match ($petitionType) {
-                PetitionTypeType::BEZWAAR, PetitionTypeType::WOO_VERZOEK => [
+                PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::APPEAL_DECISION_NOT_TIMELY,
                     self::FINAL_RESULT,
                 ],
@@ -287,10 +294,10 @@ enum PetitionEventType: string
                 self::FINAL_RESULT,
             ],
             self::FINAL_RESULT => match ($petitionType) {
-                PetitionTypeType::BEZWAAR => [
+                PetitionVariant::BEZWAAR => [
                     self::PETITION_RECEIVED,
                 ],
-                PetitionTypeType::WOO_VERZOEK => [
+                PetitionVariant::WOO_VERZOEK => [
                     self::PRIMARY_DECISION,
                     self::RECEIPT_OF_OBJECTION,
                 ],
@@ -300,7 +307,7 @@ enum PetitionEventType: string
         };
     }
 
-    public function label(?PetitionTypeType $petitionType = null): string
+    public function label(?PetitionVariant $petitionType = null): string
     {
         return $this->translate('label', $petitionType);
     }
@@ -314,12 +321,12 @@ enum PetitionEventType: string
         };
     }
 
-    public function description(?PetitionTypeType $petitionType = null): string
+    public function description(?PetitionVariant $petitionType = null): string
     {
         return $this->translate('description', $petitionType);
     }
 
-    protected function translate(string $translationType, ?PetitionTypeType $petitionType = null): string
+    protected function translate(string $translationType, ?PetitionVariant $petitionType = null): string
     {
         $typeKey = $petitionType->value ?? 'default';
         $eventKey = $this->value;

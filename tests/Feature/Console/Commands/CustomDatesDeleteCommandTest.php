@@ -173,13 +173,11 @@ class CustomDatesDeleteCommandTest extends FeatureTestCase
             ->assertExitCode(Command::SUCCESS);
 
         $this->assertDatabaseMissing('petition_type_custom_dates_labels', [
-            'petition_type_id' => $petitionType->id,
-            'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING,
+            ['petition_type_id' => $petitionType->id, 'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING],
         ]);
 
         $this->assertDatabaseMissing('petition_custom_dates', [
-            'petition_id' => $petition->id,
-            'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING,
+            ['petition_id' => $petition->id, 'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING],
         ]);
     }
 
@@ -225,13 +223,11 @@ class CustomDatesDeleteCommandTest extends FeatureTestCase
             ->assertExitCode(Command::SUCCESS);
 
         $this->assertDatabaseMissing('petition_type_custom_dates_labels', [
-            'petition_type_id' => $petitionType1->id,
-            'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING,
+            ['petition_type_id' => $petitionType1->id, 'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING],
         ]);
 
         $this->assertDatabaseMissing('petition_custom_dates', [
-            'petition_id' => $petition1->id,
-            'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING,
+            ['petition_id' => $petition1->id, 'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING],
         ]);
 
         $this->assertDatabaseHas('petition_type_custom_dates_labels', [
@@ -284,13 +280,11 @@ class CustomDatesDeleteCommandTest extends FeatureTestCase
             ->assertExitCode(Command::SUCCESS);
 
         $this->assertDatabaseMissing('petition_type_custom_dates_labels', [
-            'petition_type_id' => $petitionType->id,
-            'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING,
+            ['petition_type_id' => $petitionType->id, 'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING],
         ]);
 
         $this->assertDatabaseMissing('petition_custom_dates', [
-            'petition_id' => $petition->id,
-            'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING,
+            ['petition_id' => $petition->id, 'date_label' => CustomDateLabel::DATE_PUBLIC_HEARING],
         ]);
 
         $this->assertDatabaseHas('petition_type_custom_dates_labels', [

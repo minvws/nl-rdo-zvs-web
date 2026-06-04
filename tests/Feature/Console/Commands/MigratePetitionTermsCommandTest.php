@@ -6,7 +6,7 @@ namespace Tests\Feature\Console\Commands;
 
 use App\Enums\CustomDateLabel;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 use App\Enums\SuspensionType;
 use App\Enums\TermType;
@@ -48,7 +48,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->create([
             'department_id' => $department->id,
-            'type' => PetitionTypeType::BEROEP,
+            'type' => PetitionVariant::BEROEP,
         ]);
 
         Petition::factory()->create([
@@ -508,7 +508,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->create([
             'department_id' => $department->id,
-            'type' => PetitionTypeType::BEZWAAR,
+            'type' => PetitionVariant::BEZWAAR,
         ]);
 
         return Petition::factory()->create([
@@ -524,7 +524,7 @@ final class MigratePetitionTermsCommandTest extends FeatureTestCase
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->create([
             'department_id' => $department->id,
-            'type' => PetitionTypeType::WOO_VERZOEK,
+            'type' => PetitionVariant::WOO_VERZOEK,
         ]);
 
         return Petition::factory()->create([

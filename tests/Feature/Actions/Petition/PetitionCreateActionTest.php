@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Actions\Petition;
 
 use App\Actions\Petition\PetitionCreateAction;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\TermType;
 use App\Models\Department;
 use App\Models\DepartmentTermTypeSetting;
@@ -25,7 +25,7 @@ class PetitionCreateActionTest extends FeatureTestCase
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()
             ->recycle($department)
-            ->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+            ->create(['type' => PetitionVariant::WOO_VERZOEK]);
         PetitionStatus::factory()->recycle($petitionType)->create(['order' => 1]);
         $user = User::factory()->create();
 
@@ -48,7 +48,7 @@ class PetitionCreateActionTest extends FeatureTestCase
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()
             ->recycle($department)
-            ->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+            ->create(['type' => PetitionVariant::WOO_VERZOEK]);
         PetitionStatus::factory()->recycle($petitionType)->create(['order' => 1]);
         $user = User::factory()->create();
 
@@ -85,7 +85,7 @@ class PetitionCreateActionTest extends FeatureTestCase
         ]);
         $petitionType = PetitionType::factory()
             ->recycle($department)
-            ->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+            ->create(['type' => PetitionVariant::WOO_VERZOEK]);
         PetitionStatus::factory()->recycle($petitionType)->create(['order' => 1]);
         $user = User::factory()->create();
 

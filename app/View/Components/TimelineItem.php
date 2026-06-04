@@ -6,6 +6,7 @@ namespace App\View\Components;
 
 use App\Collections\CustomPetitionPropertyCollection;
 use App\Collections\PolicyDepartmentCollection;
+use App\Enums\AssignmentRole;
 use App\Enums\TimelineType;
 use App\Models\Attachment;
 use App\Models\Contact;
@@ -28,6 +29,7 @@ use Webmozart\Assert\Assert;
 use function __;
 use function array_key_exists;
 use function array_map;
+use function is_int;
 use function sprintf;
 
 class TimelineItem extends Component
@@ -54,6 +56,8 @@ class TimelineItem extends Component
                 TimelineType::REFERENCED_OCCURRENCE => $this->renderView('petition.timeline.referenced_occurrence'),
                 TimelineType::STATUS_OCCURRENCE => $this->renderStatusOccurence(),
                 TimelineType::POLICY_DEPARTMENT_CHANGED => $this->renderPolicyDepartmentChanged(),
+                TimelineType::TEAM_CHANGED => $this->renderView('petition.timeline.team_changed'),
+                TimelineType::FINAL_DECISION_SET => $this->renderView('petition.timeline.final_decision_set'),
                 TimelineType::PETITION_CUSTOM_PROPERTIES_CHANGED => $this->renderPetitionCustomPropertiesChanged(),
                 TimelineType::PETITION_CUSTOM_DATES_CHANGED => $this->renderPetitionCustomDatesChanged(),
                 TimelineType::PETITION_UPDATED => $this->renderPetitionUpdated(),
@@ -108,7 +112,17 @@ class TimelineItem extends Component
                 'timelineItem' => $this->timelineItem,
                 'currentAssignedUser' => User::query()->find($data['current_assigned_user_id']),
                 'previousAssignedUser' => User::query()->find($data['previous_assigned_user_id']),
+                'assignmentRole' => $this->resolveAssignmentRole($data['assignment_role'] ?? AssignmentRole::PRIMARY->value),
             ]);
+    }
+
+    private function resolveAssignmentRole(mixed $assignmentRole): AssignmentRole
+    {
+        if (is_int($assignmentRole)) {
+            return AssignmentRole::tryFrom($assignmentRole) ?? AssignmentRole::PRIMARY;
+        }
+
+        return AssignmentRole::PRIMARY;
     }
 
     private function renderContactAttached(): View
@@ -293,13 +307,13 @@ class TimelineItem extends Component
     {
         $data = (array) $this->timelineItem->data;
         Assert::keyExists($data, 'deadline_at');
-        Assert::keyExists($data, 'assigned_to');
+        Assert::keyExists($data, 'first_assignee');
         Assert::keyExists($data, 'status');
         Assert::keyExists($data, 'name');
 
-        if ($data['assigned_to'] !== null) {
-            Assert::string($data['assigned_to']);
-            $data['assigned_to'] = User::query()->findSole($data['assigned_to']);
+        if ($data['first_assignee'] !== null) {
+            Assert::string($data['first_assignee']);
+            $data['first_assignee'] = User::query()->findSole($data['first_assignee']);
         }
 
         if ($data['deadline_at'] !== null) {

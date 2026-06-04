@@ -310,12 +310,11 @@ class DraftTermToPetitionTermsServiceTest extends FeatureTestCase
         ]);
 
         $this->assertDatabaseMissing('petition_terms', [
-            'petition_id' => $this->petition->id,
-            'type' => TermType::PENDING_TERM_AFTER_EVENT->value,
+            ['petition_id' => $this->petition->id, 'type' => TermType::PENDING_TERM_AFTER_WITHDRAWAL->value],
         ]);
 
         $this->assertDatabaseMissing('petition_draft_terms', [
-            'id' => $draftTerm->id,
+            ['id' => $draftTerm->id],
         ]);
     }
 
@@ -350,12 +349,11 @@ class DraftTermToPetitionTermsServiceTest extends FeatureTestCase
         ]);
 
         $this->assertDatabaseMissing('petition_terms', [
-            'petition_id' => $this->petition->id,
-            'type' => TermType::PENDING_TERM_AFTER_WITHDRAWAL->value,
+            ['petition_id' => $this->petition->id, 'type' => TermType::PENDING_TERM_AFTER_WITHDRAWAL->value],
         ]);
 
         $this->assertDatabaseMissing('petition_draft_terms', [
-            'id' => $draftTerm->id,
+            ['id' => $draftTerm->id],
         ]);
     }
 

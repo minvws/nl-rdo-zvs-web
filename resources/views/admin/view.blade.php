@@ -75,6 +75,18 @@
                             {{ __('petition_category.model_plural') }}
                         </a>
                     @endcan
+
+                    @can(Permission::TEAM_WRITE->value)
+                        <a
+                            class="button mt-2"
+                            href="{{
+                                route(RouteName::DEPARTMENTS_ADMIN_TEAMS_INDEX, [
+                                    'department' => $department,
+                                ])
+                            }}">
+                            {{ __('team.model_plural') }}
+                        </a>
+                    @endcan
                 </div>
             @endforeach
         </div>

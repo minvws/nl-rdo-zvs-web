@@ -26,14 +26,14 @@ enum SuspensionType: string
     /**
      * @return array<self>
      */
-    public static function getForPetitionType(PetitionTypeType $petitionType): array
+    public static function getForPetitionType(PetitionVariant $petitionType): array
     {
         return match ($petitionType) {
-            PetitionTypeType::BEZWAAR => [
+            PetitionVariant::BEZWAAR => [
                 self::SPECIFIED_ADJOURNMENT,
                 self::SUSPENSION,
             ],
-            PetitionTypeType::WOO_VERZOEK => [
+            PetitionVariant::WOO_VERZOEK => [
                 self::SPECIFICATION,
                 self::CONSULTATION,
             ],

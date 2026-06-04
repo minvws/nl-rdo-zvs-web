@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Models\Builder\Decision;
 
 use App\Enums\DecisionCriteria;
+use App\Models\Builder\Decision\Filters\ProcessingStepsInProgressFilter;
 use App\Models\Builder\Decision\Filters\SearchFilter;
+use App\Models\Builder\Decision\Filters\TeamFilter;
 use App\Models\Builder\Decision\Filters\TypeFilter;
 use App\Models\Builder\Decision\Sorts\DateSort;
 use App\Models\Builder\Decision\Sorts\DeadlineSort;
@@ -29,22 +31,28 @@ readonly class DecisionQueryBuilder
             ->allowedFilters(...self::createAllowedFilters())
             ->allowedSorts(...self::createAllowedSorts())
             ->defaultSort('-created_at', '-id')
-            ->getEloquentBuilder();
+            ->getEloquentBuilder()
+            ->with([
+                'processingSteps',
+                'team:id,name',
+            ]);
 
         Assert::isInstanceOf($builder, CustomDecisionQueryBuilder::class);
 
         return $builder;
     }
 
-    /**
-     * @return array<AllowedFilter>
-     */
+     /**
+      * @return array<AllowedFilter>
+      */
     private static function createAllowedFilters(): array
     {
         return [
             AllowedFilter::custom(DecisionCriteria::ARCHIVE->value, new ArchiveFilter()),
             AllowedFilter::custom(DecisionCriteria::SEARCH->value, new SearchFilter()),
+            AllowedFilter::custom(DecisionCriteria::TEAM->value, new TeamFilter()),
             AllowedFilter::custom(DecisionCriteria::TYPE->value, new TypeFilter()),
+            AllowedFilter::custom(DecisionCriteria::PROCESSING_STEPS_IN_PROGRESS->value, new ProcessingStepsInProgressFilter()),
         ];
     }
 

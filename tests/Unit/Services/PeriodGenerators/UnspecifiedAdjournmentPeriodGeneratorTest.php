@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\PeriodGenerators;
 
+use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
 use App\Enums\SuspensionType;
 use App\Enums\TermType;
@@ -341,5 +342,39 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
         foreach ($calendar->all() as $day) {
             $this->assertFalse($day->isDeadline);
         }
+    }
+
+    #[Test]
+    public function testMarksWithdrawalOnEndDayWhenReasonIsWithdrawal(): void
+    {
+        $calendar = new EventCalendar();
+        $startDate = CalendarDate::create('2025-01-10');
+        $endDate = CalendarDate::create('2025-01-13');
+
+        foreach ([$startDate, CalendarDate::create('2025-01-11'), CalendarDate::create('2025-01-12'), $endDate] as $date) {
+            $calendar->upsertDay($date, [
+                'applicableTerm' => TermType::DECISION_PERIOD->value,
+            ]);
+        }
+
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                date: $startDate,
+                createdAt: CarbonImmutable::now(),
+                duration: 3,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
+                date: $endDate,
+                createdAt: CarbonImmutable::now(),
+                adjournmentEndReason: AdjournmentEndReason::Withdrawal,
+            ),
+        ]);
+
+        $generator = new UnspecifiedAdjournmentPeriodGenerator();
+        $generator->generate($events, $calendar);
+
+        $this->assertTrue($calendar->findDay($endDate)->isUnspecifiedAdjournmentWithdrawal);
     }
 }

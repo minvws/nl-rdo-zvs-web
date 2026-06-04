@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Petition;
 
+use App\Enums\PetitionEventType;
 use App\Enums\TermType;
 use App\Models\Petition;
 use App\Models\PetitionTerm;
@@ -11,6 +12,7 @@ use App\ValueObjects\CalendarDate;
 use Webmozart\Assert\Assert;
 
 use function array_merge;
+use function array_unique;
 use function in_array;
 
 class PetitionParticularityCollector
@@ -19,47 +21,69 @@ class PetitionParticularityCollector
     private const string LABEL_SUSPENSION = 'Opsch';
     private const string LABEL_ADJOURNMENT = 'Aanh';
 
+    private const array ADJOURNMENT_TERM_TYPES = [
+        TermType::SPECIFIED_ADJOURNMENT,
+        TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_EVENT,
+        TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_WITHDRAWAL,
+    ];
+
     /**
      * @return array<string>
      */
     public function collectParticularities(Petition $petition): array
     {
+        $today = CalendarDate::today();
         $labels = [];
 
-        if ($petition->petitionTerms->hasNoticeOfDefault()) {
+        if ($this->hasActiveNoticeOfDefault($petition)) {
             $labels[] = self::LABEL_NOTICE_OF_DEFAULT;
         }
 
-        if (
-            $petition->petitionTerms->filter(static function (PetitionTerm $item): bool {
-                return $item->type === TermType::SUSPENSION;
-            })->currentTerms(CalendarDate::today())->isNotEmpty()
-        ) {
+        if ($this->hasActiveSuspension($petition, $today)) {
             $labels[] = self::LABEL_SUSPENSION;
         }
 
-        if (
-            $petition->petitionTerms->filter(static function (PetitionTerm $item): bool {
-                return
-                    in_array(
-                        $item->type,
-                        [
-                            TermType::SPECIFIED_ADJOURNMENT,
-                            TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_EVENT,
-                            TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_WITHDRAWAL,
-                        ],
-                        true,
-                    );
-            })->currentTerms(CalendarDate::today())->isNotEmpty()
-        ) {
+        if ($this->hasActiveAdjournment($petition, $today)) {
             $labels[] = self::LABEL_ADJOURNMENT;
         }
 
-        if ($petition->draftTerm?->start_date > CalendarDate::today()) {
-            $labels[] = self::LABEL_ADJOURNMENT;
+        return array_unique(array_merge($this->getLabelsFromRelatedPetitions($petition), $labels));
+    }
+
+    private function hasActiveNoticeOfDefault(Petition $petition): bool
+    {
+        if ($petition->isTermEngineConverted()) {
+            $receivedCount = $petition->petitionEvents
+                ->filter(static fn($e): bool => $e->type === PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED)
+                ->count();
+            $withdrawnCount = $petition->petitionEvents
+                ->filter(static fn($e): bool => $e->type === PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN)
+                ->count();
+
+            return $receivedCount > $withdrawnCount;
         }
 
-        return array_merge($this->getLabelsFromRelatedPetitions($petition), $labels);
+        return $petition->petitionTerms->hasNoticeOfDefault();
+    }
+
+    private function hasActiveSuspension(Petition $petition, CalendarDate $today): bool
+    {
+        return $petition->petitionTerms
+            ->filter(static fn(PetitionTerm $term): bool => $term->type === TermType::SUSPENSION)
+            ->currentTerms($today)
+            ->isNotEmpty();
+    }
+
+    private function hasActiveAdjournment(Petition $petition, CalendarDate $today): bool
+    {
+        $hasAdjournmentTerm = $petition->petitionTerms
+            ->filter(static fn(PetitionTerm $term): bool => in_array($term->type, self::ADJOURNMENT_TERM_TYPES, true))
+            ->currentTerms($today)
+            ->isNotEmpty();
+
+        $hasFutureDraftTerm = $petition->draftTerm?->start_date > $today;
+
+        return $hasAdjournmentTerm || $hasFutureDraftTerm;
     }
 
     /**
@@ -67,9 +91,7 @@ class PetitionParticularityCollector
      */
     private function getLabelsFromRelatedPetitions(Petition $petition): array
     {
-        $relatedPetitions = $petition->relatedPetitions;
-
-        $labels = $relatedPetitions
+        $labels = $petition->relatedPetitions
             ->pluck('petitionType.particularity_label')
             ->filter()
             ->unique()

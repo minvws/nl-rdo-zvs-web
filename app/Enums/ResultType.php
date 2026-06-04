@@ -12,7 +12,7 @@ use function in_array;
 enum ResultType: string
 {
     case FINAL_DECISION = 'final_decision';
-    case PARTIAL_DECISION = 'partal_decision';
+    case PARTIAL_DECISION = 'partial_decision';
     case WITHDRAWN = 'withdrawn';
     case FORWARDED = 'forwarded';
     case REJECTED = 'rejected';
@@ -39,7 +39,7 @@ enum ResultType: string
     /**
      * @return array<string, array<self>>
      */
-    public static function getGroupedForPetitionType(PetitionTypeType $petitionType): array
+    public static function getGroupedForPetitionType(PetitionVariant $petitionType): array
     {
         $all = self::getForPetitionType($petitionType);
         $withDecision = [self::FINAL_DECISION, self::PARTIAL_DECISION, self::REJECTED, self::DISMISSED];
@@ -59,15 +59,15 @@ enum ResultType: string
     /**
      * @return array<self>
      */
-    public static function getForPetitionType(PetitionTypeType $petitionType): array
+    public static function getForPetitionType(PetitionVariant $petitionType): array
     {
         return match ($petitionType) {
-            PetitionTypeType::BEZWAAR => [
+            PetitionVariant::BEZWAAR => [
                 self::FINAL_DECISION,
                 self::WITHDRAWN,
                 self::FORWARDED,
             ],
-            PetitionTypeType::WOO_VERZOEK => [
+            PetitionVariant::WOO_VERZOEK => [
                 self::FINAL_DECISION,
                 self::PARTIAL_DECISION,
                 self::WITHDRAWN,

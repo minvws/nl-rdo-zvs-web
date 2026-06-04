@@ -1,5 +1,8 @@
 import htmx from 'htmx.org';
 
+// Add 'js' class to html element when JS is loaded
+document.documentElement.classList.add('js');
+
 // --- HTMX Configuration ---
 
 // Disables automatic scrolling to the top of the page on HTMX boosted links
@@ -407,3 +410,50 @@ collapseTable(
 
 // Set up the toggle button to expand/collapse the table rows
 eventCalendarToggleButton?.addEventListener('click', () => toggleTable(eventCalendarToggleButton));
+
+// --- Petition Event Duration <-> Deadline Sync ---
+
+function initTermDeadlineSync() {
+  const durationInput = document.getElementById('duration');
+  const termDeadlineInput = document.getElementById('term_deadline');
+  const eventDateInput = document.getElementById('date');
+
+  if (!durationInput || !termDeadlineInput || !eventDateInput) return;
+
+  function calculateDeadline() {
+    const eventDate = new Date(eventDateInput.value);
+    const duration = parseInt(durationInput.value, 10);
+    if (isNaN(eventDate.getTime()) || isNaN(duration)) return;
+
+    const deadline = new Date(eventDate);
+    deadline.setDate(deadline.getDate() + duration);
+    termDeadlineInput.value = deadline.toISOString().split('T')[0];
+  }
+
+  function calculateDuration() {
+    const eventDate = new Date(eventDateInput.value);
+    const deadlineDate = new Date(termDeadlineInput.value);
+    if (isNaN(eventDate.getTime()) || isNaN(deadlineDate.getTime())) return;
+
+    const diffTime = deadlineDate - eventDate;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays >= 0) {
+      durationInput.value = diffDays;
+    }
+  }
+
+  // Calculate initial deadline if duration is already filled
+  calculateDeadline();
+
+  // Listen for input on duration field
+  durationInput.addEventListener('input', calculateDeadline);
+
+  // Listen for both input and change on deadline field (handles keyboard & picker)
+  termDeadlineInput.addEventListener('input', calculateDuration);
+  termDeadlineInput.addEventListener('change', calculateDuration);
+
+  // Also recalculate deadline when event date changes
+  eventDateInput.addEventListener('change', calculateDeadline);
+}
+
+initTermDeadlineSync();

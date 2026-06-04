@@ -8,8 +8,6 @@ use App\Enums\CustomDateLabel;
 use App\Facades\DisplayDate;
 use App\Models\Contact;
 use App\Models\Petition;
-use App\Models\PolicyDepartment;
-use App\Models\User;
 use App\ValueObjects\Address;
 use App\ValueObjects\CalendarDate;
 use Carbon\CarbonImmutable;
@@ -36,14 +34,14 @@ readonly class WordTemplateReplacementsMapper
             'DATUM_BESTREDEN_BESLUIT' => $this->mapDate($petition->decision_date, 'DATUM_BESTREDEN_BESLUIT'),
             'DATUM_ONTVANGEN_BERICHT' => $this->mapDate($petition->date_of_message, 'DATUM_ONTVANGEN_BERICHT'),
             'EMAIL_ADRES' => $contact instanceof Contact ? $contact->email_address : 'EMAIL_ADRES',
-            'KENMERK_BESTREDEN_BESLUIT' => $petition->decision_reference,
-            'KENMERK_ONTVANGEN_BERICHT' => $petition->message,
-            'KENMERK_ZVS_NUMMER' => $petition->number,
-            'NAAM_ADRES' => $contact instanceof Contact ? Str::address(Address::fromContact($contact)) : null,
+            'KENMERK_BESTREDEN_BESLUIT' => $petition->decision_reference ?? 'KENMERK_BESTREDEN_BESLUIT',
+            'KENMERK_ONTVANGEN_BERICHT' => $petition->message ?? 'KENMERK_ONTVANGEN_BERICHT',
+            'KENMERK_ZVS_NUMMER' => $petition->number ?? 'KENMERK_ZVS_NUMMER',
+            'NAAM_ADRES' => $contact instanceof Contact ? Str::address(Address::fromContact($contact)) : 'NAAM_ADRES',
             'NAAM_BEHANDELAAR' => $this->mapAssignedUser($petition),
             'NAAM_BEZWAARDE' => $applicant instanceof Contact ? $applicant->full_name : 'NAAM_BEZWAARDE',
             'NAAM_CONTACT' => $contact instanceof Contact ? $contact->full_name : 'NAAM_CONTACT',
-            'NAAM_ZAAK' => $petition->name,
+            'NAAM_ZAAK' => $petition->name ?? 'NAAM_ZAAK',
             'TELEFOON_CONTACT' => $contact instanceof Contact ? $contact->phone_number : 'TELEFOON_CONTACT',
             'VANDAAG' => DisplayDate::date(CarbonImmutable::now()),
         ];
@@ -60,13 +58,13 @@ readonly class WordTemplateReplacementsMapper
     {
         $policyDepartment = $petition->policyDepartments()->first();
 
-        return $policyDepartment instanceof PolicyDepartment ? $policyDepartment->name : 'BELEIDSDIRECTIE';
+        return $policyDepartment->name ?? 'BELEIDSDIRECTIE';
     }
 
     private function mapAssignedUser(Petition $petition): string
     {
-        $assignedUser = $petition->assignedUser;
+        $assignedUser = $petition->firstAssignee?->user;
 
-        return $assignedUser instanceof User ? $assignedUser->name : 'NAAM_BEHANDELAAR';
+        return $assignedUser->name ?? 'NAAM_BEHANDELAAR';
     }
 }

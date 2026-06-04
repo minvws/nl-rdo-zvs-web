@@ -13,7 +13,7 @@ use App\Enums\Authorization\DepartmentRole;
 use App\Enums\Authorization\GlobalRole;
 use App\Enums\CustomDateLabel;
 use App\Enums\CustomPetitionPropertyType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\StatusGroup;
 use App\Enums\TermType;
 use App\Models\Contact;
@@ -30,6 +30,7 @@ use App\Models\PetitionType;
 use App\Models\PetitionTypeCustomDateLabel;
 use App\Models\PolicyDepartment;
 use App\Models\PublicHoliday;
+use App\Models\Team;
 use App\Models\User;
 use App\Models\UserGlobalRole;
 use Illuminate\Database\Eloquent\Factories\Sequence;
@@ -59,6 +60,7 @@ class DatabaseSeeder extends Seeder
             $petitionTypes = $this->createPetitionTypes($department);
             $petitionStatuses = $this->createPetitionStatuses($petitionTypes);
             $contacts = $this->createContacts($department);
+            $this->createTeams($department);
             $this->createExports($department, $petitionTypes);
             $this->createTermTypeSettings($department);
             $this->createCustomDateLabelsPerPetitionType($petitionTypes);
@@ -194,7 +196,7 @@ class DatabaseSeeder extends Seeder
 
     private function createWooCustomPetitionProperties(): void
     {
-        $wooPetitionTypes = PetitionType::where(['type' => PetitionTypeType::WOO_VERZOEK->value])->get();
+        $wooPetitionTypes = PetitionType::where(['type' => PetitionVariant::WOO_VERZOEK->value])->get();
 
         foreach ($wooPetitionTypes as $wooPetitionType) {
             CustomPetitionProperty::factory()
@@ -227,7 +229,7 @@ class DatabaseSeeder extends Seeder
 
     private function createBeroepCustomPetitionProperties(): void
     {
-        $beroepPetitionTypes = PetitionType::where(['type' => PetitionTypeType::BEROEP->value])->get();
+        $beroepPetitionTypes = PetitionType::where(['type' => PetitionVariant::BEROEP->value])->get();
 
         foreach ($beroepPetitionTypes as $beroepPetitionType) {
             CustomPetitionProperty::factory()
@@ -250,7 +252,7 @@ class DatabaseSeeder extends Seeder
 
     private function createBezwaarCustomPetitionProperties(): void
     {
-        $bezwaarPetitionTypes = PetitionType::where(['type' => PetitionTypeType::BEZWAAR->value])->get();
+        $bezwaarPetitionTypes = PetitionType::where(['type' => PetitionVariant::BEZWAAR->value])->get();
 
         foreach ($bezwaarPetitionTypes as $bezwaarPetitionType) {
             CustomPetitionProperty::factory()
@@ -297,15 +299,15 @@ class DatabaseSeeder extends Seeder
             ->state(new Sequence(
                 [
                     'name' => 'Beroep',
-                    'type' => PetitionTypeType::BEROEP->value,
+                    'type' => PetitionVariant::BEROEP->value,
                 ],
                 [
                     'name' => 'Bezwaar',
-                    'type' => PetitionTypeType::BEZWAAR->value,
+                    'type' => PetitionVariant::BEZWAAR->value,
                 ],
                 [
                     'name' => 'Woo verzoek',
-                    'type' => PetitionTypeType::WOO_VERZOEK->value,
+                    'type' => PetitionVariant::WOO_VERZOEK->value,
                 ],
             ))
             ->create();
@@ -478,6 +480,14 @@ class DatabaseSeeder extends Seeder
             ->create();
     }
 
+    public function createTeams(Department $department): Collection
+    {
+        return Team::factory()
+            ->count(2)
+            ->recycle($department)
+            ->create();
+    }
+
     /**
      * @param Collection<array-key, PetitionType> $petitionTypes
      *
@@ -506,6 +516,7 @@ class DatabaseSeeder extends Seeder
         Petition::factory()
             ->count(21)
             ->recycle([$department, $users, $contacts, $petitionStatuses, $petitionTypes, $petitionCategories])
+            ->withFirstAssignee()
             ->create()
             ->each(static function (Petition $petition) use ($policyDepartments, $petitionStatuses): void {
                 $petitionPolicyDepartments = $policyDepartments->random(rand(0, 3));

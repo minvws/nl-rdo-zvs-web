@@ -13,6 +13,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
+use Str;
 use Tests\Feature\FeatureTestCase;
 
 class DecisionAttachControllerTest extends FeatureTestCase
@@ -62,6 +63,40 @@ class DecisionAttachControllerTest extends FeatureTestCase
                 'petition' => $petition,
                 'reference' => $decision->reference,
             ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('decision_petition', [
+            'decision_id' => $decision->id,
+            'petition_id' => $petition->id,
+        ]);
+    }
+
+    #[Test]
+    public function testAttachIsCaseInsensitiveReference(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $decision = Decision::factory()->create([
+            'reference' => 'ref-case123',
+        ]);
+
+        $authUser = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+        $this->beUser($authUser, true, $department)
+            ->postByRoute(
+                RouteName::DEPARTMENTS_PETITIONS_DECISION_ATTACH,
+                [
+                    'department' => $department,
+                    'petition' => $petition,
+                ],
+                [
+                    // send upper-cased reference to ensure controller lower-cases input
+                    'reference' => Str::upper($decision->reference),
+                ],
+            )
             ->assertSessionHasNoErrors()
             ->assertRedirect();
 

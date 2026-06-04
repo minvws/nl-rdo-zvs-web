@@ -1,5 +1,5 @@
 @use(App\Enums\Ability)
-@use(App\Enums\PetitionTypeType)
+@use(App\Enums\PetitionVariant)
 @use(App\Enums\RouteName)
 @use(Illuminate\Support\Facades\Config)
 
@@ -20,10 +20,17 @@
     </div>
 
     <div
-        id="assign-user-block"
+        id="assign-primary-block"
         class="petition-edit"
         data-throw-petition-refresh="timeline">
-        @include('petition.assign-user.show', ['petition' => $petition])
+        @include('petition.assign-primary.show', ['petition' => $petition])
+    </div>
+
+    <div
+        id="assign-secondary-block"
+        class="petition-edit"
+        data-throw-petition-refresh="timeline">
+        @include('petition.assign-secondary.show', ['petition' => $petition])
     </div>
 
     <div
@@ -86,7 +93,7 @@
         </div>
     @endif
 
-    @if ($petition->petitionType->type !== PetitionTypeType::WOO_VERZOEK)
+    @if ($petition->petitionType->type !== PetitionVariant::WOO_VERZOEK)
         <div
             id="correspondence-block"
             class="petition-edit"
@@ -95,7 +102,7 @@
         </div>
     @endif
 
-    @if ($petition->petitionType->type !== PetitionTypeType::BEROEP && ! $petition->isTermEngineConverted())
+    @if ($petition->petitionType->type !== PetitionVariant::BEROEP && ! $petition->isTermEngineConverted())
         <x-petition.petition-terms.summary
             :petition="$petition"
             :petitionTerms="$petition->petitionTerms" />

@@ -12,6 +12,7 @@ use App\Models\Contracts\DepartmentAwareInterface;
 use App\QueryBuilders\PetitionCategoryQueryBuilder;
 use Database\Factories\PetitionCategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,15 +27,14 @@ use Override;
 #[CollectedBy(PetitionCategoryCollection::class)]
 #[UseEloquentBuilder(PetitionCategoryQueryBuilder::class)]
 #[UseFactory(PetitionCategoryFactory::class)]
+#[Table('petition_categories')]
 class PetitionCategory extends EloquentModel implements DepartmentAwareInterface
 {
+    use HasDepartment;
     /** @use HasFactory<PetitionCategoryFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-    use HasDepartment;
-
-    protected $table = 'petition_categories';
 
     /**
      * @return HasMany<Petition, $this>

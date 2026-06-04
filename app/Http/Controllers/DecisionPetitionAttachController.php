@@ -14,9 +14,9 @@ use App\Models\Department;
 use App\Models\Petition;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 
@@ -25,19 +25,18 @@ final readonly class DecisionPetitionAttachController
     public function __construct(
         private Factory $view,
         private Redirector $redirector,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function attachForm(Department $department, Decision $decision): View
     {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         return $this->view->make('petition.decision.petition-attach', [
             'decision' => $decision,
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function attachPetitionToDecision(
         PetitionAttachRequest $petitionAttachRequest,
         Department $department,
@@ -46,8 +45,6 @@ final readonly class DecisionPetitionAttachController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $petition = Petition::query()
             ->where('number', $petitionAttachRequest->getString('number'))
             ->firstOrFail();
@@ -60,6 +57,7 @@ final readonly class DecisionPetitionAttachController
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function detachPetitionFromDecision(
         Department $department,
         Decision $decision,
@@ -68,8 +66,6 @@ final readonly class DecisionPetitionAttachController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $action->execute($decision, $relatedPetition, $user);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_DECISIONS_SHOW, [

@@ -26,8 +26,8 @@ If you want to run the tests natively, you need to set up the environment first:
 
 There are two ways to run the tests:
 
-- Containerized via Docker (runs all tests)
-- Directly via Python (and Docker Compose for services; allows running tests individually)
+- Containerized via Docker
+- Directly via Python (and Docker Compose for services; allows for opening the browser and actively looking at the tests running)
 
 After the tests run, you can open the report `report.html` in your browser to see the results in more detail.
 
@@ -58,7 +58,7 @@ uv run robot tests/Exports.robot
 Make sure the Docker Compose project is running. You need all the available services:
 
 ```bash
-docker compose up -d
+docker compose up -d e2e-tests
 ```
 
 To run all tests, use the following command within the `robot/` directory:
@@ -71,4 +71,11 @@ Or run a specific test suite, for example:
 
 ```bash
 uv run robot tests/Exports.robot
+```
+```
+
+Add the HEADLESS:False variable to the command to have chromium actually open so you can follow what the tests are doing.
+
+```bash
+uv run robot --variable HEADLESS:False tests/
 ```

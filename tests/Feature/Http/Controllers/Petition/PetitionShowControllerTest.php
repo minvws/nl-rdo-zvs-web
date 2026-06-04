@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Petition;
 
 use App\Enums\Authorization\Permission;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
+use App\Enums\ProcessingStepStatus;
 use App\Enums\RouteName;
 use App\Enums\TermType;
 use App\Enums\TimelineFilterGroup;
 use App\Enums\TimelineType;
+use App\Models\Decision;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionTerm;
 use App\Models\PetitionType;
+use App\Models\ProcessingStep;
 use App\Models\TimelineItem;
 use App\Models\User;
 use App\ValueObjects\CalendarDate;
@@ -66,8 +69,8 @@ class PetitionShowControllerTest extends FeatureTestCase
             ->recycle($department)
             ->create([
                 'type' => $this->faker->randomElement([
-                    PetitionTypeType::BEZWAAR,
-                    PetitionTypeType::WOO_VERZOEK,
+                    PetitionVariant::BEZWAAR,
+                    PetitionVariant::WOO_VERZOEK,
                 ]),
             ]);
         $petition = Petition::factory()->recycle($department)->recycle($petitionType)->create();
@@ -253,5 +256,76 @@ class PetitionShowControllerTest extends FeatureTestCase
             ]);
 
         $response->assertNotFound();
+    }
+
+    #[Test]
+    public function testShowDecisionTableDisplaysProcessingStepsInProgress(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $decision = Decision::factory()->recycle($department)->create();
+        $petition->decisions()->attach($decision);
+
+        // Create processing steps with different statuses
+        ProcessingStep::factory()->recycle($decision)->create([
+            'name' => 'Step 1 Pending',
+            'status' => ProcessingStepStatus::PENDING,
+            'ordering' => 1,
+        ]);
+        ProcessingStep::factory()->recycle($decision)->create([
+            'name' => 'Step 2 Closed',
+            'status' => ProcessingStepStatus::CLOSED,
+            'ordering' => 2,
+        ]);
+        ProcessingStep::factory()->recycle($decision)->create([
+            'name' => 'Step 3 Pending',
+            'status' => ProcessingStepStatus::PENDING,
+            'ordering' => 3,
+        ]);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition->id,
+            ])
+            ->assertOk()
+            ->assertViewIs('petition.show')
+            ->assertSee(__('decision.processing_steps_completed'))
+            ->assertSee(__('decision.processing_steps_in_progress'))
+            ->assertSee('Step 1 Pending, Step 3 Pending');
+    }
+
+    #[Test]
+    public function testShowDecisionTableDisplaysDashWhenNoProcessingStepsInProgress(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $decision = Decision::factory()->recycle($department)->create();
+        $petition->decisions()->attach($decision);
+
+        // Create only closed processing steps
+        ProcessingStep::factory()->recycle($decision)->create([
+            'name' => 'Step 1 Closed',
+            'status' => ProcessingStepStatus::CLOSED,
+            'ordering' => 1,
+        ]);
+        ProcessingStep::factory()->recycle($decision)->create([
+            'name' => 'Step 2 Closed',
+            'status' => ProcessingStepStatus::CLOSED,
+            'ordering' => 2,
+        ]);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition->id,
+            ])
+            ->assertOk()
+            ->assertViewIs('petition.show')
+            ->assertSee(__('decision.processing_steps_completed'))
+            ->assertSee(__('decision.processing_steps_in_progress'))
+            ->assertSeeInOrder([$decision->date->format('d-m-Y'), '-', '2/2']);
     }
 }

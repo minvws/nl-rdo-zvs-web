@@ -76,7 +76,7 @@ abstract class PetitionAbstractExcelExport implements WithTitle, WithMapping, Wi
     {
         return $customPetitionProperties
             ->filter(static fn(CustomPetitionProperty $value, string $key): bool => array_key_exists($value->name, $options))
-            ->map(static fn(CustomPetitionProperty $value, string $key) => $options[$value->name])
+            ->map(static fn(CustomPetitionProperty $value, string $key): string => $options[$value->name])
             ->join(', ');
     }
 

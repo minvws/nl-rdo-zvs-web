@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\View\Components;
 
+use App\Enums\AssignmentRole;
 use App\Enums\ContactRole;
 use App\Enums\CustomCostType;
 use App\Enums\CustomDateLabel;
@@ -27,6 +28,8 @@ use Illuminate\Testing\TestComponent;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Feature\FeatureTestCase;
 
+use function __;
+
 class TimelineItemTest extends FeatureTestCase
 {
     public function testRenderAssignmentOccurrence(): void
@@ -43,6 +46,32 @@ class TimelineItemTest extends FeatureTestCase
             'current_assigned_user_id' => null,
             'previous_assigned_user_id' => null,
         ]);
+    }
+
+    public function testRenderSecondaryAssignmentOccurrenceMessage(): void
+    {
+        $timelineable = Petition::factory()->create();
+        $timelineUser = User::factory()->create();
+        $secondaryUser = User::factory()->create();
+
+        $timelineItem = TimelineItemModel::factory()
+            ->create([
+                'timelineable_id' => $timelineable->id,
+                'timelineable_type' => 'petition',
+                'user_id' => $timelineUser->id,
+                'type' => TimelineType::ASSIGNMENT_OCCURRENCE,
+                'data' => [
+                    'current_assigned_user_id' => $secondaryUser->id,
+                    'previous_assigned_user_id' => null,
+                    'assignment_role' => AssignmentRole::SECONDARY->value,
+                ],
+            ])
+            ->refresh();
+
+        $view = $this->component(TimelineItem::class, ['timelineItem' => $timelineItem]);
+        $html = (string) $view->render();
+
+        $this->assertStringContainsString(__('timeline.assignment.secondary_assigned_to', ['assignee' => $secondaryUser->name]), $html);
     }
 
     public function testRenderContactAttached(): void
@@ -248,7 +277,7 @@ class TimelineItemTest extends FeatureTestCase
     {
         $this->assertView($type, [
             'name' => $this->faker->word(),
-            'assigned_to' => User::factory()->create()->id,
+            'first_assignee' => User::factory()->create()->id,
             'status' => $this->faker->word(),
             'deadline_at' => $this->faker->calendarDate()->format('Y-m-d'),
         ]);
@@ -261,7 +290,7 @@ class TimelineItemTest extends FeatureTestCase
     {
         $this->assertView($type, [
             'name' => $this->faker->word(),
-            'assigned_to' => null,
+            'first_assignee' => null,
             'status' => $this->faker->word(),
             'deadline_at' => $this->faker->calendarDate()->format('Y-m-d'),
         ]);
@@ -288,6 +317,14 @@ class TimelineItemTest extends FeatureTestCase
             'previous_status' => null,
             'current_status' => $this->faker->word(),
             'date' => $this->faker->calendarDate()->format('Y-m-d'),
+        ]);
+    }
+
+    public function testRenderStatusOccurenceWithComment(): void
+    {
+        $this->assertView(TimelineType::STATUS_OCCURRENCE, [
+            'current_status' => $this->faker->word(),
+            'comment' => $this->faker->sentence(),
         ]);
     }
 
@@ -378,6 +415,29 @@ class TimelineItemTest extends FeatureTestCase
         $html = (string) $view->render();
 
         $this->assertStringContainsString('Activiteit kan niet meer gevonden worden', $html);
+    }
+
+    public function testRenderAssignmentOccurrenceWithStringAssignmentRoleFallsBackToPrimary(): void
+    {
+        $timelineable = Petition::factory()->create();
+        $timelineUser = User::factory()->create();
+
+        $timelineItem = TimelineItemModel::factory()
+            ->create([
+                'timelineable_id' => $timelineable->id,
+                'timelineable_type' => 'petition',
+                'user_id' => $timelineUser->id,
+                'type' => TimelineType::ASSIGNMENT_OCCURRENCE,
+                'data' => [
+                    'current_assigned_user_id' => null,
+                    'previous_assigned_user_id' => null,
+                    'assignment_role' => 'legacy_string_value',
+                ],
+            ])
+            ->refresh();
+
+        $view = $this->component(TimelineItem::class, ['timelineItem' => $timelineItem]);
+        $this->assertInstanceOf(TestComponent::class, $view);
     }
 
     /**

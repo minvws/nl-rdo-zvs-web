@@ -14,6 +14,7 @@ use App\Services\Terms\TermDateCalculator;
 use App\ValueObjects\CalendarDate;
 use Database\Factories\PetitionTermFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,14 +36,13 @@ use Ramsey\Uuid\UuidInterface;
  */
 #[CollectedBy(PetitionTermCollection::class)]
 #[UseFactory(PetitionTermFactory::class)]
+#[Table('petition_terms')]
 class PetitionTerm extends EloquentModel
 {
     /** @use HasFactory<PetitionTermFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'petition_terms';
 
     /**
      * @return BelongsTo<Petition, $this>

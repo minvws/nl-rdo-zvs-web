@@ -19,6 +19,7 @@ use App\Http\Controllers\Petition\PetitionIndexController;
 use App\Http\Controllers\Petition\PetitionShowController;
 use App\Http\Controllers\Petition\PetitionStoreController;
 use App\Http\Controllers\Petition\PetitionTypeController;
+use App\Http\Controllers\Petition\TeamController;
 use App\Http\Controllers\ProcessingStepController;
 use App\Http\Controllers\TimelineableNoteController;
 use Illuminate\Support\Facades\File;
@@ -62,6 +63,26 @@ Route::prefix('/admin')->group(static function (): void {
                 ->name(RouteName::DEPARTMENTS_ADMIN_PETITION_CATEGORIES_EDIT);
             Route::post('/', [PetitionCategoryController::class, 'update'])
                 ->middleware('can:' . Permission::PETITION_CATEGORY_WRITE->value);
+        });
+    });
+
+    Route::prefix('/teams')->group(static function (): void {
+        Route::get('/', [TeamController::class, 'index'])
+            ->middleware('can:' . Permission::TEAM_READ->value)
+            ->name(RouteName::DEPARTMENTS_ADMIN_TEAMS_INDEX);
+        Route::prefix('/create')->group(static function (): void {
+            Route::get('/', [TeamController::class, 'create'])
+                ->middleware('can:' . Permission::TEAM_WRITE->value)
+                ->name(RouteName::DEPARTMENTS_ADMIN_TEAMS_CREATE);
+            Route::post('/', [TeamController::class, 'store'])
+                ->middleware('can:' . Permission::TEAM_WRITE->value);
+        });
+        Route::prefix('/{team}/edit')->group(static function (): void {
+            Route::get('/', [TeamController::class, 'edit'])
+                ->middleware('can:' . Permission::TEAM_WRITE->value)
+                ->name(RouteName::DEPARTMENTS_ADMIN_TEAMS_EDIT);
+            Route::post('/', [TeamController::class, 'update'])
+                ->middleware('can:' . Permission::TEAM_WRITE->value);
         });
     });
 });

@@ -21,12 +21,15 @@ return [
     'name' => 'Naam besluit',
     'reference' => 'Referentienummer',
     'date' => 'Datum besluit',
+    'reviewbatch' => 'Reviewbatch',
     'detail_page' => 'Overzicht van',
     'edit_properties' => 'Besluitdetails aanpassen',
     'attach' => 'Besluit koppelen',
     'processing_steps' => 'Processtappen',
     'deadline' => 'Deadline',
     'progress' => 'Voortgang',
+    'processing_steps_completed' => 'Processtappen afgerond',
+    'processing_steps_in_progress' => 'Processtappen in behandeling',
 
     'attach_petition' => 'Zaak koppelen',
     'attached_petitions' => 'Gekoppelde zaken',
@@ -53,6 +56,10 @@ return [
             'label' => 'Type',
             'all' => 'Alle types',
         ],
+        'processing_steps_in_progress' => [
+            'label' => 'Processtap in behandeling',
+            'all' => 'Alle processtappen',
+        ],
     ],
 
     'type' => [
@@ -60,4 +67,8 @@ return [
         'chat' => 'Chat besluit',
         'regular' => 'Regulier besluit',
     ],
+
+    'final' => 'Finaal',
+    'set_final_decision' => 'Finaal besluit toepassen',
+    'no_final_decision' => 'Geen van deze besluiten is finaal',
 ];

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Exports;
 
+use App\Enums\AssignmentRole;
 use App\Enums\CustomDateLabel;
 use App\Enums\ExportType;
 use App\Enums\PetitionEventType;
@@ -49,11 +50,15 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             ->has(PetitionTerm::factory()->count(3), 'petitionTerms')
             ->has(Petition::factory(), 'relatedPetitions')
             ->create([
-                'assigned_to' => $assignedUser->id,
                 'deadline_at' => $this->faker->calendarDate(),
                 'petition_status_id' => $petitionStatus->id,
                 'date_appealed_decision' => $this->faker->calendarDate(),
             ]);
+
+        $petition->assignments()->create([
+            'user_id' => $assignedUser->id,
+            'assignment_role' => AssignmentRole::PRIMARY,
+        ]);
 
         // Create the custom dates using the new relationship
         PetitionCustomDateModel::factory()->create([
@@ -78,6 +83,7 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             $petition->policyDepartments->toString(),
             $petition->petitionType->name,
             $petition->petitionCategory->name,
+            $petition->team?->name,
             $petition->date_of_entry->format('d-m-Y'),
             $petition->date_appealed_decision->format('d-m-Y'),
             $petition->deadline_at->format('d-m-Y'),
@@ -131,25 +137,25 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
     public static function customPetitionPropertyOptionsDataProvider(): array
     {
         return [
-            [[], 19, ''],
             [[], 20, ''],
             [[], 21, ''],
             [[], 22, ''],
             [[], 23, ''],
-            [['Binnen wettelijke termijn'], 19, 'Binnen wettelijke termijn'],
-            [['Binnen wettelijke termijn'], 20, ''],
-            [['Binnen wettelijke termijn', 'Binnen afgesproken termijn'], 19, 'Binnen wettelijke termijn, Binnen afgesproken termijn'],
-            [['Binnen wettelijke termijn', 'Onbekende optie'], 19, 'Binnen wettelijke termijn'],
-            [['Binnen wettelijke termijn', 'Onbekende optie'], 20, ''],
-            [['Doorzending'], 19, ''],
-            [['Doorzending'], 20, 'Doorzending'],
-            [['Herziening – herstel bezwaar'], 21, 'Herziening - herstel bezwaar'], // watch it: dashes are different
-            [['Herziening – herstel bezwaar', 'Informeel'], 21, 'Herziening - herstel bezwaar, Informeel'], // watch it: dashes are different
-            [['A', 'D', 'E'], 22, 'A, D, E'],
-            [['A', 'E', 'B'], 22, 'A, E, B'],
-            [['A', 'D', 'E', 'Z'], 22, 'A, D, E'],
-            [['A'], 23, ''],
-            [['Gegrond', 'Intrekking', 'Kennelijk gegrond'], 23, 'Gegrond, Intrekking, Kennelijk gegrond'],
+            [[], 24, ''],
+            [['Binnen wettelijke termijn'], 20, 'Binnen wettelijke termijn'],
+            [['Binnen wettelijke termijn'], 21, ''],
+            [['Binnen wettelijke termijn', 'Binnen afgesproken termijn'], 20, 'Binnen wettelijke termijn, Binnen afgesproken termijn'],
+            [['Binnen wettelijke termijn', 'Onbekende optie'], 20, 'Binnen wettelijke termijn'],
+            [['Binnen wettelijke termijn', 'Onbekende optie'], 21, ''],
+            [['Doorzending'], 20, ''],
+            [['Doorzending'], 21, 'Doorzending'],
+            [['Herziening – herstel bezwaar'], 22, 'Herziening - herstel bezwaar'], // watch it: dashes are different
+            [['Herziening – herstel bezwaar', 'Informeel'], 22, 'Herziening - herstel bezwaar, Informeel'], // watch it: dashes are different
+            [['A', 'D', 'E'], 23, 'A, D, E'],
+            [['A', 'E', 'B'], 23, 'A, E, B'],
+            [['A', 'D', 'E', 'Z'], 23, 'A, D, E'],
+            [['A'], 24, ''],
+            [['Gegrond', 'Intrekking', 'Kennelijk gegrond'], 24, 'Gegrond, Intrekking, Kennelijk gegrond'],
         ];
     }
 
@@ -181,7 +187,7 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
         $export = $this->makePetitionBeroepExcelExport();
         $map = $export->map($petition);
 
-        $this->assertEquals('Doorzending', $map[20]);
+        $this->assertEquals('Doorzending', $map[21]);
     }
 
     public function testForwardingWithTermEngineConvertedNoForwardEventReturnsEmpty(): void
@@ -216,7 +222,7 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
         $export = $this->makePetitionBeroepExcelExport();
         $map = $export->map($mockedPetition);
 
-        $this->assertEquals('Doorzending', $map[20]);
+        $this->assertEquals('Doorzending', $map[21]);
     }
 
     private function mockPetitionAsLegacy(Petition $petition): Petition

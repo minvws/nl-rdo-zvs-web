@@ -9,6 +9,7 @@ use App\Collections\PetitionCategoryCollection;
 use App\Collections\PetitionStatusCollection;
 use App\Collections\PetitionTypeCollection;
 use App\Collections\PolicyDepartmentCollection;
+use App\Collections\TeamCollection;
 use App\Collections\UserCollection;
 use App\Enums\ArchiveFilter;
 use App\Models\Builder\Petition\PetitionQueryBuilder;
@@ -19,6 +20,7 @@ use App\Models\PetitionCategory;
 use App\Models\PetitionStatus;
 use App\Models\PetitionType;
 use App\Models\PolicyDepartment;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Container\Attributes\Config;
 use Illuminate\Http\Request;
@@ -48,6 +50,7 @@ final readonly class PetitionIndexService
      *     usedPetitionTypes: PetitionTypeCollection,
      *     usedPetitionStatuses: PetitionStatusCollection,
      *     usedCustomProperties: Collection<int, CustomPetitionProperty>,
+     *     usedTeams: TeamCollection,
      *     department: Department,
      *     hasSavedFilters: bool,
      *     archiveFilters: array<ArchiveFilter>
@@ -77,6 +80,7 @@ final readonly class PetitionIndexService
             'usedPetitionTypes' => $this->getUsedPetitionTypes($department),
             'usedPetitionStatuses' => $this->getUsedPetitionStatuses($department),
             'usedCustomProperties' => $this->getUsedCustomProperties($department),
+            'usedTeams' => $this->getUsedTeams($department),
             'department' => $department,
             'hasSavedFilters' => $this->hasUserSavedFilters($user, $department),
             'archiveFilters' => ArchiveFilter::cases(),
@@ -111,6 +115,16 @@ final readonly class PetitionIndexService
             ->whereHas('petitions', static function ($query) use ($department): void {
                 $query->where('department_id', $department->id);
             })
+            ->orderBy('name')
+            ->get();
+    }
+
+    private function getUsedTeams(Department $department): TeamCollection
+    {
+        return Team::query()
+            ->where('department_id', $department->id)
+            ->whereHas('petitions')
+            ->active()
             ->orderBy('name')
             ->get();
     }

@@ -12,6 +12,7 @@ use App\Models\Concerns\HasTimestamps;
 use App\QueryBuilders\PetitionStatusQueryBuilder;
 use Database\Factories\PetitionStatusFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,14 +29,13 @@ use Override;
 #[CollectedBy(PetitionStatusCollection::class)]
 #[UseEloquentBuilder(PetitionStatusQueryBuilder::class)]
 #[UseFactory(PetitionStatusFactory::class)]
+#[Table('petition_statuses')]
 class PetitionStatus extends EloquentModel
 {
     /** @use HasFactory<PetitionStatusFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'petition_statuses';
 
     /**
      * @return BelongsTo<PetitionType, $this>

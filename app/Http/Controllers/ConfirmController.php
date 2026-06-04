@@ -21,6 +21,7 @@ final readonly class ConfirmController
             'message' => $request->input('message'),
             'confirmUrl' => $request->input('confirm_url'),
             'cancelUrl' => $request->input('cancel_url'),
+            'method' => $request->input('method'),
         ]);
     }
 }

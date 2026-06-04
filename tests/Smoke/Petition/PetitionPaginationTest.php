@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Smoke\Petition;
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\RouteName;
 use App\Models\Department;
 use App\Models\Petition;
@@ -42,10 +42,10 @@ class PetitionPaginationTest extends SmokeTestCase
             ->create();
         $this->petitionType = PetitionType::factory()
             ->recycle($this->department)
-            ->create(['type' => PetitionTypeType::WOO_VERZOEK->value]);
+            ->create(['type' => PetitionVariant::WOO_VERZOEK->value]);
         $this->otherPetitionType = PetitionType::factory()
             ->recycle($this->department)
-            ->create(['type' => PetitionTypeType::BEZWAAR->value]);
+            ->create(['type' => PetitionVariant::BEZWAAR->value]);
         Petition::factory()
             ->count($this->totalItems)
             ->sequence(function (Sequence $sequence): array {

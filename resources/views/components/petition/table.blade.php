@@ -37,7 +37,7 @@
                     <td>{{ $petition->petitionType->name }}</td>
                     <td>{{ $petition->name }}</td>
                     <td>{{ DisplayDate::date($petition->date_of_entry) }}</td>
-                    <td>{{ $petition->assignedUser?->name }}</td>
+                    <td>{{ $petition->firstAssignee?->user?->name }}</td>
                     <td>{{ $petition->petitionStatus->status }}</td>
                     <td>
                         <a

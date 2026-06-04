@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Services\PetitionEventAvailabilityService;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
@@ -26,7 +26,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
 
     public function testWooVerzoekNewEventsRequirePetitionReceived(): void
     {
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, WizardEventCollection::make());
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, WizardEventCollection::make());
         $this->assertNotContains(PetitionEventType::OPINION_OUTSIDE_TERM, $availableTypes);
         $this->assertNotContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
         $this->assertNotContains(PetitionEventType::SENT_PARTIAL_DECISION, $availableTypes);
@@ -42,7 +42,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 duration: 30,
             ),
         );
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
         $this->assertContains(PetitionEventType::OPINION_OUTSIDE_TERM, $availableTypes);
         $this->assertNotContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
         $this->assertContains(PetitionEventType::SENT_PARTIAL_DECISION, $availableTypes);
@@ -50,7 +50,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
 
     public function testBezwaarDoesNotIncludeNewWooEvents(): void
     {
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, WizardEventCollection::make());
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, WizardEventCollection::make());
 
         $this->assertNotContains(PetitionEventType::OPINION_OUTSIDE_TERM, $availableTypes);
         $this->assertNotContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
@@ -59,7 +59,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
 
     public function testReturnsPrimaryDecisionWhenNoEventsExist(): void
     {
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, WizardEventCollection::make());
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, WizardEventCollection::make());
 
         $this->assertCount(1, $availableTypes);
         $this->assertContains(PetitionEventType::PRIMARY_DECISION, $availableTypes);
@@ -67,7 +67,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
 
     public function testReturnsPetitionReceivedWhenNoEventsExist(): void
     {
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, WizardEventCollection::make());
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, WizardEventCollection::make());
 
         $this->assertCount(1, $availableTypes);
         $this->assertContains(PetitionEventType::PETITION_RECEIVED, $availableTypes);
@@ -84,7 +84,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ),
         );
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertCount(1, $availableTypes);
         $this->assertNotContains(PetitionEventType::PRIMARY_DECISION, $availableTypes);
@@ -107,7 +107,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 duration: 45,
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertNotContains(PetitionEventType::PRIMARY_DECISION, $availableTypes);
         $this->assertNotContains(PetitionEventType::RECEIPT_OF_OBJECTION, $availableTypes);
@@ -146,10 +146,34 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 createdAt: CarbonImmutable::now(),
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
         $this->assertContains(PetitionEventType::SUSPENSION_END, $availableTypes);
+    }
+
+    public function testAllowsMultipleSentPartialDecisions(): void
+    {
+        $currentEvents = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::SENT_PARTIAL_DECISION,
+                date: CalendarDate::create('2025-01-15'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::SENT_PARTIAL_DECISION,
+                date: CalendarDate::create('2025-02-01'),
+                createdAt: CarbonImmutable::now(),
+            ));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $currentEvents);
+
+        $this->assertContains(PetitionEventType::SENT_PARTIAL_DECISION, $availableTypes);
     }
 
     public function testExcludesFinalDecisionWhenItExists(): void
@@ -173,7 +197,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 createdAt: CarbonImmutable::now(),
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertNotContains(PetitionEventType::FINAL_RESULT, $availableTypes);
         $this->assertNotContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
@@ -202,9 +226,9 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 duration: 14,
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
-        $this->assertNotContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
+        $this->assertContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
         $this->assertNotContains(PetitionEventType::RECEIPT_OF_OBJECTION, $availableTypes);
         $this->assertContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
     }
@@ -231,7 +255,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 duration: 10,
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertNotContains(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, $availableTypes);
         $this->assertNotContains(PetitionEventType::RECEIPT_OF_OBJECTION, $availableTypes);
@@ -259,7 +283,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 createdAt: CarbonImmutable::now(),
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertNotContains(PetitionEventType::HEARING_DATE, $availableTypes);
         $this->assertNotContains(PetitionEventType::RECEIPT_OF_OBJECTION, $availableTypes);
@@ -293,7 +317,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ));
 
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
@@ -340,7 +364,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 createdAt: CarbonImmutable::now(),
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertContains(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, $availableTypes);
         $this->assertContains(PetitionEventType::FINAL_RESULT, $availableTypes);
@@ -357,7 +381,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ),
         );
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEROEP, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEROEP, $currentEvents);
 
         $this->assertCount(0, $availableTypes);
     }
@@ -373,7 +397,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ),
         );
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertNotContains(PetitionEventType::RECEIPT_OF_OBJECTION, $availableTypes);
     }
@@ -389,7 +413,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ),
         );
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertNotContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
         $this->assertNotContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
@@ -415,7 +439,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 duration: 45,
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertNotContains(PetitionEventType::SUSPENSION_END, $availableTypes);
         $this->assertContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
@@ -443,7 +467,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 duration: 14,
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertContains(PetitionEventType::SUSPENSION_END, $availableTypes);
         $this->assertContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
@@ -452,7 +476,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
     public function testPrimaryDecisionVisibleWhenNoEventsExistForBezwaar(): void
     {
         $availableTypes = $this->service->getAvailableEventTypes(
-            PetitionTypeType::BEZWAAR,
+            PetitionVariant::BEZWAAR,
             WizardEventCollection::make(),
         );
 
@@ -464,7 +488,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::PRIMARY_DECISION, $availableTypes);
     }
@@ -474,7 +498,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertContains(PetitionEventType::RECEIPT_OF_OBJECTION, $availableTypes);
     }
@@ -485,7 +509,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::RECEIPT_OF_OBJECTION, $availableTypes);
     }
@@ -493,7 +517,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
     public function testPetitionReceivedVisibleWhenNoEventsExistForWooVerzoek(): void
     {
         $availableTypes = $this->service->getAvailableEventTypes(
-            PetitionTypeType::WOO_VERZOEK,
+            PetitionVariant::WOO_VERZOEK,
             WizardEventCollection::make(),
         );
 
@@ -505,7 +529,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertNotContains(PetitionEventType::PETITION_RECEIVED, $availableTypes);
     }
@@ -515,7 +539,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
     }
@@ -527,7 +551,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-02-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
     }
@@ -538,7 +562,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
             ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-02-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::SUSPENSION_END, $availableTypes);
     }
@@ -551,7 +575,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-02-01'))
             ->add($this->createEvent(PetitionEventType::SUSPENSION_END, '2025-02-15'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertContains(PetitionEventType::SUSPENSION_END, $availableTypes);
     }
@@ -561,21 +585,21 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
     }
 
-    public function testMeetingScheduledNotVisibleWhenAlreadyExistsForBezwaar(): void
+    public function testMeetingScheduledVisibleEvenWhenAlreadyExistsForBezwaar(): void
     {
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::MEETING_SCHEDULED, '2025-02-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
-        $this->assertNotContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
+        $this->assertContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
     }
 
     public function testMeetingScheduledNotVisibleWhenNoticeOfDefaultReceivedExistsForBezwaar(): void
@@ -585,7 +609,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
     }
@@ -597,7 +621,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
     }
@@ -607,7 +631,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::ADJOURNMENT, $availableTypes);
     }
@@ -619,7 +643,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::ADJOURNMENT, '2025-02-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::ADJOURNMENT, $availableTypes);
     }
@@ -631,7 +655,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::ADJOURNMENT, $availableTypes);
     }
@@ -641,7 +665,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $availableTypes);
     }
@@ -653,7 +677,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::UNSPECIFIED_ADJOURNMENT, '2025-02-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $availableTypes);
     }
@@ -665,7 +689,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $availableTypes);
     }
@@ -676,7 +700,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
             ->add($this->createEvent(PetitionEventType::UNSPECIFIED_ADJOURNMENT, '2025-02-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $availableTypes);
     }
@@ -689,7 +713,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::UNSPECIFIED_ADJOURNMENT, '2025-02-01'))
             ->add($this->createEvent(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, '2025-02-15'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $availableTypes);
     }
@@ -702,7 +726,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::UNSPECIFIED_ADJOURNMENT, '2025-02-01'))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $availableTypes);
     }
@@ -712,7 +736,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertNotContains(PetitionEventType::HEARING_DATE, $availableTypes);
     }
@@ -724,7 +748,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::HEARING_DATE, $availableTypes);
     }
@@ -734,7 +758,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
     }
@@ -746,7 +770,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
     }
@@ -758,7 +782,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
     }
@@ -770,7 +794,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
     }
@@ -781,7 +805,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
     }
@@ -792,7 +816,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
     }
@@ -802,7 +826,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
     }
@@ -815,7 +839,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, '2025-03-15'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
     }
@@ -827,7 +851,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, '2025-03-15'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
     }
@@ -841,7 +865,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, '2025-03-15'))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-04-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $availableTypes);
     }
@@ -854,7 +878,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, '2025-03-15'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
     }
@@ -867,7 +891,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
             ->add($this->createEvent(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, '2025-04-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
     }
@@ -880,7 +904,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
             ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-04-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, $availableTypes);
     }
@@ -893,7 +917,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
             ->add($this->createEvent(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, '2025-04-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, $availableTypes);
     }
@@ -906,7 +930,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
             ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-04-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, $availableTypes);
     }
@@ -916,7 +940,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
 
         $this->assertContains(PetitionEventType::FINAL_RESULT, $availableTypes);
     }
@@ -928,7 +952,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01'));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $events);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
         $this->assertNotContains(PetitionEventType::FINAL_RESULT, $availableTypes);
     }
@@ -955,7 +979,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 duration: 42,
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::BEZWAAR, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertContains(PetitionEventType::HEARING_DATE, $availableTypes);
         $this->assertContains(PetitionEventType::FINAL_RESULT, $availableTypes);
@@ -978,7 +1002,7 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 duration: 42,
             ));
 
-        $availableTypes = $this->service->getAvailableEventTypes(PetitionTypeType::WOO_VERZOEK, $currentEvents);
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $currentEvents);
 
         $this->assertContains(PetitionEventType::FINAL_RESULT, $availableTypes);
         $this->assertContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);

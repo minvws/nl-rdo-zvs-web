@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Petition;
 
+use App\Enums\AssignmentRole;
 use App\Enums\Authorization\Permission;
 use App\Enums\RouteName;
 use App\Models\Department;
@@ -42,11 +43,15 @@ class PetitionIndexControllerTest extends FeatureTestCase
     {
         $user = User::factory()->create();
         $department = Department::factory()->create();
-        Petition::factory()
+        $petition = Petition::factory()
             ->recycle($department)
-            ->create([
-                'assigned_to' => $user->id,
-            ]);
+            ->create();
+
+        $petition->assignments()->create([
+            'user_id' => $user->id,
+            'assignment_role' => AssignmentRole::PRIMARY,
+        ]);
+
         $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_READ)->fullyVerified()->create();
         $this->beUser($authUser, true, $department)
             ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_INDEX, [

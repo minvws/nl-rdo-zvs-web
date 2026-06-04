@@ -14,9 +14,9 @@ use App\Models\Petition;
 use App\Models\User;
 use App\Services\Petition\PetitionException;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 use Throwable;
@@ -26,14 +26,12 @@ final readonly class PetitionAttachController
     public function __construct(
         private Factory $view,
         private Redirector $redirector,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function attachForm(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         return $this->view->make('petition.petition.attach', [
             'petition' => $petition,
             'department' => $department,
@@ -43,6 +41,7 @@ final readonly class PetitionAttachController
     /**
      * @throws Throwable
      */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function attachPetitionToPetition(
         PetitionAttachRequest $petitionAttachRequest,
         Department $department,
@@ -51,8 +50,6 @@ final readonly class PetitionAttachController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $user, $petitionAttachRequest->validated());
 
         return $this->redirector->route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
@@ -64,6 +61,7 @@ final readonly class PetitionAttachController
     /**
      * @throws PetitionException
      */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function detachPetitionFromPetition(
         Department $department,
         Petition $petition,
@@ -72,8 +70,6 @@ final readonly class PetitionAttachController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $relatedPetition, $user);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [

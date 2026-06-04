@@ -14,10 +14,10 @@ use App\Models\Department;
 use App\Models\Petition;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 
@@ -26,20 +26,19 @@ final readonly class DecisionAttachController
     public function __construct(
         private Factory $view,
         private Redirector $redirector,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function attachForm(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         return $this->view->make('petition.decision.attach', [
             'department' => $department,
             'petition' => $petition,
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function attachDecisionToPetition(
         Department $department,
         Petition $petition,
@@ -48,8 +47,6 @@ final readonly class DecisionAttachController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $decision = Decision::query()
 
             ->where('reference', $request->getString('reference'))
@@ -63,6 +60,7 @@ final readonly class DecisionAttachController
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function detachDecisionFromPetition(
         Department $department,
         Petition $petition,
@@ -72,8 +70,6 @@ final readonly class DecisionAttachController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($relatedDecision, $petition, $user);
 
         if ($request->input('referer') === 'decision') {

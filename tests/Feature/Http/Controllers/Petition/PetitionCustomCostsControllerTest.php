@@ -123,15 +123,16 @@ class PetitionCustomCostsControllerTest extends FeatureTestCase
             ->assertOk();
 
         $this->assertDatabaseHas('custom_costs', [
-            'petition_id' => $petition->id,
-            'custom_cost_type' => CustomCostType::LEGAL_COSTS->value,
-            'custom_cost_amount_in_cents' => 150_001,
-        ]);
-
-        $this->assertDatabaseHas('custom_costs', [
-            'petition_id' => $petition->id,
-            'custom_cost_type' => CustomCostType::COURT_FEES->value,
-            'custom_cost_amount_in_cents' => 75_001,
+            [
+                'petition_id' => $petition->id,
+                'custom_cost_type' => CustomCostType::LEGAL_COSTS->value,
+                'custom_cost_amount_in_cents' => 150_001,
+            ],
+            [
+                'petition_id' => $petition->id,
+                'custom_cost_type' => CustomCostType::COURT_FEES->value,
+                'custom_cost_amount_in_cents' => 75_001,
+            ],
         ]);
     }
 
@@ -207,15 +208,16 @@ class PetitionCustomCostsControllerTest extends FeatureTestCase
             ]);
 
         $this->assertDatabaseHas('custom_costs', [
-            'petition_id' => $petition->id,
-            'custom_cost_type' => CustomCostType::LEGAL_COSTS->value,
-            'custom_cost_amount_in_cents' => 150_001,
-        ]);
-
-        $this->assertDatabaseHas('custom_costs', [
-            'petition_id' => $petition->id,
-            'custom_cost_type' => CustomCostType::COURT_FEES->value,
-            'custom_cost_amount_in_cents' => 75_001,
+            [
+                'petition_id' => $petition->id,
+                'custom_cost_type' => CustomCostType::LEGAL_COSTS->value,
+                'custom_cost_amount_in_cents' => 150_001,
+            ],
+            [
+                'petition_id' => $petition->id,
+                'custom_cost_type' => CustomCostType::COURT_FEES->value,
+                'custom_cost_amount_in_cents' => 75_001,
+            ],
         ]);
     }
 }

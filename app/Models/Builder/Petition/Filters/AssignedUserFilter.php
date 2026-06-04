@@ -15,6 +15,13 @@ class AssignedUserFilter implements Filter
 {
     public function __invoke(Builder $query, mixed $value, string $property): void
     {
-        $query->where('assigned_to', $value === 'none' ? null : $value);
+        if ($value === 'none') {
+            $query->doesntHave('assignments');
+            return;
+        }
+
+        $query->whereHas('assignments', static function (Builder $assignmentsQuery) use ($value): void {
+            $assignmentsQuery->where('user_id', $value);
+        });
     }
 }

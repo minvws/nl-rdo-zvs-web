@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\ContactRole;
 use App\Enums\CorrespondencePreference;
 use App\Models\Casts\UuidCast;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Override;
 use Ramsey\Uuid\UuidInterface;
@@ -15,17 +16,13 @@ use Ramsey\Uuid\UuidInterface;
  * @property int $id
  * @property UuidInterface $contact_id
  * @property UuidInterface $petition_id
- * @property ContactRole $role
- * @property ?string $reference
  * @property ?CorrespondencePreference $correspondence_preference
  */
+#[Table('contact_petition', key: 'id', timestamps: false)]
 class ContactPetition extends Pivot
 {
+    /** @var bool The contact_petition table has a bigserial primary key */
     public $incrementing = true;
-    public $timestamps = false;
-    protected $table = 'contact_petition';
-
-    protected $primaryKey = 'id';
 
     #[Override]
     protected function casts(): array

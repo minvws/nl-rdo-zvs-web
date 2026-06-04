@@ -54,5 +54,8 @@ return [
         TimelineFilterGroup::ASSIGNMENTS->value => [
             TimelineType::ASSIGNMENT_OCCURRENCE->value,
         ],
+        TimelineFilterGroup::EVENTS->value => [
+            TimelineType::PETITION_EVENTS_CREATED->value,
+        ],
     ],
 ];

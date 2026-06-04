@@ -20,7 +20,8 @@ class ProcessingStepCreateRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'deadline_at' => ['nullable', new CalendarDateRule()],
             'status' => ['required', Rule::enum(ProcessingStepStatus::class)],
-            'assigned_to' => ['nullable', 'uuid', 'exists:users,id'],
+            'first_assignee' => ['nullable', 'uuid', 'exists:users,id'],
+            'second_assignee' => ['nullable', 'uuid', 'exists:users,id', 'different:first_assignee'],
         ];
     }
 }

@@ -2,7 +2,7 @@
 @use(App\Enums\ArchiveFilter)
 @use(App\Enums\ContactType)
 @use(App\Enums\PetitionCriteria)
-@use(App\Enums\PetitionTypeType)
+@use(App\Enums\PetitionVariant)
 @use(App\Enums\RouteName)
 @use(App\Enums\StatusGroup)
 @use(App\ValueObjects\CalendarDate)
@@ -199,6 +199,29 @@
                                 value="{{ $petitionCategory->id }}"
                                 @selected(request(sprintf("filter.%s", PetitionCriteria::CATEGORY->value)) === $petitionCategory->id->toString())>
                                 {{ $petitionCategory->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div
+                    class="form-filter-group"
+                    data-hide-table-column-content="{{ strtolower(__("team.model_singular")) }}">
+                    <x-input-label
+                        class="form-label"
+                        for="petition-team-id"
+                        :content="__('team.model_singular')" />
+                    <select
+                        data-auto-submit="input"
+                        id="petition-team-id"
+                        name="filter[{{ PetitionCriteria::TEAM->value }}]"
+                        class="form-select">
+                        <option value="">{{ __("petition.filter.no_filter") }}</option>
+                        @foreach ($usedTeams as $team)
+                            <option
+                                value="{{ $team->id }}"
+                                @selected(request(sprintf("filter.%s", PetitionCriteria::TEAM->value)) === $team->id->toString())>
+                                {{ $team->name }}
                             </option>
                         @endforeach
                     </select>
@@ -468,6 +491,42 @@
                                 </th>
                                 <th
                                     scope="col"
+                                    aria-sort="{{ Sort::getAria(PetitionCriteria::DEADLINE_DECISION_PERIOD) }}"
+                                    data-hide-table-column-content="{{ strtolower(__("petition.deadline_decision_period")) }}">
+                                    <a
+                                        class="sort-link"
+                                        href="{{ Sort::getLink(PetitionCriteria::DEADLINE_DECISION_PERIOD) }}">
+                                        <span class="visually-hidden">{{ __("general.sort_by") }}</span>
+                                        {{ __("petition.deadline_decision_period") }}
+                                        <x-sort-icon />
+                                    </a>
+                                </th>
+                                <th
+                                    scope="col"
+                                    aria-sort="{{ Sort::getAria(PetitionCriteria::DEADLINE_NOTICE_OF_DEFAULT) }}"
+                                    data-hide-table-column-content="{{ strtolower(__("petition.deadline_notice_of_default")) }}">
+                                    <a
+                                        class="sort-link"
+                                        href="{{ Sort::getLink(PetitionCriteria::DEADLINE_NOTICE_OF_DEFAULT) }}">
+                                        <span class="visually-hidden">{{ __("general.sort_by") }}</span>
+                                        {{ __("petition.deadline_notice_of_default") }}
+                                        <x-sort-icon />
+                                    </a>
+                                </th>
+                                <th
+                                    scope="col"
+                                    aria-sort="{{ Sort::getAria(PetitionCriteria::DEADLINE_APPEAL_NOT_TIMELY) }}"
+                                    data-hide-table-column-content="{{ strtolower(__("petition.deadline_appeal_not_timely")) }}">
+                                    <a
+                                        class="sort-link"
+                                        href="{{ Sort::getLink(PetitionCriteria::DEADLINE_APPEAL_NOT_TIMELY) }}">
+                                        <span class="visually-hidden">{{ __("general.sort_by") }}</span>
+                                        {{ __("petition.deadline_appeal_not_timely") }}
+                                        <x-sort-icon />
+                                    </a>
+                                </th>
+                                <th
+                                    scope="col"
                                     aria-sort="{{ Sort::getAria(PetitionCriteria::SUM_OF_PENALTIES_PER_DATE) }}"
                                     data-hide-table-column-content="{{ strtolower(__("term.sum_of_penalties_per_date")) }}">
                                     <a
@@ -549,7 +608,7 @@
                                     </td>
                                     <td
                                         data-hide-table-column-content="{{ strtolower(__("petition.assigned_user")) }}">
-                                        {{ $petition->assignedUser?->name ?? __("petition.not_assigned") }}
+                                        {{ $petition->firstAssignee?->user->name ?? __("petition.not_assigned") }}
                                     </td>
                                     <td
                                         data-hide-table-column-content="{{ strtolower(__("petition.particularities")) }}">
@@ -557,6 +616,18 @@
                                     </td>
                                     <td data-hide-table-column-content="{{ strtolower(__("petition.deadline_at")) }}">
                                         {{ $petition->deadline_at !== null ? DisplayDate::date($petition->deadline_at) : "-" }}
+                                    </td>
+                                    <td
+                                        data-hide-table-column-content="{{ strtolower(__("petition.deadline_decision_period")) }}">
+                                        {{ $petition->deadline_decision_period !== null ? DisplayDate::date($petition->deadline_decision_period) : "-" }}
+                                    </td>
+                                    <td
+                                        data-hide-table-column-content="{{ strtolower(__("petition.deadline_notice_of_default")) }}">
+                                        {{ $petition->deadline_notice_of_default !== null ? DisplayDate::date($petition->deadline_notice_of_default) : "-" }}
+                                    </td>
+                                    <td
+                                        data-hide-table-column-content="{{ strtolower(__("petition.deadline_appeal_not_timely")) }}">
+                                        {{ $petition->deadline_appeal_not_timely !== null ? DisplayDate::date($petition->deadline_appeal_not_timely) : "-" }}
                                     </td>
                                     <td
                                         data-hide-table-column-content="{{ strtolower(__("term.sum_of_penalties_per_date")) }}">

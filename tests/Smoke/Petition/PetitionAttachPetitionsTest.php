@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Smoke\Petition;
 
+use App\Enums\AssignmentRole;
 use App\Enums\Authorization\DepartmentRole;
 use App\Enums\RouteName;
 use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\Petition;
+use App\Models\PetitionAssignment;
 use App\Models\User;
 use Tests\Smoke\SmokeTestCase;
 
@@ -63,9 +65,12 @@ class PetitionAttachPetitionsTest extends SmokeTestCase
             ->create();
 
         $relatedPetition = Petition::factory()
-            ->recycle($department2)
+            ->recycle($department2)->create();
+
+        PetitionAssignment::factory()->recycle($relatedPetition)
             ->create([
-                'assigned_to' => $user->id,
+                'user_id' => $user->id,
+                'assignment_role' => AssignmentRole::PRIMARY,
             ]);
 
         DepartmentUser::factory()->create([

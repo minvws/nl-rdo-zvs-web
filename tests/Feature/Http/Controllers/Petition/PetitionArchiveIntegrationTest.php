@@ -37,7 +37,7 @@ class PetitionArchiveIntegrationTest extends FeatureTestCase
             'petition' => $petition,
         ])->assertForbidden();
 
-        $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_EDIT, [
+        $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_EDIT, [
             'department' => $department,
             'petition' => $petition,
         ])->assertForbidden();

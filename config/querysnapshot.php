@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\QuerysnapshotType;
 
 return [
-    PetitionTypeType::WOO_VERZOEK->value => [
+    PetitionVariant::WOO_VERZOEK->value => [
         QuerysnapshotType::DOCUMENT->value,
         QuerysnapshotType::CHAT->value,
     ],
-    PetitionTypeType::BEROEP->value => [],
-    PetitionTypeType::BEZWAAR->value => [],
+    PetitionVariant::BEROEP->value => [],
+    PetitionVariant::BEZWAAR->value => [],
 ];

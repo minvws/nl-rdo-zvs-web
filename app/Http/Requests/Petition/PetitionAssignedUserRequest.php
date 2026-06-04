@@ -42,6 +42,6 @@ class PetitionAssignedUserRequest extends FormRequest
             $parameters['hx-target'] = $this->request->get('hx-target');
         }
 
-        return route(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_EDIT, $parameters);
+        return route(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_EDIT, $parameters);
     }
 }

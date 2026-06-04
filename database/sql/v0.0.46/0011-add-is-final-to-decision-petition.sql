@@ -1,0 +1,2 @@
+ALTER TABLE decision_petition
+    ADD COLUMN is_final BOOLEAN NOT NULL DEFAULT FALSE;

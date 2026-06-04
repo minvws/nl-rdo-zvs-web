@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Petition\TermCreation;
 
 use App\Actions\Petition\Contracts\TermCreationStrategyInterface;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 
 readonly class TermCreationStrategyResolver
 {
@@ -16,12 +16,12 @@ readonly class TermCreationStrategyResolver
     ) {
     }
 
-    public function resolve(PetitionTypeType $type): TermCreationStrategyInterface
+    public function resolve(PetitionVariant $type): TermCreationStrategyInterface
     {
         return match ($type) {
-            PetitionTypeType::BEROEP => $this->beroepStrategy,
-            PetitionTypeType::BEZWAAR => $this->bezwaarStrategy,
-            PetitionTypeType::WOO_VERZOEK => $this->wooVerzoekStrategy,
+            PetitionVariant::BEROEP => $this->beroepStrategy,
+            PetitionVariant::BEZWAAR => $this->bezwaarStrategy,
+            PetitionVariant::WOO_VERZOEK => $this->wooVerzoekStrategy,
         };
     }
 }

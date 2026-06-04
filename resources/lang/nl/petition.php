@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 
 return [
     'model_singular' => 'Zaak',
@@ -20,6 +20,9 @@ return [
     ],
 
     'assigned_user' => 'Behandelaar',
+    'first_assignee' => 'Primaire behandelaar',
+    'second_assignee' => 'Achtervang',
+    'edit_second_assignee' => 'Achtervang toewijzen',
     'attachments' => 'Bijlagen',
     'all_petitions' => 'Alle zaken',
     'not_assigned' => 'Geen behandelaar',
@@ -40,6 +43,8 @@ return [
     'details' => 'Zaakgegevens',
     'substatus' => 'Substatus',
     'status' => 'Status',
+    'status_history' => 'Statusgeschiedenis',
+    'no_status_history' => 'Nog geen statusgeschiedenis',
     'status_date' => 'Datum van statuswijziging',
     'status_comment' => 'Notitie',
     'status_changed_to' => 'Gewijzigd naar :currentStatus op :date',
@@ -51,9 +56,12 @@ return [
     'new_note_placeholder' => 'Typ hier je notitie',
     'terms' => 'Termijnen',
     'deadline_at' => 'Deadline',
+    'deadline_decision_period' => 'Deadline beslistermijn',
+    'deadline_notice_of_default' => 'Deadline IGS',
+    'deadline_appeal_not_timely' => 'Deadline BNT',
     'new_deadline' => 'Nieuwe deadline',
     'edit_deadline' => 'Deadline aanpassen',
-    'edit_assigned_user' => 'Behandelaar toewijzen',
+    'edit_assigned_user' => 'Primaire behandelaar toewijzen',
     'edit_properties' => 'Zaakdetails aanpassen',
     'term_adjustment_id.required' => 'U dient een termijn aanpassing te kiezen',
     'deadline_at.required_if' => 'U dient een deadline in te geven',
@@ -64,6 +72,8 @@ return [
     'no_exports' => 'Er zijn nog geen exports gegenereerd.',
     'no_petitions_for_search' => 'Geen zaken',
     'days_in_progress' => 'In behandeling',
+    'days_within_legal_term' => 'Dagen binnen Wettelijke Termijn',
+    'days_outside_legal_term' => 'Dagen buiten Wettelijke Termijn',
     'out_of_term' => 'Buiten termijn',
     'no_contacts' => 'Geen contactpersoon bekend',
     'count' => 'Totaal: :count',
@@ -103,14 +113,14 @@ return [
     'edit_querysnapshots' => 'Querysnapshot IDs aanpassen',
 
     'date_of_entry' => [
-        PetitionTypeType::BEZWAAR->value => 'Ontvangstdatum',
-        PetitionTypeType::BEROEP->value => 'Ontvangstdatum',
-        PetitionTypeType::WOO_VERZOEK->value => 'Ontvangstdatum',
+        PetitionVariant::BEZWAAR->value => 'Ontvangstdatum',
+        PetitionVariant::BEROEP->value => 'Ontvangstdatum',
+        PetitionVariant::WOO_VERZOEK->value => 'Ontvangstdatum',
     ],
 
     'date_appealed_decision' => [
-        PetitionTypeType::BEZWAAR->value => 'Datum besluit waartegen bezwaar wordt gemaakt',
-        PetitionTypeType::BEROEP->value => 'Ontvangstdatum',
-        PetitionTypeType::WOO_VERZOEK->value => 'Ontvangstdatum',
+        PetitionVariant::BEZWAAR->value => 'Datum besluit waartegen bezwaar wordt gemaakt',
+        PetitionVariant::BEROEP->value => 'Ontvangstdatum',
+        PetitionVariant::WOO_VERZOEK->value => 'Ontvangstdatum',
     ],
 ];

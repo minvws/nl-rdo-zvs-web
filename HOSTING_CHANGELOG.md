@@ -30,9 +30,17 @@ Na iedere deployment moeten:
 
 ## Changelog per Tag:
 
-### DEVELOP
+### v1.20.0
 
-- 
+- Verwerk migraties in `database/sql` v0.0.46
+- run `php artisan app:convert-legacy-processing-step-timeline-items` om de timeline items te migreren naar de nieuwe structuur
+- Run `php artisan app:decisions:fix-references` om bestaande dubbele referenties in de database te corrigeren
+- Run `php artisan petitions:reassign-categories` om bestaande zaken te koppelen aan een categorie (data migratie)
+- Run `php artisan petitions:reassign-policy-departments` om bestaande zaken te koppelen aan de juiste beleidsafdeling (data migratie)
+- Run `php artisan petitions:reassign-specific-categories` om van bestaande zaken de categorie naamgeving te wijzigen (data migratie)
+- Run `php artisan petitions:import-appeals <file>` met een excelbestand om nieuwe Beroepen zaken toe te voegen zonder categorie (data migratie)
+
+### DEVELOP
 
 ### v1.19.2
 

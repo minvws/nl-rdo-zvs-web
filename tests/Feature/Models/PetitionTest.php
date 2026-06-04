@@ -12,7 +12,6 @@ use App\Models\PetitionEvent;
 use App\Models\PetitionStatusHistory;
 use App\Models\PetitionTerm;
 use App\Models\PolicyDepartment;
-use App\Models\User;
 use App\ValueObjects\CalendarDate;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
@@ -36,18 +35,6 @@ class PetitionTest extends FeatureTestCase
         $this->assertInstanceOf(PetitionStatusHistory::class, $history);
         $this->assertEquals($petition->id, $history->petition_id);
         $this->assertEquals(1, $petition->petitionStatusHistories->count());
-    }
-
-    #[Test]
-    public function testAsssignedUser(): void
-    {
-        $user = User::factory()->create();
-        $petition = Petition::factory()
-            ->create([
-                'assigned_to' => $user->id,
-            ]);
-
-        $this->assertEquals($user->id, $petition->assignedUser->id);
     }
 
     #[Test]

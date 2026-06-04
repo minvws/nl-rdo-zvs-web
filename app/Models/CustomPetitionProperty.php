@@ -10,6 +10,7 @@ use App\Models\Concerns\HasId;
 use App\Models\Concerns\HasTimestamps;
 use Database\Factories\CustomPetitionPropertyFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,16 +27,13 @@ use Ramsey\Uuid\UuidInterface;
  */
 #[CollectedBy(CustomPetitionPropertyCollection::class)]
 #[UseFactory(CustomPetitionPropertyFactory::class)]
+#[Table('custom_petition_properties')]
 class CustomPetitionProperty extends EloquentModel
 {
     /** @use HasFactory<CustomPetitionPropertyFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    /** @var string $table */
-
-    protected $table = 'custom_petition_properties';
 
     /**
      * @return BelongsToMany<Petition, $this>

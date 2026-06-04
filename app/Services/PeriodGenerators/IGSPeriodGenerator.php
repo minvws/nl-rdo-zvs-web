@@ -6,6 +6,7 @@ namespace App\Services\PeriodGenerators;
 
 use App\Enums\PetitionEventType;
 use App\Enums\TermType;
+use App\Facades\LegalTermDeadlineCalculator;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\EventCalendar;
 use App\ValueObjects\PenaltyData;
@@ -36,6 +37,11 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
 
     private function processIGSEvent(PetitionEventData $event, EventCalendar $calendar): void
     {
+        $decisionDeadline = $this->findDecisionPeriodDeadline($calendar);
+        if ($decisionDeadline instanceof CalendarDate && $event->date->lessThanOrEqualTo($decisionDeadline)) {
+            return; // IGS valt binnen beslistermijn → skippen
+        }
+
         $startDate = $event->date->addDay();
         $budget = $event->duration ?? 0;
 
@@ -43,10 +49,10 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
             return;
         }
 
-        $this->addIGSBudgetDays($calendar, $startDate, $budget);
+        $actualDeadline = $this->addIGSBudgetDays($calendar, $startDate, $budget);
 
         if ($event->penalties !== []) {
-            $this->addPenaltyPeriods($calendar, $startDate, $budget, $event->penalties);
+            $this->addPenaltyPeriods($calendar, $actualDeadline, $event->penalties);
         }
     }
 
@@ -54,7 +60,7 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
         EventCalendar $calendar,
         CalendarDate $startDate,
         int $budget,
-    ): void {
+    ): CalendarDate {
         for ($i = 0; $i < $budget; $i++) {
             $currentDate = $startDate->addDays($i);
             $isFirst = $i === 0;
@@ -65,9 +71,11 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
                 'isBudgetDay' => true,
                 'isFirstDayOfBudget' => $isFirst,
                 'isLastDayOfBudget' => $isLast,
-                'isDeadline' => $isLast,
             ]);
         }
+
+        $proposedDeadline = $startDate->addDays($budget - 1);
+        return $this->markDeadline($calendar, $proposedDeadline);
     }
 
     /**
@@ -75,11 +83,10 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
      */
     private function addPenaltyPeriods(
         EventCalendar $calendar,
-        CalendarDate $igsStartDate,
-        int $igsBudget,
+        CalendarDate $penaltyStartDate,
         array $penalties,
     ): void {
-        $currentDate = $igsStartDate->addDays($igsBudget);
+        $currentDate = $penaltyStartDate->addDay();
 
         foreach ($penalties as $penalty) {
             for ($i = 0; $i < $penalty->duration; $i++) {
@@ -94,5 +101,62 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
                 $currentDate = $currentDate->addDay();
             }
         }
+    }
+
+    private function findDecisionPeriodDeadline(EventCalendar $calendar): ?CalendarDate
+    {
+        return $calendar
+            ->filter(
+                static fn($day): bool => $day->applicableTerm === TermType::DECISION_PERIOD->value
+                    && $day->isDeadline,
+            )
+            ->first()
+            ?->date;
+    }
+
+    private function markDeadline(EventCalendar $calendar, CalendarDate $proposedDeadline): CalendarDate // ← returns actual
+    {
+        $actualDeadline = LegalTermDeadlineCalculator::calculate($proposedDeadline);
+
+        if ($proposedDeadline->equals($actualDeadline)) {
+            $calendar->upsertDay($proposedDeadline, ['isDeadline' => true]);
+            return $proposedDeadline; // ← no ATW shift, deadline is the proposed date
+        }
+
+        $this->addAtwDaysIfDeadlineMoved($calendar, $proposedDeadline, $actualDeadline);
+        return $actualDeadline; // ← shifted deadline
+    }
+
+    private function addAtwDaysIfDeadlineMoved(
+        EventCalendar $calendar,
+        CalendarDate $proposedDeadline,
+        CalendarDate $actualDeadline,
+    ): void {
+        $calendar->upsertDay($proposedDeadline, [
+            'applicableTerm' => TermType::NOTICE_OF_DEFAULT->value,
+            'isATW' => true,
+            'isFirstDayOfBudget' => false,
+        ]);
+
+        $currentDate = $proposedDeadline->addDay();
+        while ($currentDate->isBefore($actualDeadline)) {
+            $calendar->upsertDay($currentDate, [
+                'applicableTerm' => TermType::NOTICE_OF_DEFAULT->value,
+                'isBudgetDay' => false,
+                'isATW' => true,
+                'isFirstDayOfBudget' => false,
+                'isLastDayOfBudget' => false,
+            ]);
+            $currentDate = $currentDate->addDay();
+        }
+
+        $calendar->upsertDay($actualDeadline, [
+            'applicableTerm' => TermType::NOTICE_OF_DEFAULT->value,
+            'isBudgetDay' => false,
+            'isATW' => false,
+            'isLastDayOfBudget' => true,
+            'isDeadline' => true,
+            'isFirstDayOfBudget' => false,
+        ]);
     }
 }

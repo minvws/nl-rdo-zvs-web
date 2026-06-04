@@ -68,6 +68,7 @@
 <li class="toctree-l1"><a class="reference internal" href="00-inloggen.html">Inloggen</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Zaken</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#nieuwe-zaak-aanmaken">Nieuwe zaak aanmaken</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#zakenoverzicht-filteren">Zakenoverzicht filteren</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#zaak-bewerken">Zaak bewerken</a></li>
 </ul>
 </li>
@@ -90,6 +91,17 @@ Nadat alle velden zijn ingevuld en bevestigd, wordt de zaak aangemaakt en zichtb
 <a class="reference internal image-reference" href="_images/01-01-petitions.png"><img alt="_images/01-01-petitions.png" src="_images/01-01-petitions.png" style="width: 100%;" />
 </a>
 </section>
+<section id="zakenoverzicht-filteren">
+<h2>Zakenoverzicht filteren<a class="headerlink" href="#zakenoverzicht-filteren" title="Link to this heading">¶</a></h2>
+<p>Het zaakenoverzicht beschikt over een uitgebreide filterbalk.
+Filters worden automatisch toegepast na het selecteren, met uitzondering van het zoekveld. Na invoer van een zoekterm klikt u op de <strong>Enter</strong>-toets of op het vergrootglas-icoon om de zoekopdracht uit te voeren.
+Klik op <strong>Wis filters</strong> om alle actieve filters te verwijderen.</p>
+<section id="kolommen-tonen-verbergen">
+<h3>Kolommen tonen/verbergen<a class="headerlink" href="#kolommen-tonen-verbergen" title="Link to this heading">¶</a></h3>
+<p>Boven de tabel is een knop beschikbaar waarmee u kolommen kunt in- of uitschakelen.
+Dit is handig om de tabel overzichtelijker te maken door minder relevante kolommen te verbergen.</p>
+</section>
+</section>
 <section id="zaak-bewerken">
 <h2>Zaak bewerken<a class="headerlink" href="#zaak-bewerken" title="Link to this heading">¶</a></h2>
 <section id="zaak-bewerken-door-behandelaar-toe-te-wijzen">
@@ -100,25 +112,59 @@ Tevens verschijnt er een item in de tijdlijn waarin de toewijzing wordt geregist
 <a class="reference internal image-reference" href="_images/01-02-petition-detail.png"><img alt="_images/01-02-petition-detail.png" src="_images/01-02-petition-detail.png" style="width: 100%;" />
 </a>
 </section>
-<section id="zaak-bewerken-door-indiener-gemachtigde-en-instantie-toevoegen">
-<h3>Zaak bewerken door Indiener, Gemachtigde en Instantie toevoegen<a class="headerlink" href="#zaak-bewerken-door-indiener-gemachtigde-en-instantie-toevoegen" title="Link to this heading">¶</a></h3>
-<p>Een bestaande zaak kan worden uitgebreid door een indiener, gemachtigde en behandelaar toe te voegen via de sidebar door op het tandwiel te klikken naast <a class="reference internal" href="03-contacten.html#contacten"><span class="std std-ref">Contacten</span></a>.
-In het zoekveld kunt u zoeken naar het Contact in de lijst.
-Indien een Contact niet eerder is ingevoerd kunt u onder <a class="reference internal" href="03-contacten.html#contacten"><span class="std std-ref">Contacten</span></a> een nieuw contact toevoegen.
-U kunt ieder contact koppelen als zijnder Indiener, Gemachtigde of Instantie.
-Gekoppelde <a class="reference internal" href="03-contacten.html#contacten"><span class="std std-ref">Contacten</span></a> zijn zichtbaar in de sidebar.
-Tevens verschijnt er een item in de tijdlijn waarin de toevoegingen worden geregistreerd.</p>
+<section id="eigenschappen">
+<h3>Eigenschappen<a class="headerlink" href="#eigenschappen" title="Link to this heading">¶</a></h3>
+<p>Aan de rechterkant van de zaakdetailpagina zijn verschillende eigenschappen van de zaak zichtbaar, zoals de behandelaar, achtervang, contacten, datums, etc.
+Deze eigenschappen kunnen worden bewerkt door op het tandwiel-icoon naast de betreffende eigenschap te klikken.
+Na het aanpassen van de waarde en het opslaan, is de nieuwe waarde zichtbaar in de sidebar en wordt er een item toegevoegd aan de tijdlijn waarin de wijziging wordt geregistreerd.</p>
 </section>
 <section id="zaakstatus-aanpassen">
 <h3>Zaakstatus aanpassen<a class="headerlink" href="#zaakstatus-aanpassen" title="Link to this heading">¶</a></h3>
 <p>De substatus van een zaak kan handmatig worden aangepast via de zaakdetailpagina door op de status naast de titel te klikken.
 Na opslaan is de nieuwe status zichtbaar in de zaaktabel en wordt er een item toegevoegd aan de tijdlijn.</p>
 </section>
+<section id="termijnen">
+<h3>Termijnen<a class="headerlink" href="#termijnen" title="Link to this heading">¶</a></h3>
+<p>Onder dit kopje worden de termijnen van een zaak weergegeven, zoals de standaard wettelijke termijn of bezwaartermijn.
+Termijnen kunnen worden toegevoegd door op onder de tabel op het specifieke type termijn te klikken.
+Een termijn kan worden bewerkt door op de pijl naast de termijn te klikken.
+Een termijn kan worden verwijderd door op het prullenbak-icoon te klikken.</p>
+</section>
+<section id="besluiten">
+<h3>Besluiten<a class="headerlink" href="#besluiten" title="Link to this heading">¶</a></h3>
+<p>Onder dit kopje worden de besluiten van een zaak weergegeven.
+Besluiten kunnen worden toegevoegd op meerdere manieren via de links onder de tabel:</p>
+<ul class="simple">
+<li><p><strong>Nieuw besluit</strong>: hiermee kan een nieuw besluit worden aangemaakt.</p></li>
+<li><p><strong>Bestaand besluit koppelen</strong>: hiermee kan een bestaand besluit worden gekoppeld aan de zaak.</p></li>
+<li><p><strong>Finaal besluit toepassen</strong>: hiermee kan een bestaand besluit worden toegepast als finaal besluit van de zaak.</p></li>
+</ul>
+</section>
+<section id="zaken-koppelen">
+<h3>Zaken koppelen<a class="headerlink" href="#zaken-koppelen" title="Link to this heading">¶</a></h3>
+<section id="gerelateerde-zaak-koppelen">
+<h4>Gerelateerde zaak koppelen<a class="headerlink" href="#gerelateerde-zaak-koppelen" title="Link to this heading">¶</a></h4>
+<p>Een zaak kan worden gekoppeld aan een andere zaak via de knop <strong>Bestaande zaak koppelen</strong> op de zaakdetailpagina.
+Voer het kenmerk van de te koppelen zaak in en klik op <strong>Zaak koppelen</strong>.
+De gekoppelde zaak is zichtbaar in de tabel <em>Gekoppelde zaken</em> op de detailpagina.</p>
+</section>
+<section id="gekoppelde-zaak-ontkoppelen">
+<h4>Gekoppelde zaak ontkoppelen<a class="headerlink" href="#gekoppelde-zaak-ontkoppelen" title="Link to this heading">¶</a></h4>
+<p>Een gekoppelde zaak kan worden ontkoppeld door op het ontkoppel-icoon te klikken in de tabel <em>Gekoppelde zaken</em>.
+Na bevestiging verdwijnt de zaak uit de tabel.</p>
+</section>
+</section>
 <section id="notitie-toevoegen-met-bestand-uploaden">
 <h3>Notitie toevoegen (met bestand uploaden)<a class="headerlink" href="#notitie-toevoegen-met-bestand-uploaden" title="Link to this heading">¶</a></h3>
-<p>Notities zijn toe te voegen aan de tijdslijn door op Notitie te klikken.
+<p>Notities zijn toe te voegen aan de tijdlijn door op <strong>Notitie toevoegen</strong> te klikken.
 Er kunnen naast een tekst ook meerdere bestanden worden toegevoegd aan de notitie.
-De notite verschijnt in de tijdslijn en de bijgevoegde bijlages kunnen worden gedownload door er op te klikken.</p>
+De notitie verschijnt in de tijdlijn en de bijgevoegde bijlagen kunnen worden gedownload door er op te klikken.</p>
+</section>
+<section id="tijdlijn-filteren">
+<h3>Tijdlijn filteren<a class="headerlink" href="#tijdlijn-filteren" title="Link to this heading">¶</a></h3>
+<p>De tijdlijn op de zaakdetailpagina kan worden gefilterd op type tijdlijnitem.
+Selecteer een filtergroep in het dropdown-menu naast de tijdlijn om alleen relevante items te tonen.
+Kies <em>(Geen filter)</em> om de volledige tijdlijn weer te geven.</p>
 </section>
 </section>
 </section>

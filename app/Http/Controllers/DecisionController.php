@@ -13,6 +13,7 @@ use App\Http\Requests\Decision\DecisionUpdateRequest;
 use App\Models\Decision;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\Team;
 use App\Models\User;
 use App\Services\Decision\DecisionFilterService;
 use App\Services\Decision\DecisionIndexService;
@@ -20,12 +21,12 @@ use App\Services\Timeline\TimelineFilterService;
 use App\View\HtmxHelper;
 use Illuminate\Config\Repository;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\Routing\UrlGenerator;
 use Webmozart\Assert\Assert;
@@ -40,7 +41,6 @@ final readonly class DecisionController
         private Factory $view,
         private Redirector $redirector,
         private HtmxHelper $htmxHelper,
-        private Gate $gate,
         private UrlGenerator $urlGenerator,
         private TimelineFilterService $timelineFilterService,
         private DecisionFilterService $decisionFilterService,
@@ -49,16 +49,21 @@ final readonly class DecisionController
     ) {
     }
 
+    #[Authorize(Ability::CREATE, Decision::class)]
     public function create(Department $department, ?Petition $petition = null): View
     {
-        $this->gate->authorize(Ability::CREATE, Decision::class);
-
         return $this->view->make('petition.decision.create', [
             'department' => $department,
             'petition' => $petition,
+            'teams' => Team::query()
+                ->where('department_id', $department->id)
+                ->active()
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
+    #[Authorize(Ability::CREATE, Decision::class)]
     public function store(
         Department $department,
         DecisionCreateRequest $request,
@@ -67,8 +72,6 @@ final readonly class DecisionController
         User $user,
         ?Petition $petition = null,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::CREATE, Decision::class);
-
         $decision = $action->execute($department, $user, $request->validated(), $petition);
 
         return $this->redirector->to($this->urlGenerator->route(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
@@ -78,10 +81,9 @@ final readonly class DecisionController
             ->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::VIEW, 'decision')]
     public function show(Department $department, Decision $decision, Request $request): View
     {
-        $this->gate->authorize(Ability::VIEW, $decision);
-
         $timelineFilterGroups = $this->timelineFilterService->availableGroupsFor($decision->timelineItems);
         $timelineFilterGroup = $request->input('timeline_filter_group');
         $decisionTimelineItems = $decision->timelineItems;
@@ -102,16 +104,21 @@ final readonly class DecisionController
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function edit(Request $request, Department $department, Decision $decision): Response
     {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         return $this->htmxHelper->makeFormViewResponse($request, 'decision.properties.edit', [
             'decision' => $decision,
             'department' => $department,
+            'teams' => Team::query()
+                ->where('department_id', $department->id)
+                ->active()
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function update(
         Department $department,
         Decision $decision,
@@ -120,8 +127,6 @@ final readonly class DecisionController
         #[CurrentUser]
         User $user,
     ): RedirectResponse|View {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $action->execute($decision, $user, $request->validated());
 
         if ($this->htmxHelper->isHtmxRequest($request)) {
@@ -146,10 +151,9 @@ final readonly class DecisionController
         ]);
     }
 
+    #[Authorize(Ability::VIEW_ANY, Decision::class)]
     public function index(Request $request, Department $department, #[CurrentUser] User $user): View|RedirectResponse
     {
-        $this->gate->authorize(Ability::VIEW_ANY, Decision::class);
-
         $redirectResponse = $this->decisionFilterService->handleFilterPersistence($request, $user, $department);
         if ($redirectResponse instanceof RedirectResponse) {
             return $redirectResponse;

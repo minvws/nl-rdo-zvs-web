@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasId;
 use Database\Factories\AttachmentFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Ramsey\Uuid\UuidInterface;
@@ -17,11 +18,10 @@ use Ramsey\Uuid\UuidInterface;
  * @property string $name
  */
 #[UseFactory(AttachmentFactory::class)]
+#[Table('attachments')]
 class Attachment extends EloquentModel
 {
     /** @use HasFactory<AttachmentFactory> */
     use HasFactory;
     use HasId;
-
-    protected $table = 'attachments';
 }

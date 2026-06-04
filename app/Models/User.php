@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Collections\PetitionCollection;
 use App\Collections\UserCollection;
 use App\Models\Casts\DatetimeWithTimezoneCast;
 use App\Models\Casts\UuidCast;
@@ -14,6 +13,8 @@ use App\QueryBuilders\UserQueryBuilder;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -40,11 +41,14 @@ use Override;
  * @property ?string $last_visited_department_id
  *
  * @property-read Collection<array-key, Department> $departments
- * @property-read PetitionCollection $assignedPetitions
+ * @property-read Collection<int, PetitionAssignment> $petitionAssignments
+ * @property-read Collection<int, ProcessingStepAssignment> $processingStepAssignments
  * @property-read Collection<int, UserDepartmentFilter> $departmentFilters
  * @property-read ?Department $lastVisitedDepartment
  */
 #[CollectedBy(UserCollection::class)]
+#[Hidden(['password', 'remember_token', 'otp_secret'])]
+#[Table('users')]
 #[UseEloquentBuilder(UserQueryBuilder::class)]
 #[UseFactory(UserFactory::class)]
 class User extends Authenticatable implements LoggableUser
@@ -54,11 +58,6 @@ class User extends Authenticatable implements LoggableUser
     use HasId;
     use HasTimestamps;
     use Notifiable;
-
-    protected $keyType = 'string';
-
-    protected $table = 'users';
-    protected $hidden = ['password', 'remember_token', 'otp_secret'];
 
     /**
      * @return BelongsToMany<Department, $this, DepartmentUser>
@@ -77,11 +76,19 @@ class User extends Authenticatable implements LoggableUser
     }
 
     /**
-     * @return HasMany<Petition, $this>
+     * @return HasMany<PetitionAssignment, $this>
      */
-    public function assignedPetitions(): HasMany
+    public function petitionAssignments(): HasMany
     {
-        return $this->hasMany(Petition::class, 'assigned_to');
+        return $this->hasMany(PetitionAssignment::class);
+    }
+
+    /**
+     * @return HasMany<ProcessingStepAssignment, $this>
+     */
+    public function processingStepAssignments(): HasMany
+    {
+        return $this->hasMany(ProcessingStepAssignment::class);
     }
 
     /**

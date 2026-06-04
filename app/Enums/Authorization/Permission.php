@@ -65,4 +65,10 @@ enum Permission: string
      */
     case PETITION_CATEGORY_WRITE = 'petition_category.write';
     case PETITION_CATEGORY_READ = 'petition_category.read';
+
+    /**
+     * Team permissions
+     */
+    case TEAM_WRITE = 'team.write';
+    case TEAM_READ = 'team.read';
 }

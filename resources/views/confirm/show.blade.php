@@ -18,6 +18,7 @@
                 method="post"
                 action="{{ $confirmUrl }}">
                 @csrf
+                @method($method)
                 <div class="button-container">
                     <button
                         type="submit"

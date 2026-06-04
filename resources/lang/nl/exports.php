@@ -2,7 +2,7 @@
 
     declare(strict_types=1);
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 
 return [
@@ -50,7 +50,7 @@ return [
             'voorlopige_voorziening' => 'Voorlopige voorziening',
             'woo_verzoek' => 'Woo-verzoeken',
         ],
-        PetitionTypeType::WOO_VERZOEK->value => [
+        PetitionVariant::WOO_VERZOEK->value => [
             ResultType::WITHDRAWN->value => 'Verzoek ingetrokken',
             ResultType::FORWARDED->value => 'Verzoek doorverwezen',
             ResultType::REJECTED->value => 'Anders',

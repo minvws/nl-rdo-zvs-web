@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Models\Database\Builder;
 
+use App\Enums\AssignmentRole;
 use App\Enums\ContactType;
 use App\Enums\PetitionCriteria;
 use App\Models\Builder\Petition\PetitionQueryBuilder;
@@ -63,12 +64,14 @@ class PetitionQueryBuilderSortTest extends FeatureTestCase
 
     public function testSortByAssignedUser(): void
     {
-        $petition1 = Petition::factory()->create([
-            'assigned_to' => User::factory()->state(['name' => 'aaa']),
-        ]);
-        $petition2 = Petition::factory()->create([
-            'assigned_to' => User::factory()->state(['name' => 'bbb']),
-        ]);
+        $petition2 = Petition::factory()->create();
+        $user2 = User::factory()->create(['name' => 'bbb']);
+
+        $petition1 = Petition::factory()->create();
+        $user1 = User::factory()->create(['name' => 'aaa']);
+
+        $petition1->assignments()->create(['user_id' => $user1->id, 'assignment_role' => AssignmentRole::PRIMARY]);
+        $petition2->assignments()->create(['user_id' => $user2->id, 'assignment_role' => AssignmentRole::PRIMARY]);
 
         $this->assertOrder(PetitionCriteria::ASSIGNED_USER, $petition1, $petition2);
     }

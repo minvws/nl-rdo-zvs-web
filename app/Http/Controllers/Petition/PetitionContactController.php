@@ -20,12 +20,12 @@ use App\Models\Petition;
 use App\Models\User;
 use Illuminate\Container\Attributes\Config;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 
 use function __;
@@ -38,10 +38,10 @@ final readonly class PetitionContactController
         private Redirector $redirector,
         #[Config('app.pagination.contact_items_per_page')]
         private int $paginationItemsPerPage,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function attachContact(
         ContactAttachRequest $request,
         Department $department,
@@ -59,8 +59,6 @@ final readonly class PetitionContactController
             abort(404);
         }
 
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $role = $request->getEnum('role', ContactRole::class);
 
         $action->execute($role, $petition, $contact, $user);
@@ -71,6 +69,7 @@ final readonly class PetitionContactController
         ])->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function detachContact(
         FormRequest $request,
         Department $department,
@@ -80,8 +79,6 @@ final readonly class PetitionContactController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($request->getEnum('role', ContactRole::class), $petition, $contact, $user);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_PETITIONS_CONTACTS_ATTACH_FORM, [
@@ -90,6 +87,7 @@ final readonly class PetitionContactController
         ])->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function updateContactPivot(
         ContactPetitionUpdateRequest $request,
         Department $department,
@@ -99,8 +97,6 @@ final readonly class PetitionContactController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $contact, $user, $request->validated());
 
         return $this->redirector->route(RouteName::DEPARTMENTS_PETITIONS_CONTACTS_ATTACH_FORM, [
@@ -109,10 +105,9 @@ final readonly class PetitionContactController
         ])->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function showAttachForm(Request $request, Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $unassignedContacts = $this->getUnassignedContacts($petition);
         $paginator = ContactQueryBuilder::make()
             ->where(static function ($query) use ($unassignedContacts): void {

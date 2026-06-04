@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Collections\ProcessingStepCollection;
+use App\Enums\AssignmentRole;
 use App\Enums\ProcessingStepStatus;
 use App\Models\Casts\CalendarDateCast;
 use App\Models\Casts\UuidCast;
@@ -13,9 +14,11 @@ use App\Models\Concerns\HasTimestamps;
 use App\ValueObjects\CalendarDate;
 use Database\Factories\ProcessingStepFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Override;
 use Ramsey\Uuid\UuidInterface;
@@ -26,14 +29,15 @@ use Ramsey\Uuid\UuidInterface;
  * @property ProcessingStepStatus $status
  * @property UuidInterface $decision_id
  * @property ?CalendarDate $deadline_at
- * @property ?UuidInterface $assigned_to
  *
- * @property-read ?User $assignedUser
  * @property-read Decision $decision
+ * @property-read ?ProcessingStepAssignment $firstAssignee
+ * @property-read ?ProcessingStepAssignment $secondAssignee
  */
 
 #[CollectedBy(ProcessingStepCollection::class)]
 #[UseFactory(ProcessingStepFactory::class)]
+#[Table('processing_steps')]
 class ProcessingStep extends EloquentModel
 {
     /** @use HasFactory<ProcessingStepFactory> */
@@ -41,14 +45,28 @@ class ProcessingStep extends EloquentModel
     use HasId;
     use HasTimestamps;
 
-    protected $table = 'processing_steps';
+    /**
+     * @return HasMany<ProcessingStepAssignment, $this>
+     */
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(ProcessingStepAssignment::class);
+    }
 
     /**
-     * @return HasOne<User, $this>
+     * @return HasOne<ProcessingStepAssignment, $this>
      */
-    public function assignedUser(): HasOne
+    public function firstAssignee(): HasOne
     {
-        return $this->hasOne(User::class, 'id', 'assigned_to');
+        return $this->hasOne(ProcessingStepAssignment::class)->where('assignment_role', AssignmentRole::PRIMARY);
+    }
+
+    /**
+     * @return HasOne<ProcessingStepAssignment, $this>
+     */
+    public function secondAssignee(): HasOne
+    {
+        return $this->hasOne(ProcessingStepAssignment::class)->where('assignment_role', AssignmentRole::SECONDARY);
     }
 
     /**
@@ -68,7 +86,6 @@ class ProcessingStep extends EloquentModel
         return [
             'status' => ProcessingStepStatus::class,
             'deadline_at' => CalendarDateCast::class,
-            'assigned_to' => UuidCast::class,
             'decision_id' => UuidCast::class,
             'ordering' => 'int',
         ];

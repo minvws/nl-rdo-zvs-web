@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Enum;
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\SuspensionType;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -52,7 +52,7 @@ class SuspensionTypeTest extends TestCase
     #[Test]
     public function testGetForPetitionTypeBezwaar(): void
     {
-        $types = SuspensionType::getForPetitionType(PetitionTypeType::BEZWAAR);
+        $types = SuspensionType::getForPetitionType(PetitionVariant::BEZWAAR);
 
         $this->assertCount(2, $types);
         $this->assertContains(SuspensionType::SPECIFIED_ADJOURNMENT, $types);
@@ -62,7 +62,7 @@ class SuspensionTypeTest extends TestCase
     #[Test]
     public function testGetForPetitionTypeWooVerzoek(): void
     {
-        $types = SuspensionType::getForPetitionType(PetitionTypeType::WOO_VERZOEK);
+        $types = SuspensionType::getForPetitionType(PetitionVariant::WOO_VERZOEK);
 
         $this->assertCount(2, $types);
         $this->assertContains(SuspensionType::SPECIFICATION, $types);
@@ -72,7 +72,7 @@ class SuspensionTypeTest extends TestCase
     #[Test]
     public function testGetForPetitionTypeBeroep(): void
     {
-        $types = SuspensionType::getForPetitionType(PetitionTypeType::BEROEP);
+        $types = SuspensionType::getForPetitionType(PetitionVariant::BEROEP);
 
         $this->assertEmpty($types);
     }

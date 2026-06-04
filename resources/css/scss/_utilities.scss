@@ -59,3 +59,11 @@
 .flex-wrap {
   flex-wrap: wrap !important;
 }
+
+.js-only {
+  display: none;
+}
+
+html.js .js-only {
+  display: block;
+}

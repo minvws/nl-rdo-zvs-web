@@ -24,7 +24,8 @@ return [
     'edit_title' => 'Processtap bewerken',
     'add_step' => 'Processtap toevoegen',
     'no_steps_found' => 'Geen processtappen gevonden voor dit besluit',
-    'assigned_to' => 'Toegewezen aan',
+    'assigned_to' => 'Primaire behandelaar',
+    'secondary_assigned_to' => 'Achtervang',
     'confirm_delete' => 'Weet u zeker dat u deze processtap wilt verwijderen?',
 
     'move_up' => 'Omhoog verplaatsen',

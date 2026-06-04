@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Enums;
 
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use Illuminate\Support\Facades\Lang;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -17,7 +17,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testLabelReturnsBezwaarLabelForBezwaarType(): void
     {
-        $label = PetitionEventType::MEETING_SCHEDULED->label(PetitionTypeType::BEZWAAR);
+        $label = PetitionEventType::MEETING_SCHEDULED->label(PetitionVariant::BEZWAAR);
 
         $this->assertEquals('Commissiezitting bepaald', $label);
     }
@@ -25,7 +25,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testLabelReturnsWooLabelForWooVerzoekType(): void
     {
-        $label = PetitionEventType::MEETING_SCHEDULED->label(PetitionTypeType::WOO_VERZOEK);
+        $label = PetitionEventType::MEETING_SCHEDULED->label(PetitionVariant::WOO_VERZOEK);
 
         $this->assertEquals('Concrete datumafspraak', $label);
     }
@@ -33,7 +33,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testDescriptionReturnsBezwaarDescriptionForBezwaarType(): void
     {
-        $description = PetitionEventType::MEETING_SCHEDULED->description(PetitionTypeType::BEZWAAR);
+        $description = PetitionEventType::MEETING_SCHEDULED->description(PetitionVariant::BEZWAAR);
 
         $this->assertEquals('Dit is de datum waarop gedeeld is dat er een commissiezitting gehouden zal worden.', $description);
     }
@@ -41,7 +41,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testDescriptionReturnsWooDescriptionForWooVerzoekType(): void
     {
-        $description = PetitionEventType::MEETING_SCHEDULED->description(PetitionTypeType::WOO_VERZOEK);
+        $description = PetitionEventType::MEETING_SCHEDULED->description(PetitionVariant::WOO_VERZOEK);
 
         $this->assertEquals(
             'Datum die in de plaats komt van de oorspronkelijke einddatum van de beslistermijn en waarmee de indiener van het Woo-verzoek schriftelijk heeft ingestemd.',
@@ -52,8 +52,8 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testLabelReturnsStandardLabelForNonMeetingScheduledEvents(): void
     {
-        $labelBezwaar = PetitionEventType::PRIMARY_DECISION->label(PetitionTypeType::BEZWAAR);
-        $labelWoo = PetitionEventType::PRIMARY_DECISION->label(PetitionTypeType::WOO_VERZOEK);
+        $labelBezwaar = PetitionEventType::PRIMARY_DECISION->label(PetitionVariant::BEZWAAR);
+        $labelWoo = PetitionEventType::PRIMARY_DECISION->label(PetitionVariant::WOO_VERZOEK);
 
         $this->assertEquals('Primair besluit', $labelBezwaar);
         $this->assertEquals('Primair besluit', $labelWoo);
@@ -62,8 +62,8 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testLabelReturnsStandardLabelForAdjournment(): void
     {
-        $labelBezwaar = PetitionEventType::ADJOURNMENT->label(PetitionTypeType::BEZWAAR);
-        $labelWoo = PetitionEventType::ADJOURNMENT->label(PetitionTypeType::WOO_VERZOEK);
+        $labelBezwaar = PetitionEventType::ADJOURNMENT->label(PetitionVariant::BEZWAAR);
+        $labelWoo = PetitionEventType::ADJOURNMENT->label(PetitionVariant::WOO_VERZOEK);
 
         $this->assertEquals('Verdaging', $labelBezwaar);
         $this->assertEquals('Verdagingsbrief verzonden', $labelWoo);
@@ -74,7 +74,7 @@ class PetitionEventTypeTest extends TestCase
     {
         $label = PetitionEventType::MEETING_SCHEDULED->label();
 
-        $this->assertEquals('Concrete datumafspraak of Commissiezitting', $label);
+        $this->assertEquals('Datum waarop verzoeker de nieuwe uiterste beslisdatum schriftelijk heeft bevestigd', $label);
     }
 
     #[Test]
@@ -92,10 +92,10 @@ class PetitionEventTypeTest extends TestCase
         // HEARING_DATE has no woo_verzoek-specific description (only default and bezwaar)
         // Both should fall back to the default description when type-specific is missing
 
-        $finalDecisionBezwaar = PetitionEventType::ACTUAL_DISCLOSURE->description(PetitionTypeType::BEZWAAR);
+        $finalDecisionBezwaar = PetitionEventType::ACTUAL_DISCLOSURE->description(PetitionVariant::BEZWAAR);
         $finalDecisionDefault = PetitionEventType::ACTUAL_DISCLOSURE->description();
 
-        $hearingDateWoo = PetitionEventType::HEARING_DATE->description(PetitionTypeType::WOO_VERZOEK);
+        $hearingDateWoo = PetitionEventType::HEARING_DATE->description(PetitionVariant::WOO_VERZOEK);
         $hearingDateDefault = PetitionEventType::HEARING_DATE->description();
 
         // When type-specific translation is missing, should fall back to default
@@ -109,31 +109,31 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testIsAvailableForReturnsTrueForBezwaarEvents(): void
     {
-        $this->assertTrue(PetitionEventType::PRIMARY_DECISION->isAvailableFor(PetitionTypeType::BEZWAAR));
-        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->isAvailableFor(PetitionTypeType::WOO_VERZOEK));
+        $this->assertTrue(PetitionEventType::PRIMARY_DECISION->isAvailableFor(PetitionVariant::BEZWAAR));
+        $this->assertFalse(PetitionEventType::PRIMARY_DECISION->isAvailableFor(PetitionVariant::WOO_VERZOEK));
     }
 
     #[Test]
     public function testIsAvailableForReturnsTrueForWooEvents(): void
     {
-        $this->assertTrue(PetitionEventType::PETITION_RECEIVED->isAvailableFor(PetitionTypeType::WOO_VERZOEK));
-        $this->assertFalse(PetitionEventType::PETITION_RECEIVED->isAvailableFor(PetitionTypeType::BEZWAAR));
+        $this->assertTrue(PetitionEventType::PETITION_RECEIVED->isAvailableFor(PetitionVariant::WOO_VERZOEK));
+        $this->assertFalse(PetitionEventType::PETITION_RECEIVED->isAvailableFor(PetitionVariant::BEZWAAR));
     }
 
     #[Test]
     public function testIsAvailableForReturnsTrueForSharedEvents(): void
     {
-        $this->assertTrue(PetitionEventType::MEETING_SCHEDULED->isAvailableFor(PetitionTypeType::BEZWAAR));
-        $this->assertTrue(PetitionEventType::MEETING_SCHEDULED->isAvailableFor(PetitionTypeType::WOO_VERZOEK));
+        $this->assertTrue(PetitionEventType::MEETING_SCHEDULED->isAvailableFor(PetitionVariant::BEZWAAR));
+        $this->assertTrue(PetitionEventType::MEETING_SCHEDULED->isAvailableFor(PetitionVariant::WOO_VERZOEK));
 
-        $this->assertTrue(PetitionEventType::ADJOURNMENT->isAvailableFor(PetitionTypeType::BEZWAAR));
-        $this->assertTrue(PetitionEventType::ADJOURNMENT->isAvailableFor(PetitionTypeType::WOO_VERZOEK));
+        $this->assertTrue(PetitionEventType::ADJOURNMENT->isAvailableFor(PetitionVariant::BEZWAAR));
+        $this->assertTrue(PetitionEventType::ADJOURNMENT->isAvailableFor(PetitionVariant::WOO_VERZOEK));
     }
 
     #[Test]
     public function testGetDependenciesForReceiptOfObjection(): void
     {
-        $dependencies = PetitionEventType::RECEIPT_OF_OBJECTION->getDependencies(PetitionTypeType::BEZWAAR);
+        $dependencies = PetitionEventType::RECEIPT_OF_OBJECTION->getDependencies(PetitionVariant::BEZWAAR);
 
         $this->assertCount(1, $dependencies);
         $this->assertContains(PetitionEventType::PRIMARY_DECISION, $dependencies);
@@ -142,7 +142,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetDependenciesForLetterOfSuspensionSent(): void
     {
-        $dependencies = PetitionEventType::LETTER_OF_SUSPENSION_SENT->getDependencies(PetitionTypeType::BEZWAAR);
+        $dependencies = PetitionEventType::LETTER_OF_SUSPENSION_SENT->getDependencies(PetitionVariant::BEZWAAR);
 
         $this->assertCount(1, $dependencies);
         $this->assertContains(PetitionEventType::RECEIPT_OF_OBJECTION, $dependencies);
@@ -151,7 +151,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetDependenciesForSuspensionEnd(): void
     {
-        $dependencies = PetitionEventType::SUSPENSION_END->getDependencies(PetitionTypeType::BEZWAAR);
+        $dependencies = PetitionEventType::SUSPENSION_END->getDependencies(PetitionVariant::BEZWAAR);
 
         $this->assertCount(1, $dependencies);
         $this->assertContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $dependencies);
@@ -160,7 +160,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetDependenciesForAppealDecisionNotTimely(): void
     {
-        $dependencies = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->getDependencies(PetitionTypeType::BEZWAAR);
+        $dependencies = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->getDependencies(PetitionVariant::BEZWAAR);
 
         $this->assertCount(1, $dependencies);
         $this->assertContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $dependencies);
@@ -169,7 +169,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetDependenciesForReceiptAppealNotTimely(): void
     {
-        $dependencies = PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->getDependencies(PetitionTypeType::BEZWAAR);
+        $dependencies = PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->getDependencies(PetitionVariant::BEZWAAR);
 
         $this->assertCount(1, $dependencies);
         $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $dependencies);
@@ -178,7 +178,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetDependenciesForUnspecifiedAdjournmentEndBezwaar(): void
     {
-        $dependencies = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->getDependencies(PetitionTypeType::BEZWAAR);
+        $dependencies = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->getDependencies(PetitionVariant::BEZWAAR);
 
         $this->assertCount(1, $dependencies);
         $this->assertContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $dependencies);
@@ -187,7 +187,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetDependenciesForEventWithNoDependencies(): void
     {
-        $dependencies = PetitionEventType::PRIMARY_DECISION->getDependencies(PetitionTypeType::BEZWAAR);
+        $dependencies = PetitionEventType::PRIMARY_DECISION->getDependencies(PetitionVariant::BEZWAAR);
 
         $this->assertEmpty($dependencies);
     }
@@ -195,7 +195,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForPrimaryDecisionBezwaar(): void
     {
-        $conflicts = PetitionEventType::PRIMARY_DECISION->getConflicts(PetitionTypeType::BEZWAAR);
+        $conflicts = PetitionEventType::PRIMARY_DECISION->getConflicts(PetitionVariant::BEZWAAR);
 
         $this->assertCount(12, $conflicts);
         $this->assertContains(PetitionEventType::RECEIPT_OF_OBJECTION, $conflicts);
@@ -205,7 +205,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForPrimaryDecisionWoo(): void
     {
-        $conflicts = PetitionEventType::PRIMARY_DECISION->getConflicts(PetitionTypeType::WOO_VERZOEK);
+        $conflicts = PetitionEventType::PRIMARY_DECISION->getConflicts(PetitionVariant::WOO_VERZOEK);
 
         $this->assertEmpty($conflicts);
     }
@@ -213,7 +213,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForPetitionReceived(): void
     {
-        $conflicts = PetitionEventType::PETITION_RECEIVED->getConflicts(PetitionTypeType::WOO_VERZOEK);
+        $conflicts = PetitionEventType::PETITION_RECEIVED->getConflicts(PetitionVariant::WOO_VERZOEK);
 
         $this->assertGreaterThan(0, count($conflicts));
         $this->assertContains(PetitionEventType::FINAL_RESULT, $conflicts);
@@ -222,7 +222,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForLetterOfSuspensionSent(): void
     {
-        $conflicts = PetitionEventType::LETTER_OF_SUSPENSION_SENT->getConflicts(PetitionTypeType::BEZWAAR);
+        $conflicts = PetitionEventType::LETTER_OF_SUSPENSION_SENT->getConflicts(PetitionVariant::BEZWAAR);
 
         $this->assertGreaterThan(0, count($conflicts));
         $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $conflicts);
@@ -232,7 +232,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForHearingDateBezwaar(): void
     {
-        $conflicts = PetitionEventType::HEARING_DATE->getConflicts(PetitionTypeType::BEZWAAR);
+        $conflicts = PetitionEventType::HEARING_DATE->getConflicts(PetitionVariant::BEZWAAR);
 
         $this->assertContains(PetitionEventType::FINAL_RESULT, $conflicts);
     }
@@ -240,7 +240,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForHearingDateWoo(): void
     {
-        $conflicts = PetitionEventType::HEARING_DATE->getConflicts(PetitionTypeType::WOO_VERZOEK);
+        $conflicts = PetitionEventType::HEARING_DATE->getConflicts(PetitionVariant::WOO_VERZOEK);
 
         $this->assertContains(PetitionEventType::PETITION_RECEIVED, $conflicts);
     }
@@ -248,7 +248,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForHearingDateBeroep(): void
     {
-        $conflicts = PetitionEventType::HEARING_DATE->getConflicts(PetitionTypeType::BEROEP);
+        $conflicts = PetitionEventType::HEARING_DATE->getConflicts(PetitionVariant::BEROEP);
 
         $this->assertEmpty($conflicts);
     }
@@ -256,7 +256,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForNoticeOfDefaultWithdrawnBezwaar(): void
     {
-        $conflicts = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->getConflicts(PetitionTypeType::BEZWAAR);
+        $conflicts = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->getConflicts(PetitionVariant::BEZWAAR);
 
         $this->assertContains(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, $conflicts);
         $this->assertContains(PetitionEventType::FINAL_RESULT, $conflicts);
@@ -265,7 +265,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForNoticeOfDefaultWithdrawnWoo(): void
     {
-        $conflicts = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->getConflicts(PetitionTypeType::WOO_VERZOEK);
+        $conflicts = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->getConflicts(PetitionVariant::WOO_VERZOEK);
 
         $this->assertContains(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, $conflicts);
         $this->assertContains(PetitionEventType::FINAL_RESULT, $conflicts);
@@ -274,7 +274,7 @@ class PetitionEventTypeTest extends TestCase
     #[Test]
     public function testGetConflictsForNoticeOfDefaultWithdrawnBeroep(): void
     {
-        $conflicts = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->getConflicts(PetitionTypeType::BEROEP);
+        $conflicts = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->getConflicts(PetitionVariant::BEROEP);
 
         $this->assertEmpty($conflicts);
     }
@@ -284,8 +284,16 @@ class PetitionEventTypeTest extends TestCase
     {
         Lang::setLocale('en');
 
-        $label = PetitionEventType::ADJOURNMENT->label(PetitionTypeType::WOO_VERZOEK);
+        $label = PetitionEventType::ADJOURNMENT->label(PetitionVariant::WOO_VERZOEK);
 
         $this->assertEquals('petition_event.woo_verzoek.label.adjournment', $label);
+    }
+
+    #[Test]
+    public function testHasAdjournmentEndReasonReturnsTrueOnlyForUnspecifiedAdjournmentEnd(): void
+    {
+        $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasAdjournmentEndReason());
+        $this->assertFalse(PetitionEventType::UNSPECIFIED_ADJOURNMENT->hasAdjournmentEndReason());
+        $this->assertFalse(PetitionEventType::HEARING_DATE->hasAdjournmentEndReason());
     }
 }

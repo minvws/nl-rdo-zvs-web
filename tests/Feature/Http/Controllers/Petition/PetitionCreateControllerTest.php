@@ -6,7 +6,7 @@ namespace Tests\Feature\Http\Controllers\Petition;
 
 use App\Enums\Authorization\Permission;
 use App\Enums\OptionalFormFieldSetting;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\RouteName;
 use App\Models\Department;
 use App\Models\Petition;
@@ -27,10 +27,10 @@ class PetitionCreateControllerTest extends FeatureTestCase
     public function testCreatePetitionWithValidCustomNumber(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::WOO_VERZOEK]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create(['order' => 1]);
 
-        ConfigHelper::set(sprintf('petition_type_type.%s.optional_form_fields', $petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petitionType->type->value), [
             'name' => OptionalFormFieldSetting::EXCLUDED,
             'description' => OptionalFormFieldSetting::EXCLUDED,
             'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,
@@ -67,7 +67,7 @@ class PetitionCreateControllerTest extends FeatureTestCase
         $petitionType = PetitionType::factory()->recycle($department)->create();
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create(['order' => 1]);
 
-        ConfigHelper::set(sprintf('petition_type_type.%s.optional_form_fields', $petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petitionType->type->value), [
             'name' => OptionalFormFieldSetting::EXCLUDED,
             'description' => OptionalFormFieldSetting::EXCLUDED,
             'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,
@@ -99,10 +99,10 @@ class PetitionCreateControllerTest extends FeatureTestCase
     public function testCreatePetitionWithoutNumberGeneratesAutomatic(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::WOO_VERZOEK]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create(['order' => 1]);
 
-        ConfigHelper::set(sprintf('petition_type_type.%s.optional_form_fields', $petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petitionType->type->value), [
             'name' => OptionalFormFieldSetting::EXCLUDED,
             'description' => OptionalFormFieldSetting::EXCLUDED,
             'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,
@@ -135,7 +135,7 @@ class PetitionCreateControllerTest extends FeatureTestCase
         $petitionType = PetitionType::factory()->recycle($department)->create();
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create(['order' => 1]);
 
-        ConfigHelper::set(sprintf('petition_type_type.%s.optional_form_fields', $petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petitionType->type->value), [
             'name' => OptionalFormFieldSetting::EXCLUDED,
             'description' => OptionalFormFieldSetting::EXCLUDED,
             'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,
@@ -165,10 +165,10 @@ class PetitionCreateControllerTest extends FeatureTestCase
     public function testCreatePetitionWithValidCustomNumberButWithoutPermissionGeneratesNumber(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::WOO_VERZOEK]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::WOO_VERZOEK]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create(['order' => 1]);
 
-        ConfigHelper::set(sprintf('petition_type_type.%s.optional_form_fields', $petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petitionType->type->value), [
             'name' => OptionalFormFieldSetting::EXCLUDED,
             'description' => OptionalFormFieldSetting::EXCLUDED,
             'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,

@@ -108,7 +108,7 @@ class PetitionPropertiesControllerTest extends FeatureTestCase
         $dateAppealedDecision = $this->faker->calendarDate();
         $description = $this->faker->optional()->text();
 
-        ConfigHelper::set(sprintf('petition_type_type.%s.optional_form_fields', $petition->petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petition->petitionType->type->value), [
             'name' => OptionalFormFieldSetting::REQUIRED,
             'description' => OptionalFormFieldSetting::OPTIONAL,
             'date_appealed_decision' => OptionalFormFieldSetting::OPTIONAL,
@@ -147,7 +147,7 @@ class PetitionPropertiesControllerTest extends FeatureTestCase
 
         $dateOfEntry = $this->faker->calendarDate();
 
-        ConfigHelper::set(sprintf('petition_type_type.%s.optional_form_fields', $petition->petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petition->petitionType->type->value), [
             'name' => OptionalFormFieldSetting::EXCLUDED,
             'description' => OptionalFormFieldSetting::EXCLUDED,
             'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,
@@ -207,7 +207,7 @@ class PetitionPropertiesControllerTest extends FeatureTestCase
             ->create();
         $name = $this->faker->word();
 
-        ConfigHelper::set(sprintf('petition_type_type.%s.optional_form_fields', $petition->petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petition->petitionType->type->value), [
             'name' => OptionalFormFieldSetting::REQUIRED,
             'description' => OptionalFormFieldSetting::OPTIONAL,
             'date_appealed_decision' => OptionalFormFieldSetting::OPTIONAL,

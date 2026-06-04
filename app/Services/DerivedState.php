@@ -119,6 +119,16 @@ class DerivedState
         return $lastDeadlineDay?->date;
     }
 
+    public function deadlineDateForTerm(TermType $term): ?CalendarDate
+    {
+        $deadlineDay = $this->calendar
+            ->filter(static fn($day): bool => $day->isDeadline && $day->applicableTerm === $term->value)
+            ->sortByDesc(static fn($day): string => $day->date->toDateString())
+            ->first();
+
+        return $deadlineDay?->date;
+    }
+
     public function penaltyTodayForTerm(CalendarDate $date, TermType $term): int
     {
         $day = $this->calendar->findDay($date);

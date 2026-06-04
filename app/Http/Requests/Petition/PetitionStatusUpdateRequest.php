@@ -22,6 +22,7 @@ class PetitionStatusUpdateRequest extends FormRequest
             'petition_status_date' => [
                 'required',
                 new CalendarDateRule(),
+                'before_or_equal:today',
             ],
             'petition_status_comment' => [
                 'nullable',

@@ -8,6 +8,7 @@ use App\Enums\TimelineType;
 use App\Models\Casts\UuidCast;
 use App\Models\Concerns\HasTimestamps;
 use Database\Factories\TimelineItemFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
@@ -29,14 +30,12 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read User $user
  */
 #[UseFactory(TimelineItemFactory::class)]
+#[Table('timeline_items', key: 'internal_id')]
 class TimelineItem extends EloquentModel
 {
     /** @use HasFactory<TimelineItemFactory> */
     use HasFactory;
     use HasTimestamps;
-
-    protected $primaryKey = 'internal_id';
-    protected $table = 'timeline_items';
 
     /**
      * @return MorphTo<Model, $this>

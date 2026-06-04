@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories\WordTemplate;
 
 use App\Enums\WordTemplateId;
+use Illuminate\Container\Attributes\Config;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Webmozart\Assert\Assert;
 
@@ -20,6 +21,7 @@ readonly class FilesystemWordTemplateRepository implements WordTemplateRepositor
      */
     public function __construct(
         private Filesystem $filesystem,
+        #[Config('word_templates.departments')]
         private array $departments,
     ) {
     }

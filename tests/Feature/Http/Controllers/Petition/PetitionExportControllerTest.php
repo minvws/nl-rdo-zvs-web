@@ -6,7 +6,7 @@ namespace Tests\Feature\Http\Controllers\Petition;
 
 use App\Enums\Authorization\Permission;
 use App\Enums\ExportType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\RouteName;
 use App\Models\Decision;
 use App\Models\Department;
@@ -152,13 +152,13 @@ class PetitionExportControllerTest extends FeatureTestCase
     }
 
     #[DataProvider('typeProvider')]
-    public function testCreateInternalExport(ExportType $type, PetitionTypeType $petitionTypeType): void
+    public function testCreateInternalExport(ExportType $type, PetitionVariant $petitionVariant): void
     {
         $date = $this->faker->calendarDate();
         $department = Department::factory()->create();
         $decision = Decision::factory()->recycle($department)->create();
         $petitionType = PetitionType::factory()->recycle($department)->create([
-            'type' => $petitionTypeType->value,
+            'type' => $petitionVariant->value,
         ]);
         $petition = Petition::factory()->recycle($department)->create(
             [
@@ -196,13 +196,13 @@ class PetitionExportControllerTest extends FeatureTestCase
     }
 
     #[DataProvider('typeProvider')]
-    public function testCreateExportWithCategory(ExportType $type, PetitionTypeType $petitionTypeType): void
+    public function testCreateExportWithCategory(ExportType $type, PetitionVariant $petitionVariant): void
     {
         $department = Department::factory()->create();
         $petitionCategory = PetitionCategory::factory()->recycle($department)->create();
         $date = $this->faker->calendarDate();
         $petitionType = PetitionType::factory()->recycle($department)->create([
-            'type' => $petitionTypeType->value,
+            'type' => $petitionVariant->value,
         ]);
         $petition = Petition::factory()
             ->recycle($department)
@@ -249,12 +249,12 @@ class PetitionExportControllerTest extends FeatureTestCase
     public static function typeProvider(): array
     {
         return [
-            'set 1' => [ExportType::INTERNAL, PetitionTypeType::WOO_VERZOEK],
-            'set 2' => [ExportType::DASHBOARD, PetitionTypeType::WOO_VERZOEK],
-            'set 3' => [ExportType::INTERNAL, PetitionTypeType::BEZWAAR],
-            'set 4' => [ExportType::DASHBOARD, PetitionTypeType::BEZWAAR],
-            'set 5' => [ExportType::INTERNAL, PetitionTypeType::BEROEP],
-            'set 6' => [ExportType::DASHBOARD, PetitionTypeType::BEROEP],
+            'set 1' => [ExportType::INTERNAL, PetitionVariant::WOO_VERZOEK],
+            'set 2' => [ExportType::DASHBOARD, PetitionVariant::WOO_VERZOEK],
+            'set 3' => [ExportType::INTERNAL, PetitionVariant::BEZWAAR],
+            'set 4' => [ExportType::DASHBOARD, PetitionVariant::BEZWAAR],
+            'set 5' => [ExportType::INTERNAL, PetitionVariant::BEROEP],
+            'set 6' => [ExportType::DASHBOARD, PetitionVariant::BEROEP],
         ];
     }
 

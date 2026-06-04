@@ -64,7 +64,7 @@
                         @endif
                     </td>
                     <th scope="row">{{ $processingStep->name }}</th>
-                    <td>{{ $processingStep->assignedUser?->name }}</td>
+                    <td>{{ $processingStep->firstAssignee?->user?->name }}</td>
                     <td>{{ $processingStep->deadline_at ? DisplayDate::date($processingStep->deadline_at) : '-' }}</td>
                     <td>
                         <span class="tag tag--{{ $processingStep->status->value }}">

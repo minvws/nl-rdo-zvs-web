@@ -8,7 +8,7 @@ use App\Collections\CustomPetitionPropertyCollection;
 use App\Config\Config;
 use App\Enums\CustomDateLabel;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 use App\Models\Petition;
 use Webmozart\Assert\Assert;
@@ -57,7 +57,7 @@ class PetitionBezwaarExcelExport extends PetitionAbstractExcelExport
 
     private function formatInOutTerm(CustomPetitionPropertyCollection $customPetitionProperties): string
     {
-        $optionSet = Config::arrayAllString(sprintf('export_mapping.%s.term_options', PetitionTypeType::BEZWAAR->value));
+        $optionSet = Config::arrayAllString(sprintf('export_mapping.%s.term_options', PetitionVariant::BEZWAAR->value));
         Assert::isMap($optionSet);
 
         return $this->formatMatchingCustomOptions($customPetitionProperties, $optionSet);
@@ -65,7 +65,7 @@ class PetitionBezwaarExcelExport extends PetitionAbstractExcelExport
 
     private function formatDecision(CustomPetitionPropertyCollection $customPetitionProperties): string
     {
-        $optionSet = Config::arrayAllString(sprintf('export_mapping.%s.decision_options', PetitionTypeType::BEZWAAR->value));
+        $optionSet = Config::arrayAllString(sprintf('export_mapping.%s.decision_options', PetitionVariant::BEZWAAR->value));
         Assert::isMap($optionSet);
 
         return $this->formatMatchingCustomOptions($customPetitionProperties, $optionSet);

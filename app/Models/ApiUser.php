@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasTimestamps;
 use Database\Factories\ApiUserFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -17,12 +18,11 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $api_secret
  */
 #[UseFactory(ApiUserFactory::class)]
+#[Table('api_users')]
 class ApiUser extends Authenticatable
 {
     /** @use HasFactory<ApiUserFactory> */
     use HasFactory;
     use HasTimestamps;
     use HasApiTokens;
-
-    protected $table = 'api_users';
 }

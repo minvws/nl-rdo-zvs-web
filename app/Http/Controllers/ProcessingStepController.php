@@ -20,9 +20,9 @@ use App\Models\Department;
 use App\Models\ProcessingStep;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 use Webmozart\Assert\Assert;
@@ -35,16 +35,14 @@ final readonly class ProcessingStepController
         private Factory $view,
         private Redirector $redirector,
         private DepartmentConfigurationService $configurationService,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function create(
         Department $department,
         Decision $decision,
     ): View {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $users = User::query()
             ->getUsersWithWriteAccessOnDepartment($department)
             ->pluck('name', 'id');
@@ -64,6 +62,7 @@ final readonly class ProcessingStepController
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function store(
         Department $department,
         Decision $decision,
@@ -72,8 +71,6 @@ final readonly class ProcessingStepController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $action->execute($decision, $user, $request->validated());
 
         return $this->redirector->route(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
@@ -82,13 +79,12 @@ final readonly class ProcessingStepController
         ])->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function edit(
         Department $department,
         Decision $decision,
         ProcessingStep $processingStep,
     ): View {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $users = User::query()
             ->getUsersWithWriteAccessOnDepartment($department)
             ->pluck('name', 'id');
@@ -103,6 +99,7 @@ final readonly class ProcessingStepController
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function update(
         Department $department,
         Decision $decision,
@@ -112,8 +109,6 @@ final readonly class ProcessingStepController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $action->execute($processingStep, $user, $request->validated());
 
         return $this->redirector->route(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
@@ -122,6 +117,7 @@ final readonly class ProcessingStepController
         ])->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function move(
         Department $department,
         Decision $decision,
@@ -129,8 +125,6 @@ final readonly class ProcessingStepController
         ProcessingStepMoveAction $action,
         ProcessingStepMoveDirection $direction,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $action->move($processingStep, $direction);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
@@ -139,6 +133,7 @@ final readonly class ProcessingStepController
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'decision')]
     public function delete(
         Department $department,
         Decision $decision,
@@ -147,8 +142,6 @@ final readonly class ProcessingStepController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $decision);
-
         $action->execute($processingStep, $user);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_DECISIONS_SHOW, [

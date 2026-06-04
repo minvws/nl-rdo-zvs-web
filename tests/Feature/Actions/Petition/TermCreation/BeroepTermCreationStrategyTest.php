@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Actions\Petition\TermCreation;
 
 use App\Actions\Petition\TermCreation\BeroepTermCreationStrategy;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionStatus;
@@ -23,7 +23,7 @@ class BeroepTermCreationStrategyTest extends FeatureTestCase
         $this->actingAs($user);
 
         $petitionType = PetitionType::factory()->for($department)->create([
-            'type' => PetitionTypeType::BEROEP,
+            'type' => PetitionVariant::BEROEP,
         ]);
         $petitionStatus = PetitionStatus::factory()->create([
             'petition_type_id' => $petitionType->id,
@@ -54,7 +54,7 @@ class BeroepTermCreationStrategyTest extends FeatureTestCase
         $this->actingAs($user);
 
         $petitionType = PetitionType::factory()->for($department)->create([
-            'type' => PetitionTypeType::BEROEP,
+            'type' => PetitionVariant::BEROEP,
         ]);
         $petition = Petition::factory()->create([
             'department_id' => $department->id,

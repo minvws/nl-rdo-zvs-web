@@ -13,7 +13,68 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  CI:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "18"
+          cache: "npm"
+          registry-url: "https://npm.pkg.github.com"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install npm dependencies
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN"  >> ~/.npmrc
+          npm ci --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.REPO_READ_ONLY_TOKEN }}
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          extensions: pgsql
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache-dir
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.composer-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Composer install
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.REPO_READ_ONLY_TOKEN }}"}}'
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Prettier
+        run: npx prettier -c --config .prettierrc.json resources/views/
+
+      - name: Rector
+        run: vendor/bin/rector -n
+
+      - name: Phpcs
+        run: vendor/bin/phpcs -n
+
+      - name: Phpstan
+        run: |
+          set -o pipefail
+          mkdir -p reports
+          vendor/bin/phpstan analyse --error-format=github --no-ansi | tee reports/phpstan.json
+
+  test:
     env:
       DB_CONNECTION: pgsql
       DB_HOST: localhost
@@ -59,11 +120,22 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.REPO_READ_ONLY_TOKEN }}
 
       - name: Install PHP
-        uses: shivammathur/setup-php@master
+        uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.5
+          php-version: 8.4
           extensions: pgsql
           coverage: pcov
+
+      - name: Get Composer cache directory
+        id: composer-cache-dir
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.composer-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Composer install
         env:
@@ -86,21 +158,6 @@ jobs:
         env:
           DB_PORT: ${{ job.services.postgres.ports[5432] }}
 
-      - name: Prettier
-        run: npx prettier -c --config .prettierrc.json resources/views/
-
-      - name: Rector
-        run: vendor/bin/rector -n
-
-      - name: Phpcs
-        run: vendor/bin/phpcs -n
-
-      - name: Phpstan
-        run: |
-          set -o pipefail
-          mkdir -p reports
-          vendor/bin/phpstan analyse --error-format=github --no-ansi | tee reports/phpstan.json
-
       - name: Phpunit
         run: php artisan test  --compact --coverage --min=100 --log-junit=reports/report-phpunit.xml --coverage-clover=reports/coverage-phpunit.xml
         env:
@@ -111,3 +168,17 @@ jobs:
         with:
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           project-base-dir: .
+
+  ci:
+    name: CI
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check lint and test results
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ]; then
+            echo "One or more required jobs failed. Lint: ${{ needs.lint.result }}, Test: ${{ needs.test.result }}"
+            exit 1
+          fi
+          echo "All checks passed."

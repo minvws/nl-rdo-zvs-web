@@ -6,7 +6,7 @@ namespace Tests\Feature\Actions\Petition\PetitionEventCreation;
 
 use App\Actions\Petition\PetitionEventCreation\BeroepPetitionEventsCreationStrategy;
 use App\Enums\Authorization\Permission;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionStatus;
@@ -24,7 +24,7 @@ final class BeroepPetitionEventsCreationStrategyTest extends FeatureTestCase
     public function testCreatesEventsBeroepPetition(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEROEP]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEROEP]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 

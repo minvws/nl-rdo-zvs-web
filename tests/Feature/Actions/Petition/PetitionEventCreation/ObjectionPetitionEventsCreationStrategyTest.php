@@ -7,7 +7,7 @@ namespace Tests\Feature\Actions\Petition\PetitionEventCreation;
 use App\Actions\Petition\PetitionEventCreation\ObjectionPetitionEventsCreationStrategy;
 use App\Enums\Authorization\Permission;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionEvent;
@@ -26,7 +26,7 @@ final class ObjectionPetitionEventsCreationStrategyTest extends FeatureTestCase
     public function testCreatesEventsBezwaarPetition(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 
@@ -62,7 +62,7 @@ final class ObjectionPetitionEventsCreationStrategyTest extends FeatureTestCase
     public function testCreatesTimelineItemWhenEventsCreated(): void
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionTypeType::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
 

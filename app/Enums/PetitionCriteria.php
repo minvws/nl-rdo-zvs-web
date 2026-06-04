@@ -12,6 +12,9 @@ enum PetitionCriteria: string
     case CATEGORY = 'category';
     case CUSTOM_PROPERTY = 'custom_property';
     case DEADLINE_AT = 'deadline_at';
+    case DEADLINE_DECISION_PERIOD = 'deadline_decision_period';
+    case DEADLINE_NOTICE_OF_DEFAULT = 'deadline_notice_of_default';
+    case DEADLINE_APPEAL_NOT_TIMELY = 'deadline_appeal_not_timely';
     case NAME = 'name';
     case NUMBER = 'number';
     case PENALTY_TO_DATE = 'penalty_to_date';
@@ -21,4 +24,5 @@ enum PetitionCriteria: string
     case STATUS_GROUP = 'status_group';
     case STATUS = 'status';
     case SUM_OF_PENALTIES_PER_DATE = 'sum_of_penalties_per_date';
+    case TEAM = 'team';
 }

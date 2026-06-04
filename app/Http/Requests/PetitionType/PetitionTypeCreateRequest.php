@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\PetitionType;
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Http\Requests\FormRequest;
 use Illuminate\Validation\Rule;
 use Override;
@@ -29,7 +29,7 @@ class PetitionTypeCreateRequest extends FormRequest
             ],
             'type' => [
                 'required',
-                Rule::enum(PetitionTypeType::class),
+                Rule::enum(PetitionVariant::class),
             ],
             'active' => [
                 'boolean',

@@ -15,6 +15,7 @@ use App\Models\Builder\Petition\Filters\PetitionStatusGroupFilter;
 use App\Models\Builder\Petition\Filters\PetitionTypeFilter;
 use App\Models\Builder\Petition\Filters\PolicyDepartmentFilter;
 use App\Models\Builder\Petition\Filters\SearchFilter;
+use App\Models\Builder\Petition\Filters\TeamFilter;
 use App\Models\Builder\Petition\Sorts\ApplicantSort;
 use App\Models\Builder\Petition\Sorts\AssignedUserSort;
 use App\Models\Builder\Petition\Sorts\CategorySort;
@@ -44,10 +45,12 @@ readonly class PetitionQueryBuilder
                 'petitionType',
                 'applicant',
                 'policyDepartments:id,name',
-                'assignedUser:id,name',
+                'firstAssignee.user:id,name',
                 'petitionStatus',
                 'petitionCategory:id,name',
+                'team:id,name',
                 'petitionTerms',
+                'petitionEvents:id,type',
                 'relatedPetitions.petitionType:id,particularity_label',
             ]);
 
@@ -56,9 +59,9 @@ readonly class PetitionQueryBuilder
         return $builder;
     }
 
-    /**
-     * @return array<AllowedFilter>
-     */
+     /**
+      * @return array<AllowedFilter>
+      */
     private static function createAllowedFilters(): array
     {
         return [
@@ -72,6 +75,7 @@ readonly class PetitionQueryBuilder
             AllowedFilter::custom(PetitionCriteria::SEARCH->value, new SearchFilter()),
             AllowedFilter::custom(PetitionCriteria::STATUS->value, new PetitionStatusFilter()),
             AllowedFilter::custom(PetitionCriteria::STATUS_GROUP->value, new PetitionStatusGroupFilter()),
+            AllowedFilter::custom(PetitionCriteria::TEAM->value, new TeamFilter()),
         ];
     }
 
@@ -84,6 +88,9 @@ readonly class PetitionQueryBuilder
             PetitionCriteria::NUMBER->value,
             PetitionCriteria::NAME->value,
             PetitionCriteria::DEADLINE_AT->value,
+            PetitionCriteria::DEADLINE_DECISION_PERIOD->value,
+            PetitionCriteria::DEADLINE_NOTICE_OF_DEFAULT->value,
+            PetitionCriteria::DEADLINE_APPEAL_NOT_TIMELY->value,
             AllowedSort::custom(PetitionCriteria::APPLICANT->value, new ApplicantSort()),
             AllowedSort::custom(PetitionCriteria::ASSIGNED_USER->value, new AssignedUserSort()),
             AllowedSort::custom(PetitionCriteria::CATEGORY->value, new CategorySort()),

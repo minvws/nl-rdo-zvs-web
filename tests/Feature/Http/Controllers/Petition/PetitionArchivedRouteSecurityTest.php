@@ -89,7 +89,7 @@ class PetitionArchivedRouteSecurityTest extends FeatureTestCase
         ])->assertForbidden();
 
         // Test assigned user edit
-        $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_EDIT, [
+        $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_EDIT, [
             'department' => $department,
             'petition' => $petition,
         ])->assertForbidden();
@@ -131,7 +131,7 @@ class PetitionArchivedRouteSecurityTest extends FeatureTestCase
         ])->assertOk();
 
         // Test assigned user edit
-        $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_EDIT, [
+        $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_EDIT, [
             'department' => $department,
             'petition' => $petition,
         ])->assertOk();

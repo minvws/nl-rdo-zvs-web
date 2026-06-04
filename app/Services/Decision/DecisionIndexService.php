@@ -7,10 +7,13 @@ namespace App\Services\Decision;
 use App\Actions\Filter\FilterGetAction;
 use App\Enums\ArchiveFilter;
 use App\Enums\DecisionType;
+use App\Enums\ProcessingStepStatus;
 use App\Http\Requests\SortHelper;
 use App\Models\Builder\Decision\DecisionQueryBuilder;
 use App\Models\Decision;
 use App\Models\Department;
+use App\Models\ProcessingStep;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Container\Attributes\Config;
 use Illuminate\Http\Request;
@@ -37,7 +40,9 @@ final readonly class DecisionIndexService
      *     hasSavedFilters: bool,
      *     archiveFilters: array<ArchiveFilter>,
      *     decisionTypes: array<DecisionType>,
-     *     sortHelper: SortHelper
+     *     sortHelper: SortHelper,
+     *     processingStepsInProgress: array<string>,
+     *     usedTeams: Collection<int, Team>
      * }
      */
     public function getIndexData(Request $request, Department $department, User $user): array
@@ -59,7 +64,42 @@ final readonly class DecisionIndexService
             'archiveFilters' => ArchiveFilter::cases(),
             'decisionTypes' => DecisionType::cases(),
             'sortHelper' => $this->sortHelper,
+            'processingStepsInProgress' => $this->getProcessingStepsInProgressForDepartment($department),
+            'usedTeams' => $this->getUsedTeams($department),
         ];
+    }
+
+    /**
+     * @return array<string>
+     */
+    private function getProcessingStepsInProgressForDepartment(Department $department): array
+    {
+        /** @var Collection<int, string> $collection */
+        $collection = ProcessingStep::query()
+            ->select('name')
+            ->whereRelation('decision', 'department_id', $department->id)
+            ->where('status', ProcessingStepStatus::PENDING)
+            ->orderBy('name')
+            ->distinct()
+            ->pluck('name');
+
+        return $collection
+            ->map(static fn (mixed $value): string => $value)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return Collection<int, Team>
+     */
+    private function getUsedTeams(Department $department): Collection
+    {
+        return Team::query()
+            ->where('department_id', $department->id)
+            ->whereHas('decisions')
+            ->active()
+            ->orderBy('name')
+            ->get();
     }
 
     private function hasUserSavedFilters(User $user, Department $department): bool

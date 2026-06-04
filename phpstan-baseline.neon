@@ -25,6 +25,168 @@ parameters:
 			path: app/Console/Commands/MigrateCommand.php
 
 		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Binary operation "\+\=" between \(float\|int\) and mixed results in an error\.$#'
+			identifier: assignOp.invalid
+			count: 4
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Binary operation "\+\=" between 0 and mixed results in an error\.$#'
+			identifier: assignOp.invalid
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Call to an undefined method App\\Collections\\PetitionCollection\|App\\Models\\Petition\:\:customPetitionProperties\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Call to an undefined method App\\Collections\\PetitionCollection\|App\\Models\\Petition\:\:policyDepartments\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Cannot access offset ''contact_petitions'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Cannot access offset ''contacts'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Cannot access offset ''petition_assignments'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Cannot access offset ''petition_custom_dates'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Cannot access offset ''petitions'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Cannot access offset 0 on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Cannot access offset int\|string on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 7
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\Petition\\ImportAppealsCommand\:\:handleRollback\(\) throws checked exception Psr\\SimpleCache\\InvalidArgumentException but it''s missing from the PHPDoc @throws tag\.$#'
+			identifier: missingType.checkedException
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_filter expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_slice expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Parameter \#1 \$date of method App\\Console\\Commands\\Petition\\ImportAppealsCommand\:\:convertDateFormat\(\) expects int\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Parameter \#1 \$import of static method Maatwebsite\\Excel\\Facades\\Excel\:\:toArray\(\) expects object, array given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Parameter \#1 \$value of function count expects array\|Countable, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Parameter \#2 \$values of function array_combine expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 13
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Parameter \#3 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 2
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Property App\\Console\\Commands\\Petition\\ImportAppealsCommand\:\:\$importedIds \(array\<string, array\<int\>\>\) does not accept array\<string, array\<int\|Ramsey\\Uuid\\UuidInterface\>\>\.$#'
+			identifier: assign.propertyType
+			count: 4
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
+			message: '#^Property App\\Models\\Petition\:\:\$petition_type_id \(Ramsey\\Uuid\\UuidInterface\) does not accept mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Console/Commands/Petition/ImportAppealsCommand.php
+
+		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Petition\>\:\:notArchived\(\)\.$#'
 			identifier: method.notFound
 			count: 1

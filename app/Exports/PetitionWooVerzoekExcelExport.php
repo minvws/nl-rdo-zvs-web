@@ -9,7 +9,7 @@ use App\Collections\PetitionTermCollection;
 use App\Config\Config;
 use App\Enums\CustomDateLabel;
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 use App\Factories\WizardEventCollectionFactory;
 use App\Models\Decision;
@@ -111,7 +111,7 @@ class PetitionWooVerzoekExcelExport extends PetitionAbstractExcelExport
 
             if ($event !== null && $event->result_type !== null && $event->result_type !== ResultType::FINAL_DECISION) {
                 return __(
-                    sprintf('exports.%s.%s', PetitionTypeType::WOO_VERZOEK->value, $event->result_type->value),
+                    sprintf('exports.%s.%s', PetitionVariant::WOO_VERZOEK->value, $event->result_type->value),
                 );
             }
         }
@@ -121,7 +121,7 @@ class PetitionWooVerzoekExcelExport extends PetitionAbstractExcelExport
 
     private function formatReasonV1(CustomPetitionPropertyCollection $customPetitionProperties): string
     {
-        $optionSet = Config::arrayAllString(sprintf('export_mapping.%s.reason_options', PetitionTypeType::WOO_VERZOEK->value));
+        $optionSet = Config::arrayAllString(sprintf('export_mapping.%s.reason_options', PetitionVariant::WOO_VERZOEK->value));
         Assert::isMap($optionSet);
 
         return $this->formatMatchingCustomOptions($customPetitionProperties, $optionSet);

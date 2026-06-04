@@ -37,4 +37,23 @@ class ProcessingStepCollection extends Collection
     {
         return $this->count();
     }
+
+    /**
+     * @return array<string>
+     */
+    public function getInProgressNames(): array
+    {
+        return $this
+            ->filter(static function (ProcessingStep $step): bool {
+                return $step->status === ProcessingStepStatus::PENDING;
+            })
+            ->sortBy(static function (ProcessingStep $step): int {
+                return $step->ordering;
+            })
+            ->map(static function (ProcessingStep $step): string {
+                return $step->name;
+            })
+            ->values()
+            ->all();
+    }
 }

@@ -15,9 +15,9 @@ use App\Models\Department;
 use App\Models\Petition;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 
@@ -28,19 +28,18 @@ final readonly class PetitionDraftTermController
     public function __construct(
         private Factory $view,
         private Redirector $redirector,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function create(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         return $this->view->make('petition.draft-term.create', [
             'petition' => $petition,
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function store(
         PetitionDraftTermCreateRequest $request,
         Department $department,
@@ -49,8 +48,6 @@ final readonly class PetitionDraftTermController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $user, $request->validated());
 
         return $this->redirector->route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
@@ -60,10 +57,9 @@ final readonly class PetitionDraftTermController
             ->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function edit(Department $department, Petition $petition): View|RedirectResponse
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $draftTerm = $petition->draftTerm;
 
         if (!$draftTerm) {
@@ -87,8 +83,6 @@ final readonly class PetitionDraftTermController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $draftTerm = $petition->draftTerm;
 
         if (!$draftTerm) {
@@ -106,6 +100,7 @@ final readonly class PetitionDraftTermController
         ])->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function delete(
         Department $department,
         Petition $petition,
@@ -113,8 +108,6 @@ final readonly class PetitionDraftTermController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $draftTerm = $petition->draftTerm;
 
         if ($draftTerm) {

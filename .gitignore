@@ -26,3 +26,5 @@ phpunit.xml
 /.deptrac.cache
 docker-compose.override.yml
 /.php-cs-fixer.cache
+/.coverage/
+.venv/

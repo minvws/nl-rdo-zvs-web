@@ -94,6 +94,25 @@
                 </div>
             @endif
 
+            <div class="form-input-group">
+                <x-input-label
+                    for="petition-team-id"
+                    :content="__('team.model_singular')" />
+                <select
+                    class="form-select"
+                    id="petition-team-id"
+                    name="team_id">
+                    <option value="">{{ __("general.select") }}</option>
+                    @foreach ($teams as $team)
+                        <option
+                            value="{{ $team->id }}"
+                            @selected($team->id->toString() === Form::old("team_id", $petition->team_id?->toString()))>
+                            {{ $team->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             <div>
                 <x-input-label
                     for="petition-type-id"

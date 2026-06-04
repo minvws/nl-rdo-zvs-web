@@ -9,9 +9,9 @@ use App\Services\Authentication\AuthenticationException;
 use App\Services\Authentication\AuthenticationServiceInterface;
 use App\Services\Authorisation\ActiveDepartmentService;
 use App\View\HtmxHelper;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 final readonly class DepartmentPanelController
 {
@@ -19,17 +19,15 @@ final readonly class DepartmentPanelController
         private ActiveDepartmentService $activeDepartmentService,
         private AuthenticationServiceInterface $authenticationService,
         private HtmxHelper $htmxHelper,
-        private Gate $gate,
     ) {
     }
 
     /**
      * @throws AuthenticationException
      */
+    #[Authorize(Permission::DEPARTMENT_READ)]
     public function show(Request $request): Response
     {
-        $this->gate->authorize(Permission::DEPARTMENT_READ);
-
         $activeDepartment = $this->activeDepartmentService->getActiveDepartment();
 
         $user = $this->authenticationService->user();

@@ -15,11 +15,11 @@ use App\Models\User;
 use App\Services\Authentication\AuthenticationException;
 use App\View\HtmxHelper;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 use Throwable;
@@ -33,17 +33,15 @@ final readonly class PetitionCustomDatesController
         private Factory $view,
         private PetitionCustomDatesViewFactory $petitionCustomDatesViewFactory,
         private Redirector $redirector,
-        private Gate $gate,
     ) {
     }
 
     /**
      * @throws Throwable
      */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function edit(Request $request, Department $department, Petition $petition): Response
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         return $this->htmxHelper->makeFormViewResponse($request, 'petition.custom-dates.edit', [
             'custom_dates' => $this->petitionCustomDatesViewFactory->build($petition),
             'petition' => $petition,
@@ -81,10 +79,9 @@ final readonly class PetitionCustomDatesController
     /**
      * @throws Throwable
      */
+    #[Authorize(Ability::VIEW, 'petition')]
     public function show(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::VIEW, $petition);
-
         return $this->view->make('petition.custom-dates.show', [
             'custom_dates' => $this->petitionCustomDatesViewFactory->build($petition),
             'petition' => $petition,

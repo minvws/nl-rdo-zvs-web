@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Models\Department;
 use App\Models\PetitionType;
 
@@ -25,7 +25,7 @@ class PetitionTypeFactory extends Factory
 
             'department_id' => Department::factory(),
             'name' => $this->faker->sentence(3),
-            'type' => $this->faker->randomElement(PetitionTypeType::cases()),
+            'type' => $this->faker->randomElement(PetitionVariant::cases()),
             'particularity_label' => $this->faker->optional(0.1)->word(),
             'active' => true,
         ];

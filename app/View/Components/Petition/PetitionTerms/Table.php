@@ -18,11 +18,11 @@ use function view;
 class Table extends Component
 {
     /**
-     * @param array<string, array<string, mixed>> $petitionTypeTypeConfig
+     * @param array<string, array<string, mixed>> $petitionVariantConfig
      * @param PetitionTermCollection<int, PetitionTerm> $petitionTerms
      */
     public function __construct(
-        private readonly array $petitionTypeTypeConfig,
+        private readonly array $petitionVariantConfig,
         public readonly Petition $petition,
         public readonly PetitionTermCollection $petitionTerms,
         public readonly ?PetitionDraftTerm $draftTerm,
@@ -32,10 +32,10 @@ class Table extends Component
 
     public function render(): ?View
     {
-        Assert::keyExists($this->petitionTypeTypeConfig, $this->petition->petitionType->type->value);
-        Assert::keyExists($this->petitionTypeTypeConfig[$this->petition->petitionType->type->value], 'petition_terms_enabled');
+        Assert::keyExists($this->petitionVariantConfig, $this->petition->petitionType->type->value);
+        Assert::keyExists($this->petitionVariantConfig[$this->petition->petitionType->type->value], 'petition_terms_enabled');
 
-        if ($this->petitionTypeTypeConfig[$this->petition->petitionType->type->value]['petition_terms_enabled'] !== true) {
+        if ($this->petitionVariantConfig[$this->petition->petitionType->type->value]['petition_terms_enabled'] !== true) {
             return null;
         }
 

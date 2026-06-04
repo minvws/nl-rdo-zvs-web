@@ -13,12 +13,12 @@ use App\Models\Petition;
 use App\Models\User;
 use App\View\HtmxHelper;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 
@@ -32,17 +32,15 @@ final readonly class PetitionExternalUrlsController
         private Factory $view,
         private Redirector $redirector,
         private Repository $repository,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function edit(Request $request, Department $department, Petition $petition): Response
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
+        $petitionVariant = $petition->petitionType->type;
 
-        $petitionTypeType = $petition->petitionType->type;
-
-        $availableUrlTypes = $this->repository->array('external_url.' . $petitionTypeType->value, []);
+        $availableUrlTypes = $this->repository->array('external_url.' . $petitionVariant->value, []);
         $availableUrlTypes = array_values($availableUrlTypes);
 
         return $this->htmxHelper->makeFormViewResponse($request, 'petition.external-urls.edit', [
@@ -52,6 +50,7 @@ final readonly class PetitionExternalUrlsController
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function update(
         Request $request,
         Department $department,
@@ -61,8 +60,6 @@ final readonly class PetitionExternalUrlsController
         #[CurrentUser]
         User $user,
     ): RedirectResponse|View {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $user, $externalUrlsUpdateRequest->validated());
 
         $petition->refresh();
@@ -78,10 +75,9 @@ final readonly class PetitionExternalUrlsController
             ->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::VIEW, 'petition')]
     public function show(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::VIEW, $petition);
-
         return $this->view->make('petition.external-urls.show', [
             'department' => $department,
             'petition' => $petition,

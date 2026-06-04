@@ -11,11 +11,11 @@ use App\Models\User;
 use App\Services\Petition\PetitionFilterService;
 use App\Services\Petition\PetitionIndexService;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 final readonly class PetitionIndexController
 {
@@ -23,13 +23,12 @@ final readonly class PetitionIndexController
         private PetitionFilterService $petitionFilterService,
         private PetitionIndexService $petitionIndexService,
         private Factory $view,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::VIEW_ANY, Petition::class)]
     public function __invoke(Request $request, Department $department, #[CurrentUser] User $user): View|RedirectResponse
     {
-        $this->gate->authorize(Ability::VIEW_ANY, Petition::class);
         $redirectResponse = $this->petitionFilterService->handleFilterPersistence($request, $user, $department);
         if ($redirectResponse instanceof RedirectResponse) {
             return $redirectResponse;

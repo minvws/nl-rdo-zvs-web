@@ -18,9 +18,9 @@ use App\Models\PetitionDeliverable;
 use App\Models\User;
 use App\Repositories\RepositoryTransactionException;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 
@@ -31,14 +31,12 @@ final readonly class PetitionDeliverableController
     public function __construct(
         private Factory $view,
         private Redirector $redirector,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function create(Department $department, Petition $petition, PetitionDeliverableType $petitionDeliverableType): View
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         return $this->view->make('petition.petition-deliverable.create', [
             'petition' => $petition,
             'petitionDeliverableType' => $petitionDeliverableType,
@@ -46,7 +44,9 @@ final readonly class PetitionDeliverableController
     }
 
     /**
-     * @throws RepositoryTransactionException */
+     * @throws RepositoryTransactionException
+     */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function store(
         PetitionDeliverableCreateRequest $request,
         Department $department,
@@ -56,8 +56,6 @@ final readonly class PetitionDeliverableController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $petitionDeliverableType, $request->validated(), $user);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
@@ -66,10 +64,9 @@ final readonly class PetitionDeliverableController
         ])->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function edit(Department $department, Petition $petition, PetitionDeliverable $petitionDeliverable): View
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         return $this->view->make('petition.petition-deliverable.edit', [
             'petition' => $petition,
             'petitionDeliverable' => $petitionDeliverable,
@@ -77,7 +74,9 @@ final readonly class PetitionDeliverableController
     }
 
     /**
-     * @throws RepositoryTransactionException */
+     * @throws RepositoryTransactionException
+     */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function update(
         PetitionDeliverableUpdateRequest $request,
         Department $department,
@@ -87,8 +86,6 @@ final readonly class PetitionDeliverableController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petitionDeliverable, $request->validated(), $user);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
@@ -98,7 +95,9 @@ final readonly class PetitionDeliverableController
     }
 
     /**
-     * @throws RepositoryTransactionException */
+     * @throws RepositoryTransactionException
+     */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function delete(
         Department $department,
         Petition $petition,
@@ -107,8 +106,6 @@ final readonly class PetitionDeliverableController
         #[CurrentUser]
         User $user,
     ): RedirectResponse {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $petitionDeliverable, $user);
 
         return $this->redirector->route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [

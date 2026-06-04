@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Models\Database\Builder;
 
+use App\Enums\AssignmentRole;
 use App\Enums\ContactRole;
 use App\Enums\ContactType;
 use App\Enums\PetitionCriteria;
@@ -12,11 +13,15 @@ use App\Models\Builder\Petition\PetitionQueryBuilder;
 use App\Models\Contact;
 use App\Models\CustomPetitionProperty;
 use App\Models\Petition;
+use App\Models\PetitionAssignment;
 use App\Models\PetitionStatus;
 use App\Models\PolicyDepartment;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Tests\Feature\FeatureTestCase;
+
+use function count;
 
 class PetitionQueryBuilderFilterTest extends FeatureTestCase
 {
@@ -51,9 +56,34 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
 
     public function testAssignedUserFilter(): void
     {
-        $filterPetition = Petition::factory()->create(['assigned_to' => User::factory()]);
+        $user = User::factory()->create();
+        $filterPetition = Petition::factory()->create();
+        PetitionAssignment::factory()->create([
+            'petition_id' => $filterPetition->id,
+            'user_id' => $user->id,
+            'assignment_role' => AssignmentRole::PRIMARY,
+        ]);
 
-        $this->assertSingleFilterResult(PetitionCriteria::ASSIGNED_USER, $filterPetition->assigned_to->toString());
+        $this->assertSingleFilterResult(PetitionCriteria::ASSIGNED_USER, $user->id->toString());
+    }
+
+    public function testAssignedUserFilterNone(): void
+    {
+        $user = User::factory()->create();
+        $petitionWithAssignee = Petition::factory()->create();
+        PetitionAssignment::factory()->create([
+            'petition_id' => $petitionWithAssignee->id,
+            'user_id' => $user->id,
+            'assignment_role' => AssignmentRole::PRIMARY,
+        ]);
+
+        $petitionWithoutAssignee = Petition::factory()->create();
+
+        $request = new Request(['filter' => [PetitionCriteria::ASSIGNED_USER->value => 'none']]);
+        $results = PetitionQueryBuilder::make($request)->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals($petitionWithoutAssignee->id->toString(), $results->first()->id->toString());
     }
 
     public function testCategoryFilter(): void
@@ -200,6 +230,29 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
         );
     }
 
+    public function testNotClosedStatusGroupFilter(): void
+    {
+        $nonClosedGroups = [StatusGroup::INTAKE, StatusGroup::PENDING, StatusGroup::FINISHED];
+
+        foreach ($nonClosedGroups as $statusGroup) {
+            Petition::factory()->create([
+                'petition_status_id' => PetitionStatus::factory()->state(['status_group' => $statusGroup]),
+            ]);
+        }
+
+        Petition::factory()->create([
+            'petition_status_id' => PetitionStatus::factory()->state(['status_group' => StatusGroup::CLOSED]),
+        ]);
+
+        $request = new Request([
+            'filter' => [
+                PetitionCriteria::STATUS_GROUP->value => StatusGroup::NOT_CLOSED->value,
+            ],
+        ]);
+
+        $this->assertEquals(count($nonClosedGroups), PetitionQueryBuilder::make($request)->count());
+    }
+
     public function testCustomPropertyFilter(): void
     {
         $property = CustomPetitionProperty::factory()->create(['name' => 'Chatbesluit']);
@@ -221,6 +274,31 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
         $request = new Request([
             'filter' => [PetitionCriteria::CUSTOM_PROPERTY->value => $property->id->toString()],
         ]);
+        $this->assertEquals(1, PetitionQueryBuilder::make($request)->count());
+    }
+
+    #[Test]
+    public function testTeamFilter(): void
+    {
+        $team = Team::factory()->create();
+        $filterPetition = Petition::factory()->for($team, 'team')->create();
+
+        $this->assertSingleFilterResult(PetitionCriteria::TEAM, $filterPetition->team->id->toString());
+    }
+
+    #[Test]
+    public function testTeamFilterDoesNotMatchOtherPetitions(): void
+    {
+        $team = Team::factory()->create();
+        Petition::factory()->for($team, 'team')->create();
+        Petition::factory()->count(2)->create();
+
+        $request = new Request([
+            'filter' => [
+                PetitionCriteria::TEAM->value => $team->id->toString(),
+            ],
+        ]);
+
         $this->assertEquals(1, PetitionQueryBuilder::make($request)->count());
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Enums;
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -48,7 +48,7 @@ class ResultTypeTest extends TestCase
     #[Test]
     public function testGetForPetitionTypeBezwaar(): void
     {
-        $types = ResultType::getForPetitionType(PetitionTypeType::BEZWAAR);
+        $types = ResultType::getForPetitionType(PetitionVariant::BEZWAAR);
 
         $this->assertCount(3, $types);
         $this->assertContains(ResultType::FINAL_DECISION, $types);
@@ -59,7 +59,7 @@ class ResultTypeTest extends TestCase
     #[Test]
     public function testGetForPetitionTypeWooVerzoek(): void
     {
-        $types = ResultType::getForPetitionType(PetitionTypeType::WOO_VERZOEK);
+        $types = ResultType::getForPetitionType(PetitionVariant::WOO_VERZOEK);
 
         $this->assertCount(9, $types);
         $this->assertContains(ResultType::FINAL_DECISION, $types);
@@ -75,7 +75,7 @@ class ResultTypeTest extends TestCase
     #[Test]
     public function testGetForPetitionTypeBeroep(): void
     {
-        $types = ResultType::getForPetitionType(PetitionTypeType::BEROEP);
+        $types = ResultType::getForPetitionType(PetitionVariant::BEROEP);
 
         $this->assertEmpty($types);
     }
@@ -83,7 +83,7 @@ class ResultTypeTest extends TestCase
     #[Test]
     public function testGetGroupedForPetitionTypeWooVerzoek(): void
     {
-        $grouped = ResultType::getGroupedForPetitionType(PetitionTypeType::WOO_VERZOEK);
+        $grouped = ResultType::getGroupedForPetitionType(PetitionVariant::WOO_VERZOEK);
 
         $this->assertArrayHasKey('with', $grouped);
         $this->assertArrayHasKey('without', $grouped);
@@ -103,7 +103,7 @@ class ResultTypeTest extends TestCase
     #[Test]
     public function testGetGroupedForPetitionTypeBezwaar(): void
     {
-        $grouped = ResultType::getGroupedForPetitionType(PetitionTypeType::BEZWAAR);
+        $grouped = ResultType::getGroupedForPetitionType(PetitionVariant::BEZWAAR);
 
         $this->assertArrayHasKey('with', $grouped);
         $this->assertArrayHasKey('without', $grouped);
@@ -117,7 +117,7 @@ class ResultTypeTest extends TestCase
     #[Test]
     public function testGetGroupedForPetitionTypeDefault(): void
     {
-        $grouped = ResultType::getGroupedForPetitionType(PetitionTypeType::BEROEP);
+        $grouped = ResultType::getGroupedForPetitionType(PetitionVariant::BEROEP);
 
         $this->assertEmpty($grouped['with']);
         $this->assertEmpty($grouped['without']);

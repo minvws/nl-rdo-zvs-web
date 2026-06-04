@@ -34,7 +34,7 @@ class PetitionShowTest extends SmokeTestCase
             'role' => DepartmentRole::WRITE,
         ]);
 
-        ConfigHelper::set(sprintf('petition_type_type.%s', $petition->petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s', $petition->petitionType->type->value), [
             'optional_form_fields' => [
                 'name' => OptionalFormFieldSetting::EXCLUDED,
                 'description' => OptionalFormFieldSetting::EXCLUDED,
@@ -77,7 +77,7 @@ class PetitionShowTest extends SmokeTestCase
             ->recycle($department)
             ->create();
 
-        ConfigHelper::set(sprintf('petition_type_type.%s', $petition->petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s', $petition->petitionType->type->value), [
             'optional_form_fields' => [
                 'name' => OptionalFormFieldSetting::EXCLUDED,
                 'description' => OptionalFormFieldSetting::EXCLUDED,

@@ -27,7 +27,7 @@ class CreateButtonsTest extends FeatureTestCase
         $this->beUser($user);
 
         $component = $this->component(CreateButtons::class, [
-            'petitionTypeTypeConfig' => [
+            'petitionVariantConfig' => [
                 $petition->petitionType->type->value => [
                     'petition_terms_enabled' => true,
                     'petition_terms' => [],
@@ -61,7 +61,7 @@ class CreateButtonsTest extends FeatureTestCase
         $petition = Petition::factory()->create();
 
         $component = $this->component(CreateButtons::class, [
-            'petitionTypeTypeConfig' => [
+            'petitionVariantConfig' => [
                 $petition->petitionType->type->value => [
                     'petition_terms_enabled' => false,
                     'petition_terms' => [],

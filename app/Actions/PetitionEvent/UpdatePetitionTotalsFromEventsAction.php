@@ -51,6 +51,10 @@ class UpdatePetitionTotalsFromEventsAction implements UpdatePetitionTotalsFromEv
             'legacy_term_penalty_today' => 0,
             'legacy_term_forfeited' => 0,
             'legacy_term_penalty_maximum' => 0,
+
+            'deadline_decision_period' => $this->derivedState->deadlineDateForTerm(TermType::DECISION_PERIOD),
+            'deadline_notice_of_default' => $this->derivedState->deadlineDateForTerm(TermType::NOTICE_OF_DEFAULT),
+            'deadline_appeal_not_timely' => $this->derivedState->deadlineDateForTerm(TermType::APPEAL_NOT_TIMELY),
         ];
 
         if (!$dateOfEntry->equals($petition->date_of_entry)) {

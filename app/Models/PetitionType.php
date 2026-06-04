@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Collections\PetitionTypeCollection;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Models\Concerns\HasDepartment;
 use App\Models\Concerns\HasId;
 use App\Models\Concerns\HasTimestamps;
@@ -13,6 +13,7 @@ use App\Models\Contracts\DepartmentAwareInterface;
 use App\QueryBuilders\PetitionTypeQueryBuilder;
 use Database\Factories\PetitionTypeFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,12 +23,13 @@ use Override;
 /**
  * @property string $name
  * @property string $particularity_label
- * @property PetitionTypeType $type
+ * @property PetitionVariant $type
  * @property bool $active
  */
 #[CollectedBy(PetitionTypeCollection::class)]
 #[UseEloquentBuilder(PetitionTypeQueryBuilder::class)]
 #[UseFactory(PetitionTypeFactory::class)]
+#[Table('petition_types')]
 class PetitionType extends EloquentModel implements DepartmentAwareInterface
 {
     use HasDepartment;
@@ -35,8 +37,6 @@ class PetitionType extends EloquentModel implements DepartmentAwareInterface
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'petition_types';
 
     /**
      * @return HasMany<PetitionTypeCustomDateLabel, $this>
@@ -55,13 +55,13 @@ class PetitionType extends EloquentModel implements DepartmentAwareInterface
     }
 
     /**
-     * @return array<string, class-string<PetitionTypeType>|string>
+     * @return array<string, class-string<PetitionVariant>|string>
      */
     #[Override]
     protected function casts(): array
     {
         return [
-            'type' => PetitionTypeType::class,
+            'type' => PetitionVariant::class,
             'active' => 'boolean',
         ];
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\PeriodGenerators;
 
+use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
 use App\Enums\TermType;
 use App\ValueObjects\CalendarDate;
@@ -80,6 +81,10 @@ class UnspecifiedAdjournmentPeriodGenerator implements PeriodGeneratorInterface
         $this->markDecisionPeriodDaysAsAdjournment($calendar, $startEvent->date, $endEvent->date);
         $this->addAdjournmentBudgetDays($calendar, $startEvent, $endEvent);
         $this->setDeadlineOnLastDecisionPeriodDay($calendar);
+
+        if ($endEvent->adjournmentEndReason === AdjournmentEndReason::Withdrawal) {
+            $calendar->upsertDay($endEvent->date, ['isUnspecifiedAdjournmentWithdrawal' => true]);
+        }
     }
 
     private function markDecisionPeriodDaysAsAdjournment(

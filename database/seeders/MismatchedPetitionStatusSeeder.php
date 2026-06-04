@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\StatusGroup;
 use App\Models\Department;
 use App\Models\Petition;
@@ -29,7 +29,7 @@ class MismatchedPetitionStatusSeeder extends Seeder
 
         $petitionType = PetitionType::factory()->recycle($department)->create([
             'name' => 'Woo verzoek',
-            'type' => PetitionTypeType::WOO_VERZOEK->value,
+            'type' => PetitionVariant::WOO_VERZOEK->value,
         ]);
 
         // statusA = petition's current status (the "wrong" one)

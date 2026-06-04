@@ -8,6 +8,7 @@ use App\Enums\CustomCostType;
 use App\Models\Concerns\HasId;
 use App\Models\Concerns\HasTimestamps;
 use Database\Factories\CustomCostFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,14 +24,13 @@ use Override;
  */
 
 #[UseFactory(CustomCostFactory::class)]
+#[Table('custom_costs')]
 class CustomCost extends EloquentModel
 {
     /** @use HasFactory<CustomCostFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'custom_costs';
 
     /**
      * @return BelongsTo<Petition, $this>

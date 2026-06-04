@@ -29,7 +29,7 @@ class TableTest extends FeatureTestCase
         $component = $this->component(Table::class, [
             'petition' => $petition,
             'terms' => [],
-            'petitionTypeTypeConfig' => [
+            'petitionVariantConfig' => [
                 $petition->petitionType->type->value => [
                     'petition_deliverables_enabled' => true,
                 ],
@@ -62,7 +62,7 @@ class TableTest extends FeatureTestCase
         $component = $this->component(Table::class, [
             'petition' => $petition,
             'terms' => [],
-            'petitionTypeTypeConfig' => [
+            'petitionVariantConfig' => [
                 $petition->petitionType->type->value => [
                     'petition_deliverables_enabled' => false,
                 ],

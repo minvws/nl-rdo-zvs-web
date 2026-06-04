@@ -254,6 +254,7 @@ class DecisionControllerTest extends FeatureTestCase
                 'name' => $name,
                 'date' => $date->format('Y-m-d'),
                 'reference' => $reference,
+                'reviewbatch' => 'BATCH-2026-002',
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirect();
@@ -262,6 +263,7 @@ class DecisionControllerTest extends FeatureTestCase
             'name' => $name,
             'date' => $date->format('Y-m-d'),
             'reference' => $reference,
+            'reviewbatch' => 'BATCH-2026-002',
         ]);
     }
 
@@ -740,13 +742,44 @@ class DecisionControllerTest extends FeatureTestCase
     public function indexWithSearchFilterShowsMatchingDecisions(): void
     {
         $department = Department::factory()->create();
-        $searchTerm = Str::random(5); // Random search term to ensure uniqueness
+        $searchTerm = Str::random(5);
 
         $matchingDecision = Decision::factory()->recycle($department)->create([
             'name' => $this->faker->words(2, true) . ' ' . $searchTerm,
+            'reviewbatch' => 'BATCH-OTHER-001',
         ]);
         $nonMatchingDecision = Decision::factory()->recycle($department)->create([
             'name' => $this->faker->words(2, true),
+            'reviewbatch' => 'BATCH-OTHER-001',
+        ]);
+
+        $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::DECISION_READ)->fullyVerified()->create();
+        $response = $this->beUser($authUser, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_DECISIONS_INDEX, [
+                'department' => $department,
+                'filter' => [
+                    'search' => $searchTerm,
+                ],
+            ]);
+
+        $response->assertOk()
+            ->assertSee($matchingDecision->name)
+            ->assertDontSee($nonMatchingDecision->name);
+    }
+
+    #[Test]
+    public function indexWithSearchFilterShowsMatchingDecisionsByReviewbatch(): void
+    {
+        $department = Department::factory()->create();
+        $searchTerm = Str::random(5);
+
+        $matchingDecision = Decision::factory()->recycle($department)->create([
+            'name' => $this->faker->words(2, true),
+            'reviewbatch' => 'BATCH-' . $searchTerm . '-001',
+        ]);
+        $nonMatchingDecision = Decision::factory()->recycle($department)->create([
+            'name' => $this->faker->words(2, true),
+            'reviewbatch' => 'BATCH-OTHER-001',
         ]);
 
         $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::DECISION_READ)->fullyVerified()->create();
@@ -1054,11 +1087,34 @@ class DecisionControllerTest extends FeatureTestCase
                 'reference' => $this->faker->word,
                 'date' => $this->faker->calendarDate()->format('Y-m-d'),
                 'type' => $this->faker->randomElement(DecisionType::cases())->value,
+                'reviewbatch' => 'BATCH-2026-001',
             ]);
 
         $this->assertDatabaseHas(Decision::class, [
-            'name' => 'alert()Decision Name', // Ensure tags are stripped
+            'name' => 'alert()Decision Name',
+            'reviewbatch' => 'BATCH-2026-001',
         ]);
+    }
+
+    #[Test]
+    public function storeDecisionWithTooLongReviewbatchFails(): void
+    {
+        $department = Department::factory()->create();
+
+        $authUser = User::factory()
+            ->withPermissions(Permission::DECISION_WRITE)
+            ->fullyVerified()
+            ->create();
+        $this->beUser($authUser)
+            ->postByRoute(RouteName::DEPARTMENTS_DECISIONS_STORE, [
+                'department' => $department,
+            ], [
+                'name' => $this->faker->name,
+                'reference' => $this->faker->word,
+                'type' => $this->faker->randomElement(DecisionType::cases())->value,
+                'reviewbatch' => Str::random(129),
+            ])
+            ->assertSessionHasErrors('reviewbatch');
     }
 
     #[Test]

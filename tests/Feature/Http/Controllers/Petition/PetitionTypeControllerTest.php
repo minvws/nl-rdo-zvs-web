@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Petition;
 
 use App\Enums\Authorization\Permission;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\RouteName;
 use App\Models\Department;
 use App\Models\PetitionStatus;
@@ -71,7 +71,7 @@ class PetitionTypeControllerTest extends FeatureTestCase
 
     public function testStore(): void
     {
-        $type = $this->faker->randomElement(PetitionTypeType::cases());
+        $type = $this->faker->randomElement(PetitionVariant::cases());
         $department = Department::factory()->create();
         $name = $this->faker->name();
 

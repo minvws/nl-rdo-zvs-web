@@ -11,4 +11,6 @@ Route::prefix('/change-status/edit')->group(static function (): void {
         ->name(RouteName::DEPARTMENTS_PETITIONS_CHANGE_STATUS_EDIT);
     Route::post('/', [PetitionStatusController::class, 'update'])
         ->name(RouteName::DEPARTMENTS_PETITIONS_CHANGE_STATUS_UPDATE);
+    Route::delete('/{petitionStatusHistory}', [PetitionStatusController::class, 'destroy'])
+        ->name(RouteName::DEPARTMENTS_PETITIONS_CHANGE_STATUS_DESTROY);
 });

@@ -39,7 +39,7 @@ Zaak Van Team A Bewerken Door Indiener Gemachtigde En Behandelaar Toe Te Voegen
 
     Get Title    contains    Zaakoverzicht van
 
-    Get Element Count    div#assign-user-block div.petition-property__content >> text=-    equals    1
+    Get Element Count    div#assign-primary-block div.petition-property__content >> text=-    equals    1
     Get Element Count    div#contact-block div.petition-property__content >> text=-    equals    1
 
     ${button}    Get Element By Role    link    name=Behandelaar Bewerken
@@ -66,7 +66,7 @@ Zaak Van Team A Bewerken Door Indiener Gemachtigde En Behandelaar Toe Te Voegen
 
     Get Title    contains    Zaakoverzicht van
 
-    Get Element Count    div#assign-user-block div.petition-property__content >> text=-    equals    0
+    Get Element Count    div#assign-primary-block div.petition-property__content >> text=-    equals    0
     Get Element Count    div#contact-block div.petition-property__content >> text=-    equals    0
 
     Take Screenshot    fullPage=True
@@ -238,7 +238,7 @@ Bestaand Besluit Koppelen Aan Zaak
     Go To    /wjz-bb/petitions
     Click Row In Table    table tbody tr.table-row-clickable    1
 
-    ${link}    Get Element By Role    link    name=Besluit koppelen
+    ${link}    Get Element By Role    link    name=Bestaand besluit koppelen
     Click    ${link}
 
     Get Element By Role    heading    name=Besluit koppelen
@@ -284,6 +284,11 @@ Substatus Handmatig Wijzigen Van 'Toebedeling' Naar 'Intake'
     ${combobox}    Get Element By Role    combobox    name=Categorie
     Select Options By    ${combobox}    index    1
 
+    # Zet de ontvangstdatum op 2 dagen eerder zodat we een nieuwe status kunnen maken in de historie.
+    # Dit is nodig omdat de eerste status op een dag na de ontvangstdatum wordt gezet.
+    ${two_days_ago}    Get Current Date    increment=-2d    result_format=${RESULT_FORMAT}
+    Type Text    id=date_of_entry    ${two_days_ago}
+
     ${button}    Get Element By Role    button    name=Aanmaken
     Click    ${button}
     Check For Notification    Opgeslagen
@@ -300,6 +305,9 @@ Substatus Handmatig Wijzigen Van 'Toebedeling' Naar 'Intake'
     ${button}    Get Element By Role    button    name=Opslaan
     Click    ${button}
     Check For Notification    Opgeslagen
+
+    ${back_button}    Get Element By Role    link    name=Terug naar Zaakdetails
+    Click    ${back_button}
 
     ${new_substatus}    Get Text    span.tag.tag--substatus
     Should Not Be Equal    ${new_substatus}    ${default_substatus}

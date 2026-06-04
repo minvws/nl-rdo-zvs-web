@@ -29,16 +29,15 @@
                 </td>
                 <td>
                     @foreach ($day->petitionEvents as $event)
-                        <div class="event-type event-type--{{ $event->type->value }}">
+                        @php
+                            $isUnspecifiedAdjournmentWithdrawal = $event->type === App\Enums\PetitionEventType::UNSPECIFIED_ADJOURNMENT_END && $event->adjournmentEndReason === App\Enums\AdjournmentEndReason::Withdrawal;
+                            $eventTypeClass = $isUnspecifiedAdjournmentWithdrawal ? 'unspecified_adjournment_end_withdrawal' : $event->type->value;
+                            $eventLabel = $isUnspecifiedAdjournmentWithdrawal ? __('term.unspecified_adjournment_end_withdrawal') : __('term.' . $event->type->value . ($event->suspensionType ? '.' . $event->suspensionType->value : '') . ($event->resultType ? '.' . $event->resultType->value : ''));
+                        @endphp
+
+                        <div class="event-type event-type--{{ $eventTypeClass }}">
                             <span>
-                                {{
-                                    __(
-                                        'term.' .
-                                            $event->type->value .
-                                            ($event->suspensionType ? '.' . $event->suspensionType->value : '') .
-                                            ($event->resultType ? '.' . $event->resultType->value : ''),
-                                    )
-                                }}
+                                {{ $eventLabel }}
                             </span>
                         </div>
                     @endforeach

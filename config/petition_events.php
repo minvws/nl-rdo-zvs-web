@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use App\Enums\PetitionEventType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 
 return [
     'defaults' => [
-        PetitionTypeType::BEZWAAR->value => [
+        PetitionVariant::BEZWAAR->value => [
             PetitionEventType::PRIMARY_DECISION->value => [
                 'duration' => 42,
             ],
@@ -39,7 +39,7 @@ return [
                 'result_type' => ResultType::FINAL_DECISION,
             ],
         ],
-        PetitionTypeType::WOO_VERZOEK->value => [
+        PetitionVariant::WOO_VERZOEK->value => [
             PetitionEventType::PETITION_RECEIVED->value => [
                 'duration' => 28,
             ],
@@ -62,7 +62,7 @@ return [
         ],
     ],
     'team-c' => [
-        PetitionTypeType::BEZWAAR->value => [
+        PetitionVariant::BEZWAAR->value => [
             PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->value => [
                 'duration' => 14,
             ],

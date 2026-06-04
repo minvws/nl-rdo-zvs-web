@@ -16,6 +16,7 @@ enum TimelineFilterGroup: string
     case STATUS_CHANGES = 'status_changes';
     case TERM_ADJUSTMENTS = 'term_adjustments';
     case ASSIGNMENTS = 'assignments';
+    case EVENTS = 'event_changes';
 
     public function label(): string
     {

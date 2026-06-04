@@ -8,6 +8,7 @@ use App\Enums\ExternalUrlType;
 use App\Models\Concerns\HasId;
 use App\Models\Concerns\HasTimestamps;
 use Database\Factories\PetitionExternalUrlFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Casts\AsUri;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,14 +22,13 @@ use Override;
  */
 
 #[UseFactory(PetitionExternalUrlFactory::class)]
+#[Table('petition_external_urls')]
 class PetitionExternalUrl extends EloquentModel
 {
     /** @use HasFactory<PetitionExternalUrlFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'petition_external_urls';
 
     /**
      * @return BelongsTo<Petition, $this>

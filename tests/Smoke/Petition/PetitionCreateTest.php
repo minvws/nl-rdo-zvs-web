@@ -6,7 +6,7 @@ namespace Tests\Smoke\Petition;
 
 use App\Enums\Authorization\DepartmentRole;
 use App\Enums\OptionalFormFieldSetting;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\RouteName;
 use App\Models\Department;
 use App\Models\DepartmentUser;
@@ -30,8 +30,8 @@ class PetitionCreateTest extends SmokeTestCase
             ->recycle($department)
             ->create([
                 'type' => $this->faker->randomElement([
-                    PetitionTypeType::BEROEP,
-                    PetitionTypeType::WOO_VERZOEK,
+                    PetitionVariant::BEROEP,
+                    PetitionVariant::WOO_VERZOEK,
                 ]),
             ]);
         PetitionStatus::factory()
@@ -46,7 +46,7 @@ class PetitionCreateTest extends SmokeTestCase
             'role' => DepartmentRole::WRITE,
         ]);
 
-        ConfigHelper::set(sprintf('petition_type_type.%s.optional_form_fields', $petitionType->type->value), [
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petitionType->type->value), [
             'name' => OptionalFormFieldSetting::REQUIRED,
             'description' => OptionalFormFieldSetting::REQUIRED,
             'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,

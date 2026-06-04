@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Petition;
 
+use App\Enums\AssignmentRole;
 use App\Enums\Authorization\Permission;
 use App\Enums\RouteName;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionAssignment;
 use App\Models\User;
 use Tests\Feature\FeatureTestCase;
 
@@ -23,7 +25,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_EDIT, [
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_EDIT, [
                 'department' => $department,
                 'petition' => $petition,
             ])
@@ -37,7 +39,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_EDIT, [
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_EDIT, [
                 'department' => $department,
                 'petition' => $this->faker->uuid(),
             ])
@@ -54,7 +56,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
         $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_SHOW, [
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_SHOW, [
                 'department' => $department,
                 'petition' => $petition,
             ])
@@ -74,7 +76,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_UPDATE, [
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
                 'department' => $department,
                 'petition' => $petition,
             ], [
@@ -86,7 +88,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
             ]);
 
         $petition->refresh();
-        $this->assertEquals($user->id, $petition->assignedUser->id);
+        $this->assertEquals($user->id, $petition->firstAssignee->user_id);
     }
 
     public function testUpdateAssignedUserAllowsAssignedUserToBeNull(): void
@@ -99,7 +101,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
         $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser, true, $department)
-            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_EDIT, [
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_EDIT, [
                 'department' => $department,
                 'petition' => $petition,
             ], [
@@ -111,7 +113,8 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
                 'petition' => $petition->id,
             ]);
 
-        $this->assertNull($petition->assigned_user_id);
+        $petition->refresh();
+        $this->assertNull($petition->firstAssignee);
     }
 
     public function testUpdateAssignedUserWithHtmx(): void
@@ -127,7 +130,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->postByRouteAsHtmx(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_UPDATE, [
+            ->postByRouteAsHtmx(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
                 'department' => $department,
                 'petition' => $petition,
             ], [
@@ -136,7 +139,35 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
             ->assertOk();
 
         $petition->refresh();
-        $this->assertEquals($user->id, $petition->assignedUser->id);
+        $this->assertEquals($user->id, $petition->firstAssignee->user_id);
+    }
+
+    public function testUpdateAssignedUserToNullWithHtmxShowsEmptyState(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $assignedUser = User::factory()->recycle($department)->create();
+
+        PetitionAssignment::factory()->create([
+            'petition_id' => $petition->id,
+            'user_id' => $assignedUser->id,
+            'assignment_role' => AssignmentRole::PRIMARY,
+        ]);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->postByRouteAsHtmx(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
+                'department' => $department,
+                'petition' => $petition,
+            ], [
+                'user_id' => null,
+            ])
+            ->assertOk()
+            ->assertDontSee($assignedUser->name)
+            ->assertSee('-');
+
+        $petition->refresh();
+        $this->assertNull($petition->firstAssignee);
     }
 
     public function testUpdateAssignedUserNotFound(): void
@@ -144,7 +175,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
         $department = Department::factory()->create();
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_UPDATE, [
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
                 'department' => $department,
                 'petition' => $this->faker->uuid(),
             ], [
@@ -158,7 +189,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
         $department = Department::factory()->create();
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->postByRouteAsHtmx(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_UPDATE, [
+            ->postByRouteAsHtmx(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
                 'department' => $department,
                 'petition' => $this->faker->uuid(),
             ], [
@@ -178,7 +209,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->postByRouteAsHtmx(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_UPDATE, [
+            ->postByRouteAsHtmx(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
                 'department' => $department,
                 'petition' => $petition,
             ], [
@@ -196,7 +227,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
             ->create();
         $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_UPDATE, [
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
                 'department' => $department,
                 'petition' => $this->faker->uuid(),
             ], [
@@ -218,7 +249,7 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
         $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
         $this->beUser($authUser)
-            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_USER_UPDATE, [
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
                 'department' => $department,
                 'petition' => $petition,
             ], [

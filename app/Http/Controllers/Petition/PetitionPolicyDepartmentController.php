@@ -14,12 +14,12 @@ use App\Models\PolicyDepartment;
 use App\Models\User;
 use App\View\HtmxHelper;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Throwable;
 
@@ -31,14 +31,12 @@ final readonly class PetitionPolicyDepartmentController
         private HtmxHelper $htmxHelper,
         private Redirector $redirector,
         private Factory $view,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function edit(Request $request, Department $department, Petition $petition): Response
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         return $this->htmxHelper->makeFormViewResponse($request, 'petition.policy-department.edit', [
             'petition' => $petition,
             'policyDepartments' => PolicyDepartment::query()->active()->orderBy('name')->get(),
@@ -46,16 +44,16 @@ final readonly class PetitionPolicyDepartmentController
         ]);
     }
 
+    #[Authorize(Ability::VIEW, 'petition')]
     public function show(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::VIEW, $petition);
-
         return $this->view->make('petition.policy-department.show', ['petition' => $petition]);
     }
 
     /**
      * @throws Throwable
      */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function update(
         Request $request,
         Department $department,
@@ -65,8 +63,6 @@ final readonly class PetitionPolicyDepartmentController
         #[CurrentUser]
         User $user,
     ): RedirectResponse|View {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $user, $petitionPolicyDepartmentUpdateRequest->validated());
 
         if ($this->htmxHelper->isHtmxRequest($request)) {

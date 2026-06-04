@@ -11,6 +11,7 @@ use App\Collections\PetitionDeliverableCollection;
 use App\Collections\PetitionTermCollection;
 use App\Collections\PetitionTypeCustomDateLabelCollection;
 use App\Collections\PolicyDepartmentCollection;
+use App\Enums\AssignmentRole;
 use App\Enums\ContactRole;
 use App\Models\Casts\CalendarDateCast;
 use App\Models\Casts\UuidCast;
@@ -25,6 +26,7 @@ use App\QueryBuilders\PetitionQueryBuilder;
 use App\ValueObjects\CalendarDate;
 use Database\Factories\PetitionFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -46,15 +48,18 @@ use Ramsey\Uuid\UuidInterface;
  * @property CalendarDate $date_of_entry
  * @property ?CalendarDate $date_appealed_decision
  * @property ?CalendarDate $deadline_at
+ * @property ?CalendarDate $deadline_decision_period
+ * @property ?CalendarDate $deadline_notice_of_default
+ * @property ?CalendarDate $deadline_appeal_not_timely
  * @property ?string $description
  * @property ?string $name
  * @property string $number
  * @property UuidInterface $petition_type_id
  * @property UuidInterface $petition_status_id
- * @property ?UuidInterface $assigned_to
  * @property ?string $message
  * @property ?CalendarDate $date_of_message
  * @property ?UuidInterface $petition_category_id
+ * @property ?UuidInterface $team_id
  * @property ?UuidInterface $applicant_id
  * @property ?UuidInterface $representative_id
  * @property ?UuidInterface $institution_id
@@ -79,6 +84,7 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read PetitionCustomDateCollection $customDates
  * @property-read Collection<int, PetitionExternalUrl> $externalUrls
  * @property-read Department $department
+ * @property-read ?Team $team
  * @property-read ?PetitionCategory $petitionCategory
  * @property-read PolicyDepartmentCollection $policyDepartments
  * @property-read PetitionDeliverableCollection $petitionDeliverables
@@ -87,7 +93,6 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read ?PetitionDraftTerm $draftTerm
  * @property-read PetitionType $petitionType
  * @property-read Collection<int, Contact> $representative
- * @property-read ?User $assignedUser
  * @property-read PetitionTypeCustomDateLabelCollection $availableCustomDates
  * @property-read PetitionCollection $relatedPetitions
  * @property-read CustomPetitionPropertyCollection $customPetitionProperties
@@ -96,12 +101,15 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read Collection<int, Contact> $institution
  * @property-read Collection<int, PetitionEvent> $petitionEvents
  * @property-read Collection<int, PetitionQuerysnapshot> $querysnapshots
+ * @property-read ?PetitionAssignment $firstAssignee
+ * @property-read ?PetitionAssignment $secondAssignee
  *
  * @SuppressWarnings(PHPMD)
  */
 #[CollectedBy(PetitionCollection::class)]
 #[UseEloquentBuilder(PetitionQueryBuilder::class)]
 #[UsePolicy(PetitionPolicy::class)]
+#[Table('petitions')]
 class Petition extends EloquentModel implements DepartmentAwareInterface, TimelineableInterface
 {
     use HasDepartment;
@@ -112,14 +120,28 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
     use HasArchivedAt;
     use HasBelongsToManySelfRelation;
 
-    protected $table = 'petitions';
+    /**
+     * @return HasMany<PetitionAssignment, $this>
+     */
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(PetitionAssignment::class);
+    }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return HasOne<PetitionAssignment, $this>
      */
-    public function assignedUser(): BelongsTo
+    public function firstAssignee(): HasOne
     {
-        return $this->belongsTo(User::class, 'assigned_to', 'id');
+        return $this->hasOne(PetitionAssignment::class)->where('assignment_role', AssignmentRole::PRIMARY);
+    }
+
+    /**
+     * @return HasOne<PetitionAssignment, $this>
+     */
+    public function secondAssignee(): HasOne
+    {
+        return $this->hasOne(PetitionAssignment::class)->where('assignment_role', AssignmentRole::SECONDARY);
     }
 
     /**
@@ -130,17 +152,25 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
         return $this->belongsTo(PetitionType::class, 'petition_type_id', 'id');
     }
 
-    /**
-     * @return BelongsTo<PetitionCategory, $this>
-     */
+     /**
+      * @return BelongsTo<PetitionCategory, $this>
+      */
     public function petitionCategory(): BelongsTo
     {
         return $this->belongsTo(PetitionCategory::class, 'petition_category_id', 'id');
     }
 
-    /**
-     * @return HasMany<PetitionDeliverable, $this>
-     */
+     /**
+      * @return BelongsTo<Team, $this>
+      */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'team_id', 'id');
+    }
+
+     /**
+      * @return HasMany<PetitionDeliverable, $this>
+      */
     public function petitionDeliverables(): HasMany
     {
         return $this->hasMany(PetitionDeliverable::class);
@@ -220,11 +250,13 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
     }
 
     /**
-     * @return BelongsToMany<Decision, $this>
+     * @return BelongsToMany<Decision, $this, DecisionPetition>
      */
     public function decisions(): BelongsToMany
     {
-        return $this->belongsToMany(Decision::class);
+        return $this->belongsToMany(Decision::class, 'decision_petition', 'petition_id', 'decision_id')
+            ->using(DecisionPetition::class)
+            ->withPivot('is_final');
     }
 
     /**
@@ -357,9 +389,13 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
             'petition_type_id' => UuidCast::class,
             'petition_status_id' => UuidCast::class,
             'petition_category_id' => UuidCast::class,
+            'team_id' => UuidCast::class,
             'department_id' => UuidCast::class,
             'date_of_entry' => CalendarDateCast::class,
             'deadline_at' => CalendarDateCast::class,
+            'deadline_decision_period' => CalendarDateCast::class,
+            'deadline_notice_of_default' => CalendarDateCast::class,
+            'deadline_appeal_not_timely' => CalendarDateCast::class,
             'assigned_to' => UuidCast::class,
             'date_of_message' => CalendarDateCast::class,
             'date_of_close' => CalendarDateCast::class,

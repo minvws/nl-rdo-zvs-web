@@ -28,7 +28,7 @@ class TableTest extends FeatureTestCase
         $this->beUser($user);
 
         $component = $this->component(Table::class, [
-            'petitionTypeTypeConfig' => [
+            'petitionVariantConfig' => [
                 $petition->petitionType->type->value => [
                     'petition_terms_enabled' => true,
                     'petition_terms' => [],
@@ -68,7 +68,7 @@ class TableTest extends FeatureTestCase
         $component = $this->component(Table::class, [
             'petition' => $petition,
             'terms' => new PetitionTermCollection(),
-            'petitionTypeTypeConfig' => [
+            'petitionVariantConfig' => [
                 $petition->petitionType->type->value => [
                     'petition_terms_enabled' => false,
                     'petition_terms' => [],

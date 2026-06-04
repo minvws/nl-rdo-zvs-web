@@ -7,7 +7,7 @@ namespace App\Exports;
 use App\Collections\CustomPetitionPropertyCollection;
 use App\Config\Config;
 use App\Enums\CustomDateLabel;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Models\Petition;
 use Webmozart\Assert\Assert;
 
@@ -50,7 +50,7 @@ class PetitionBeroepExcelExport extends PetitionAbstractExcelExport
 
     private function formatDecision(CustomPetitionPropertyCollection $customPetitionProperties): string
     {
-        $optionSet = Config::arrayAllString(sprintf('export_mapping.%s.decision_options', PetitionTypeType::BEROEP->value));
+        $optionSet = Config::arrayAllString(sprintf('export_mapping.%s.decision_options', PetitionVariant::BEROEP->value));
         Assert::isMap($optionSet);
 
         return $this->formatMatchingCustomOptions($customPetitionProperties, $optionSet);

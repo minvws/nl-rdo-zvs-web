@@ -27,8 +27,10 @@ class UserQueryBuilder extends Builder
 
     public function isAssignee(Department $department): static
     {
-        return $this->whereHas('assignedPetitions', static function (Builder $query) use ($department): void {
-            $query->where('petitions.department_id', $department->id);
+        return $this->whereHas('petitionAssignments', static function (Builder $query) use ($department): void {
+            $query->whereHas('petition', static function (Builder $petitionQuery) use ($department): void {
+                $petitionQuery->where('department_id', $department->id);
+            });
         });
     }
 

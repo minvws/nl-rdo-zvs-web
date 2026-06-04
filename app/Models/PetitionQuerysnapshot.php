@@ -8,6 +8,7 @@ use App\Enums\QuerysnapshotType;
 use App\Models\Concerns\HasId;
 use App\Models\Concerns\HasTimestamps;
 use Database\Factories\PetitionQuerysnapshotFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,14 +22,13 @@ use Override;
  * @property-read Petition $petition
  */
 #[UseFactory(PetitionQuerysnapshotFactory::class)]
+#[Table('petition_querysnapshots')]
 class PetitionQuerysnapshot extends EloquentModel
 {
     /** @use HasFactory<PetitionQuerysnapshotFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'petition_querysnapshots';
 
     /**
      * @return BelongsTo<Petition, $this>

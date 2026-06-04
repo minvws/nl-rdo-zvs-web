@@ -10,6 +10,7 @@ use App\Models\Concerns\HasId;
 use App\Models\Concerns\HasTimestamps;
 use App\ValueObjects\CalendarDate;
 use Database\Factories\PetitionDraftTermFactory;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,14 +30,13 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read Petition $petition
  */
 #[UseFactory(PetitionDraftTermFactory::class)]
+#[Table('petition_draft_terms')]
 class PetitionDraftTerm extends EloquentModel
 {
     /** @use HasFactory<PetitionDraftTermFactory> */
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    protected $table = 'petition_draft_terms';
 
     /**
      * @return BelongsTo<Petition, $this>

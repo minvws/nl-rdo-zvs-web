@@ -13,12 +13,12 @@ use App\Models\EloquentModel;
 use App\Models\User;
 use App\View\HtmxHelper;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Webmozart\Assert\Assert;
 
@@ -30,10 +30,10 @@ final readonly class TimelineableNoteController
         private Redirector $redirector,
         private HtmxHelper $htmxHelper,
         private Encrypter $encrypter,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'timelineable')]
     public function create(
         Request $request,
         Department $department,
@@ -41,8 +41,6 @@ final readonly class TimelineableNoteController
         TimelineableInterface $timelineable,
         string $url,
     ): Response {
-        $this->gate->authorize(Ability::UPDATE, $timelineable);
-
         Assert::isInstanceOf($timelineable, EloquentModel::class);
 
         return $this->htmxHelper->makeFormViewResponse($request, 'petition.petition-note.create', [
@@ -53,6 +51,7 @@ final readonly class TimelineableNoteController
         ]);
     }
 
+    #[Authorize(Ability::UPDATE, 'timelineable')]
     public function store(
         Department $department,
         string $timelineableType,
@@ -63,8 +62,6 @@ final readonly class TimelineableNoteController
         #[CurrentUser]
         User $user,
     ): RedirectResponse|View|Response {
-        $this->gate->authorize(Ability::UPDATE, $timelineable);
-
         $action->execute($timelineable, $user, $timelineableNoteCreateRequest->validated());
 
         if ($this->htmxHelper->isHtmxRequest($timelineableNoteCreateRequest)) {

@@ -84,7 +84,8 @@ table.objection-events-events-table {
       &--letter_of_suspension_sent,
       &--suspension_end,
       &--unspecified_adjournment,
-      &--unspecified_adjournment_end {
+      &--unspecified_adjournment_end,
+      &--unspecified_adjournment_end_withdrawal {
         background-color: var(--oc-green-7);
       }
 
@@ -100,6 +101,11 @@ table.objection-events-events-table {
 
       &--hearing_date {
         background-color: var(--oc-cyan-9);
+      }
+
+      &--sent_partial_decision,
+      &--opinion_outside_term {
+        background-color: var(--oc-indigo-9);
       }
 
       &--final_result,

@@ -7,12 +7,15 @@ namespace App\Http\Requests\Petition;
 use App\Config\Config;
 use App\Enums\OptionalFormFieldSetting;
 use App\Enums\RouteName;
+use App\Models\Department;
 use App\Models\Petition;
 use App\Models\User;
 use App\Rules\CalendarDateRule;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Routing\Route;
+use Illuminate\Validation\Rule;
 use Override;
+use Ramsey\Uuid\UuidInterface;
 use Webmozart\Assert\Assert;
 
 use function route;
@@ -23,7 +26,7 @@ class PetitionUpdateRequest extends PetitionCreateRequest
     /**
      * @return array<string, mixed>
      */
-    #[Override]
+     #[Override]
     public function rules(#[CurrentUser] User $user): array
     {
         return [
@@ -47,6 +50,11 @@ class PetitionUpdateRequest extends PetitionCreateRequest
             'description' => [
                 $this->getFieldSetting('description'),
                 'string',
+            ],
+            'team_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('teams', 'id')->where('department_id', $this->getDepartmentId()->toString()),
             ],
         ];
     }
@@ -75,12 +83,20 @@ class PetitionUpdateRequest extends PetitionCreateRequest
         Assert::isInstanceOf($petition, Petition::class);
 
         $petitionTypeConfiguration = Config::array(
-            sprintf('petition_type_type.%s.optional_form_fields', $petition->petitionType->type->value),
+            sprintf('petition_variant.%s.optional_form_fields', $petition->petitionType->type->value),
         );
         Assert::keyExists($petitionTypeConfiguration, $field);
         Assert::isInstanceOf($petitionTypeConfiguration[$field], OptionalFormFieldSetting::class);
 
         return $petitionTypeConfiguration[$field]->getValidationRule();
+    }
+
+    private function getDepartmentId(): UuidInterface
+    {
+        $department = $this->route('department');
+        Assert::isInstanceOf($department, Department::class);
+
+        return $department->id;
     }
 
     private function getRoute(): Route

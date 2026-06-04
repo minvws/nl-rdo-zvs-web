@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 
 return [
-    PetitionTypeType::BEROEP->value => [
+    PetitionVariant::BEROEP->value => [
         'decision_options' => [
             'Gegrond' => 'Deels gegrond',
             'Ongegrond' => 'Niet gegrond',
@@ -13,7 +13,7 @@ return [
             'Kennelijk niet-ontvankelijk' => 'Niet ontvankelijk',
         ],
     ],
-    PetitionTypeType::BEZWAAR->value => [
+    PetitionVariant::BEZWAAR->value => [
         'term_options' => [
             'Binnen wettelijke termijn' => 'Binnen wettelijke termijn',
             'Binnen afgesproken termijn' => 'Binnen afgesproken termijn',
@@ -28,7 +28,7 @@ return [
             'Kennelijk niet-ontvankelijk' => 'Niet ontvankelijk',
         ],
     ],
-    PetitionTypeType::WOO_VERZOEK->value => [
+    PetitionVariant::WOO_VERZOEK->value => [
         'reason_options' => [
             'Verzoek ingetrokken' => 'Verzoek ingetrokken',
             'Verzoek doorverwezen' => 'Verzoek doorverwezen',

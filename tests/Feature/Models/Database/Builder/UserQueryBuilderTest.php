@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Models\Database\Builder;
 
+use App\Enums\AssignmentRole;
 use App\Enums\Authorization\DepartmentRole;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionAssignment;
 use App\Models\User;
 use App\QueryBuilders\UserQueryBuilder;
 use Tests\Feature\FeatureTestCase;
@@ -41,15 +43,21 @@ class UserQueryBuilderTest extends FeatureTestCase
         $departmentB = Department::factory()->create();
         $assignedUser = User::factory()->create();
         $notAssignedUserInDepartmentA = User::factory()->create();
-        $petitionA = Petition::factory()->recycle($departmentA)->create(['assigned_to' => $assignedUser->id]);
-        Petition::factory()->recycle($departmentB)->create(['assigned_to' => $notAssignedUserInDepartmentA->id]);
+        $petitionA = Petition::factory()->recycle($departmentA)->create();
+        $petitionB = Petition::factory()->recycle($departmentB)->create();
+        PetitionAssignment::factory()->create(
+            ['petition_id' => $petitionA->id, 'user_id' => $assignedUser->id, 'assignment_role' => AssignmentRole::PRIMARY],
+        );
+        PetitionAssignment::factory()->create(
+            ['petition_id' => $petitionB->id, 'user_id' => $notAssignedUserInDepartmentA->id, 'assignment_role' => AssignmentRole::PRIMARY],
+        );
 
         /** @var UserQueryBuilder $queryBuilder */
         $queryBuilder = User::query();
-        $assignees = $queryBuilder->isAssignee($petitionA->department)->get();
+        $assignedUsers = $queryBuilder->isAssignee($petitionA->department)->get();
 
-        $this->assertCount(1, $assignees);
-        $this->assertTrue($assignees->contains($assignedUser->id));
-        $this->assertFalse($assignees->contains($notAssignedUserInDepartmentA->id));
+        $this->assertCount(1, $assignedUsers);
+        $this->assertTrue($assignedUsers->contains($assignedUser->id));
+        $this->assertFalse($assignedUsers->contains($notAssignedUserInDepartmentA->id));
     }
 }

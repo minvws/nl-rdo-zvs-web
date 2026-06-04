@@ -23,8 +23,18 @@ readonly class DecisionUpdateAction
     public function execute(Decision $decision, User $user, array $attributes): void
     {
         $this->databaseManager->transaction(static function () use ($decision, $user, $attributes): void {
+            $previousTeamId = $decision->team_id;
             $decision->update($attributes);
             $decision->refresh();
+
+            if (isset($attributes['team_id']) && $previousTeamId !== $attributes['team_id']) {
+                $decision->timelineItems()->create([
+                    'type' => TimelineType::TEAM_CHANGED,
+                    'user_id' => $user->id,
+                    'data' => new ArrayObject(['team' => $decision->team?->name]),
+                ]);
+            }
+
             $decision->timelineItems()->create([
                 'type' => TimelineType::DECISION_UPDATED,
                 'user_id' => $user->id,

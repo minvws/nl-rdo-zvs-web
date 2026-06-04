@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Services\Petition;
 
+use App\Enums\PetitionEventType;
 use App\Enums\TermType;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionEvent;
 use App\Models\PetitionType;
 use App\Services\Petition\PetitionParticularityCollector;
 use App\ValueObjects\CalendarDate;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 
 class PetitionParticularityCollectorTest extends FeatureTestCase
@@ -121,6 +124,56 @@ class PetitionParticularityCollectorTest extends FeatureTestCase
 
         $collector = $this->app->make(PetitionParticularityCollector::class);
 
+        $labels = $collector->collectParticularities($petition);
+
+        $this->assertEquals(['IGS'], $labels);
+    }
+
+    #[Test]
+    public function testLabelsWithTev2NoticeOfDefaultReceived(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        PetitionEvent::factory()->recycle($petition)->withType(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED)->create();
+
+        $petition->refresh();
+
+        $collector = $this->app->make(PetitionParticularityCollector::class);
+        $labels = $collector->collectParticularities($petition);
+
+        $this->assertEquals(['IGS'], $labels);
+    }
+
+    #[Test]
+    public function testLabelsWithTev2NoticeOfDefaultWithdrawn(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        PetitionEvent::factory()->recycle($petition)->withType(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED)->create();
+        PetitionEvent::factory()->recycle($petition)->withType(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN)->create();
+
+        $petition->refresh();
+
+        $collector = $this->app->make(PetitionParticularityCollector::class);
+        $labels = $collector->collectParticularities($petition);
+
+        $this->assertEquals([], $labels);
+    }
+
+    #[Test]
+    public function testLabelsWithTev2MultipleReceivedOneWithdrawn(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        PetitionEvent::factory()->recycle($petition)->withType(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED)->count(2)->create();
+        PetitionEvent::factory()->recycle($petition)->withType(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN)->create();
+
+        $petition->refresh();
+
+        $collector = $this->app->make(PetitionParticularityCollector::class);
         $labels = $collector->collectParticularities($petition);
 
         $this->assertEquals(['IGS'], $labels);

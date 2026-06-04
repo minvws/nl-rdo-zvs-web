@@ -3,18 +3,18 @@
 declare(strict_types=1);
 
 use App\Enums\ExternalUrlType;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 
 return [
-    PetitionTypeType::WOO_VERZOEK->value => [
+    PetitionVariant::WOO_VERZOEK->value => [
         ExternalUrlType::PUBLICATION_PAGE->value,
         ExternalUrlType::DECISION_PAGE->value,
     ],
-    PetitionTypeType::BEROEP->value => [
+    PetitionVariant::BEROEP->value => [
         ExternalUrlType::PUBLICATION_PAGE->value,
         ExternalUrlType::DECISION_PAGE->value,
     ],
-    PetitionTypeType::BEZWAAR->value => [
+    PetitionVariant::BEZWAAR->value => [
         ExternalUrlType::PUBLICATION_PAGE->value,
         ExternalUrlType::DECISION_PAGE->value,
     ],

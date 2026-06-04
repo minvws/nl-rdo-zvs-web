@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Actions\Petition\TermCreation;
 
 use App\Actions\Petition\TermCreation\BezwaarTermCreationStrategy;
-use App\Enums\PetitionTypeType;
+use App\Enums\PetitionVariant;
 use App\Enums\TermType;
 use App\Models\Department;
 use App\Models\DepartmentTermTypeSetting;
@@ -42,7 +42,7 @@ class BezwaarTermCreationStrategyTest extends FeatureTestCase
         ]);
 
         $petitionType = PetitionType::factory()->for($department)->create([
-            'type' => PetitionTypeType::BEZWAAR,
+            'type' => PetitionVariant::BEZWAAR,
         ]);
         $petition = Petition::factory()->create([
             'department_id' => $department->id,
@@ -101,7 +101,7 @@ class BezwaarTermCreationStrategyTest extends FeatureTestCase
         ]);
 
         $petitionType = PetitionType::factory()->for($department)->create([
-            'type' => PetitionTypeType::BEZWAAR,
+            'type' => PetitionVariant::BEZWAAR,
         ]);
         $petition = Petition::factory()->create([
             'department_id' => $department->id,

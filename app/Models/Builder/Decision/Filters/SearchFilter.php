@@ -25,6 +25,7 @@ class SearchFilter implements Filter
             $query->where(static function (Builder $subQuery) use ($searchTerm): void {
                 $subQuery->orWhere('name', 'ILIKE', '%' . $searchTerm . '%');
                 $subQuery->orWhere('reference', 'ILIKE', '%' . $searchTerm . '%');
+                $subQuery->orWhere('reviewbatch', 'ILIKE', '%' . $searchTerm . '%');
             });
         }
     }

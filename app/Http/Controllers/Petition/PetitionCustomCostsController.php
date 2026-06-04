@@ -14,12 +14,12 @@ use App\Models\User;
 use App\Services\Petition\PetitionException;
 use App\View\HtmxHelper;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 use TypeError;
@@ -35,17 +35,15 @@ final readonly class PetitionCustomCostsController
         private Factory $view,
         private Redirector $redirector,
         private Repository $repository,
-        private Gate $gate,
     ) {
     }
 
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function edit(Request $request, Department $department, Petition $petition): Response
     {
-        $this->gate->authorize(Ability::UPDATE, $petition);
+        $petitionVariant = $petition->petitionType->type;
 
-        $petitionTypeType = $petition->petitionType->type;
-
-        $availableCostTypes = $this->repository->get('custom_cost.' . $petitionTypeType->value, []);
+        $availableCostTypes = $this->repository->get('custom_cost.' . $petitionVariant->value, []);
         $availableCostTypes = array_values($availableCostTypes);
 
         return $this->htmxHelper->makeFormViewResponse($request, 'petition.custom-costs.edit', [
@@ -58,7 +56,9 @@ final readonly class PetitionCustomCostsController
     /**
      * @throws PetitionException
      * @throws TypeError
-     * @throws ValueError */
+     * @throws ValueError
+     */
+    #[Authorize(Ability::UPDATE, 'petition')]
     public function update(
         Request $request,
         Department $department,
@@ -68,8 +68,6 @@ final readonly class PetitionCustomCostsController
         #[CurrentUser]
         User $user,
     ): RedirectResponse|View {
-        $this->gate->authorize(Ability::UPDATE, $petition);
-
         $action->execute($petition, $user, $customCostsUpdateRequest->validated());
 
         $petition->refresh();
@@ -85,10 +83,9 @@ final readonly class PetitionCustomCostsController
             ->with('message.success', __('general.saved'));
     }
 
+    #[Authorize(Ability::VIEW, 'petition')]
     public function show(Department $department, Petition $petition): View
     {
-        $this->gate->authorize(Ability::VIEW, $petition);
-
         return $this->view->make('petition.custom-costs.show', [
             'petition' => $petition,
             'department' => $department,

@@ -102,6 +102,25 @@
 
                     <div class="form-input-group">
                         <x-input-label
+                            for="petition-team-id"
+                            :content="__('team.model_singular')" />
+                        <select
+                            class="form-select"
+                            id="petition-team-id"
+                            name="team_id">
+                            <option value="">{{ __('general.select') }}</option>
+                            @foreach ($teams as $team)
+                                <option
+                                    value="{{ $team->id }}"
+                                    @selected($team->id->toString() === old('team_id'))>
+                                    {{ $team->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-input-group">
+                        <x-input-label
                             for="date_of_entry"
                             required
                             :content="__(sprintf('petition.date_of_entry.%s', $petitionType->type->value))" />

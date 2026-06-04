@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\PetitionEvent;
 
+use App\Enums\AdjournmentEndReason;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
@@ -64,6 +65,13 @@ class AddPetitionEventRequest extends FormRequest
                     return $this->input('type') === PetitionEventType::HEARING_DATE->value;
                 }),
             ],
+            'adjournment_end_reason' => [
+                'nullable',
+                Rule::enum(AdjournmentEndReason::class),
+                Rule::requiredIf(function (): bool {
+                    return $this->input('type') === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->value;
+                }),
+            ],
             'penalties' => ['sometimes', 'array', 'min:1'],
             'penalties.*.amount' => [
                 'nullable',
@@ -101,6 +109,10 @@ class AddPetitionEventRequest extends FormRequest
             ? $this->getEnum('hearing_form', HearingForm::class)
             : null;
 
+        $adjournmentEndReason = $this->filled('adjournment_end_reason')
+            ? $this->getEnum('adjournment_end_reason', AdjournmentEndReason::class)
+            : null;
+
         $penalties = $this->resolvePenalties();
 
         /** @var string $dateInput */
@@ -118,6 +130,7 @@ class AddPetitionEventRequest extends FormRequest
             suspensionType: $suspensionType,
             resultType: $resultType,
             hearingForm: $hearingForm,
+            adjournmentEndReason: $adjournmentEndReason,
         );
     }
 
@@ -179,6 +192,7 @@ class AddPetitionEventRequest extends FormRequest
             'suspension_type' => 'suspension type',
             'result_type' => 'result type',
             'hearing_form' => 'hearing form',
+            'adjournment_end_reason' => 'reden',
             'penalties.*.amount' => 'penalty amount',
             'penalties.*.duration' => 'penalty duration',
         ];

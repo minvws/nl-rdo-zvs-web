@@ -1,3 +1,5 @@
+@use(app\Enums\AssignmentRole)
+
 <div class="timeline-item timeline-item--occurrence timeline-item--occurrence-assignment">
     <div class="timeline-item__wrapper">
         <div class="timeline-item__badge">
@@ -7,10 +9,18 @@
             <x-timeline.timeline-header>
                 <p>
                     <span>{{ $timelineItem->user->name }}</span>
-                    @if ($currentAssignedUser === null)
-                        {{ __('timeline.assignment.dismissed') }}
+                    @if ($assignmentRole->value === AssignmentRole::SECONDARY->value)
+                        @if ($currentAssignedUser === null)
+                            {{ __('timeline.assignment.secondary_dismissed') }}
+                        @else
+                            {{ __('timeline.assignment.secondary_assigned_to', ['assignee' => $currentAssignedUser->name]) }}
+                        @endif
                     @else
-                        {{ __('timeline.assignment.assigned_to', ['assignee' => $currentAssignedUser->name]) }}
+                        @if ($currentAssignedUser === null)
+                            {{ __('timeline.assignment.dismissed') }}
+                        @else
+                            {{ __('timeline.assignment.assigned_to', ['assignee' => $currentAssignedUser->name]) }}
+                        @endif
                     @endif
                 </p>
             </x-timeline.timeline-header>
