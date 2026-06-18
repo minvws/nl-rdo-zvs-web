@@ -120,7 +120,7 @@ class ImportAppealsCommand extends Command
         $this->batchId = 'import_' . time();
 
         try {
-            $rawData = Excel::toArray([], $filePath);
+            $rawData = Excel::toArray((object) [], $filePath);
             $sheetData = $rawData[0] ?? [];
 
             if (count($sheetData) === 0) {
@@ -690,7 +690,7 @@ class ImportAppealsCommand extends Command
     private function loadJuristEmailMapping(string $filePath): void
     {
         try {
-            $rawData = Excel::toArray([], $filePath);
+            $rawData = Excel::toArray((object) [], $filePath);
             $sheetData = $rawData[0] ?? [];
 
             if (count($sheetData) === 0) {

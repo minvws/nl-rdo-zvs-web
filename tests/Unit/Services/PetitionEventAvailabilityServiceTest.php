@@ -149,7 +149,8 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
 
         $this->assertContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
-        $this->assertContains(PetitionEventType::SUSPENSION_END, $availableTypes);
+        // pair is closed → SUSPENSION_END must wait for a new LETTER_OF_SUSPENSION_SENT
+        $this->assertNotContains(PetitionEventType::SUSPENSION_END, $availableTypes);
     }
 
     public function testAllowsMultipleSentPartialDecisions(): void
@@ -567,13 +568,14 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $this->assertContains(PetitionEventType::SUSPENSION_END, $availableTypes);
     }
 
-    public function testSuspensionEndStillVisibleWhenAlreadyExistsForBezwaar(): void
+    public function testSuspensionEndVisibleAgainAfterReopeningSuspensionForBezwaar(): void
     {
         $events = WizardEventCollection::make()
             ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
             ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
             ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-02-01'))
-            ->add($this->createEvent(PetitionEventType::SUSPENSION_END, '2025-02-15'));
+            ->add($this->createEvent(PetitionEventType::SUSPENSION_END, '2025-02-15'))
+            ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-03-01'));
 
         $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
 
@@ -1006,6 +1008,97 @@ class PetitionEventAvailabilityServiceTest extends TestCase
 
         $this->assertContains(PetitionEventType::FINAL_RESULT, $availableTypes);
         $this->assertContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
+    }
+
+    public function testUnspecifiedAdjournmentNotVisibleWhileSuspensionIsOpenForBezwaar(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-02-01'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+
+        $this->assertNotContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $availableTypes);
+    }
+
+    public function testUnspecifiedAdjournmentAvailableAgainAfterSuspensionEndsForBezwaar(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-02-01'))
+            ->add($this->createEvent(PetitionEventType::SUSPENSION_END, '2025-02-15'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+
+        $this->assertContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $availableTypes);
+    }
+
+    public function testLetterOfSuspensionSentNotVisibleWhileAdjournmentIsOpenForBezwaar(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::UNSPECIFIED_ADJOURNMENT, '2025-02-01'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+
+        $this->assertNotContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
+    }
+
+    public function testLetterOfSuspensionSentAvailableAgainAfterAdjournmentEndsForBezwaar(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::UNSPECIFIED_ADJOURNMENT, '2025-02-01'))
+            ->add($this->createEvent(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, '2025-02-15'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+
+        $this->assertContains(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $availableTypes);
+    }
+
+    public function testSuspensionEndAndAdjournmentEndNeverShownTogether(): void
+    {
+        // open suspension only — suspension end should show, adjournment end should not
+        $suspensionOpen = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-02-01'));
+
+        $available = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $suspensionOpen);
+        $this->assertContains(PetitionEventType::SUSPENSION_END, $available);
+        $this->assertNotContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $available);
+
+        // open adjournment only — adjournment end should show, suspension end should not
+        $adjournmentOpen = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::UNSPECIFIED_ADJOURNMENT, '2025-02-01'));
+
+        $available = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $adjournmentOpen);
+        $this->assertContains(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $available);
+        $this->assertNotContains(PetitionEventType::SUSPENSION_END, $available);
+    }
+
+    public function testSuspensionEndOnlyAvailableWhenAnUnmatchedSuspensionExists(): void
+    {
+        // closed pair → no more suspension end available
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-02-01'))
+            ->add($this->createEvent(PetitionEventType::SUSPENSION_END, '2025-02-15'));
+
+        $available = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+        $this->assertNotContains(PetitionEventType::SUSPENSION_END, $available);
+
+        // second suspension started → available again
+        $events = $events->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-03-01'));
+        $available = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+        $this->assertContains(PetitionEventType::SUSPENSION_END, $available);
     }
 
     private function createEvent(PetitionEventType $type, string $date = '2025-01-01', ?int $duration = null): PetitionEventData

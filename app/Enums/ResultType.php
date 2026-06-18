@@ -69,7 +69,6 @@ enum ResultType: string
             ],
             PetitionVariant::WOO_VERZOEK => [
                 self::FINAL_DECISION,
-                self::PARTIAL_DECISION,
                 self::WITHDRAWN,
                 self::FORWARDED,
                 self::REJECTED,

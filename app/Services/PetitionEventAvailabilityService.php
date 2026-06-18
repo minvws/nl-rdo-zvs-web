@@ -77,7 +77,7 @@ class PetitionEventAvailabilityService
         return array_values(array_filter(
             $availableForType,
             function (PetitionEventType $eventType) use ($petitionType, $usedTypes, $currentEvents): bool {
-                return $this->canAddEventType($eventType, $petitionType, $usedTypes, $currentEvents->last());
+                return $this->canAddEventType($eventType, $petitionType, $usedTypes, $currentEvents);
             },
         ));
     }
@@ -89,11 +89,15 @@ class PetitionEventAvailabilityService
         PetitionEventType $eventType,
         PetitionVariant $petitionType,
         array $usedTypes,
-        ?PetitionEventData $lastEvent,
+        WizardEventCollection $currentEvents,
     ): bool {
         $conflicts = $eventType->getConflicts($petitionType);
 
         if ($this->hasConflicts($conflicts, $usedTypes)) {
+            return false;
+        }
+
+        if (!$this->passesOpenStateRules($eventType, $currentEvents)) {
             return false;
         }
 
@@ -106,7 +110,7 @@ class PetitionEventAvailabilityService
         $isRepeat = in_array($eventType->value, $usedTypes, true);
         $requiredLast = $eventType->requiresPrecedingLastEvent($isRepeat);
 
-        if ($requiredLast instanceof PetitionEventType && $lastEvent?->type !== $requiredLast) {
+        if ($requiredLast instanceof PetitionEventType && $currentEvents->last()?->type !== $requiredLast) {
             return false;
         }
 
@@ -115,6 +119,44 @@ class PetitionEventAvailabilityService
         }
 
         return !in_array($eventType->value, $usedTypes, true);
+    }
+
+    /**
+     * Enforces mutually exclusive open suspension/adjournment state:
+     *  - a new suspension or adjournment cannot start while the other is open
+     *  - an end event is only available when its own pair is open
+     */
+    private function passesOpenStateRules(PetitionEventType $eventType, WizardEventCollection $currentEvents): bool
+    {
+        $suspensionOpen = $this->hasOpenSuspension($currentEvents);
+        $adjournmentOpen = $this->hasOpenAdjournment($currentEvents);
+
+        return match ($eventType) {
+            PetitionEventType::LETTER_OF_SUSPENSION_SENT => !$adjournmentOpen,
+            PetitionEventType::UNSPECIFIED_ADJOURNMENT => !$suspensionOpen,
+            PetitionEventType::SUSPENSION_END => $suspensionOpen,
+            PetitionEventType::UNSPECIFIED_ADJOURNMENT_END => $adjournmentOpen,
+            default => true,
+        };
+    }
+
+    private function hasOpenSuspension(WizardEventCollection $currentEvents): bool
+    {
+        return $this->countOfType($currentEvents, PetitionEventType::LETTER_OF_SUSPENSION_SENT)
+            > $this->countOfType($currentEvents, PetitionEventType::SUSPENSION_END);
+    }
+
+    private function hasOpenAdjournment(WizardEventCollection $currentEvents): bool
+    {
+        return $this->countOfType($currentEvents, PetitionEventType::UNSPECIFIED_ADJOURNMENT)
+            > $this->countOfType($currentEvents, PetitionEventType::UNSPECIFIED_ADJOURNMENT_END);
+    }
+
+    private function countOfType(WizardEventCollection $currentEvents, PetitionEventType $type): int
+    {
+        return $currentEvents->all()->filter(
+            static fn(PetitionEventData $event): bool => $event->type === $type,
+        )->count();
     }
 
     /**

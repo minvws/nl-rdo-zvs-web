@@ -61,7 +61,7 @@ class ResultTypeTest extends TestCase
     {
         $types = ResultType::getForPetitionType(PetitionVariant::WOO_VERZOEK);
 
-        $this->assertCount(9, $types);
+        $this->assertCount(8, $types);
         $this->assertContains(ResultType::FINAL_DECISION, $types);
         $this->assertContains(ResultType::WITHDRAWN, $types);
         $this->assertContains(ResultType::FORWARDED, $types);
@@ -88,10 +88,9 @@ class ResultTypeTest extends TestCase
         $this->assertArrayHasKey('with', $grouped);
         $this->assertArrayHasKey('without', $grouped);
         $this->assertContains(ResultType::FINAL_DECISION, $grouped['with']);
-        $this->assertContains(ResultType::PARTIAL_DECISION, $grouped['with']);
         $this->assertContains(ResultType::REJECTED, $grouped['with']);
         $this->assertContains(ResultType::DISMISSED, $grouped['with']);
-        $this->assertCount(4, $grouped['with']);
+        $this->assertCount(3, $grouped['with']);
         $this->assertContains(ResultType::WITHDRAWN, $grouped['without']);
         $this->assertContains(ResultType::FORWARDED, $grouped['without']);
         $this->assertContains(ResultType::RECONSIDERED, $grouped['without']);

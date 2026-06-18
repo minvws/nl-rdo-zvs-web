@@ -132,11 +132,6 @@ parameters:
 			count: 3
 			path: app/Console/Commands/Petition/ImportAppealsCommand.php
 
-		-
-			message: '#^Parameter \#1 \$import of static method Maatwebsite\\Excel\\Facades\\Excel\:\:toArray\(\) expects object, array given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/Console/Commands/Petition/ImportAppealsCommand.php
 
 		-
 			message: '#^Parameter \#1 \$value of function count expects array\|Countable, mixed given\.$#'

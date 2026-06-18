@@ -282,6 +282,18 @@ enum PetitionEventType: string
                 ],
                 default => [],
             },
+            self::OPINION_OUTSIDE_TERM => match ($petitionType) {
+                PetitionVariant::WOO_VERZOEK => [
+                    self::FINAL_RESULT,
+                ],
+                default => [],
+            },
+            self::SENT_PARTIAL_DECISION => match ($petitionType) {
+                PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
+                    self::FINAL_RESULT,
+                ],
+                default => [],
+            },
             self::NOTICE_OF_DEFAULT_WITHDRAWN => match ($petitionType) {
                 PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::APPEAL_DECISION_NOT_TIMELY,
@@ -290,7 +302,6 @@ enum PetitionEventType: string
                 default => [],
             },
             self::APPEAL_DECISION_NOT_TIMELY => [
-                self::APPEAL_DECISION_NOT_TIMELY,
                 self::FINAL_RESULT,
             ],
             self::FINAL_RESULT => match ($petitionType) {
