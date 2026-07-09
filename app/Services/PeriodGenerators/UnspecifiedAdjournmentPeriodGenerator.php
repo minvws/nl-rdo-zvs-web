@@ -82,7 +82,7 @@ class UnspecifiedAdjournmentPeriodGenerator implements PeriodGeneratorInterface
         $this->addAdjournmentBudgetDays($calendar, $startEvent, $endEvent);
         $this->setDeadlineOnLastDecisionPeriodDay($calendar);
 
-        if ($endEvent->adjournmentEndReason === AdjournmentEndReason::Withdrawal) {
+        if ($endEvent->reasoning === AdjournmentEndReason::Withdrawal->value) {
             $calendar->upsertDay($endEvent->date, ['isUnspecifiedAdjournmentWithdrawal' => true]);
         }
     }

@@ -926,6 +926,38 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     }
 
     #[Test]
+    public function testCreateActionUsesHtmxForFinalResultReasoningFieldToggle(): void
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::WOO_VERZOEK]);
+        $petitionStatus = PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->create([
+            'petition_type_id' => $petitionType->id,
+            'petition_status_id' => $petitionStatus->id,
+        ]);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $route = route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
+            'department' => $department,
+            'petition' => $petition,
+            'type' => PetitionEventType::FINAL_RESULT,
+        ]);
+
+        $response = $this->beUser($user, true, $department)->get($route);
+
+        $response->assertOk();
+        $response->assertSee('hx-get="' . $route . '"', escape: false);
+        $response->assertSee('hx-target="#reasoning-wrapper-container"', escape: false);
+        $response->assertSee('hx-select="#reasoning-wrapper-container"', escape: false);
+        $response->assertSee('id="reasoning-wrapper-container"', escape: false);
+        $response->assertDontSee("document.addEventListener('DOMContentLoaded'", escape: false);
+    }
+
+    #[Test]
     public function testProcessEventDataWithAllFieldsPresent(): void
     {
         ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();

@@ -16,6 +16,7 @@ use App\Validation\Rules\DateMustNotBeInTermRule;
 use App\Validation\Rules\LastEventMustBeOneOfRule;
 use App\Validation\Rules\NextDayMustBeInTermRule;
 use App\Validation\Rules\RequiresDependencyRule;
+use App\Validation\Rules\RequiresOpenAppealNotTimelyReceiptRule;
 use App\Validation\Rules\UniquenessRule;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
@@ -120,7 +121,6 @@ class ValidationServiceProvider extends ServiceProvider
                     new DateMustNotBeInTermRule([
                         TermType::NOTICE_OF_DEFAULT->value,
                         TermType::APPEAL_NOT_TIMELY->value,
-                        TermType::PENALTY_PERIOD->value,
                     ]),
                 ]);
             },
@@ -134,11 +134,11 @@ class ValidationServiceProvider extends ServiceProvider
             static function (Application $app): ComposableValidator {
                 return new ComposableValidator([
                     new RequiresDependencyRule(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY),
+                    new RequiresOpenAppealNotTimelyReceiptRule(),
                     $app->make(DateMustBeLatestEventRule::class),
                     new DateMustNotBeInTermRule([
                         TermType::NOTICE_OF_DEFAULT->value,
                         TermType::APPEAL_NOT_TIMELY->value,
-                        TermType::PENALTY_PERIOD->value,
                     ]),
                 ]);
             },

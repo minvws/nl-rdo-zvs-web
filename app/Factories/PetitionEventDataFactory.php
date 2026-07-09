@@ -34,7 +34,7 @@ final class PetitionEventDataFactory
             suspensionType: $event->suspension_type,
             resultType: $event->result_type,
             hearingForm: $event->hearing_form,
-            adjournmentEndReason: $event->adjournment_end_reason,
+            reasoning: $event->reasoning,
         );
     }
 }

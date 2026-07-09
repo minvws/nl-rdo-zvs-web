@@ -32,10 +32,17 @@ class InvalidPetitionEventData extends DomainException
         );
     }
 
-    public static function adjournmentEndReasonNotAllowed(PetitionEventType $type): self
+    public static function reasoningRequired(PetitionEventType $type): self
     {
         return new self(
-            sprintf('Event type "%s" does not support adjournment end reason', $type->value),
+            sprintf('Event type "%s" requires reasoning', $type->value),
+        );
+    }
+
+    public static function reasoningNotAllowed(PetitionEventType $type): self
+    {
+        return new self(
+            sprintf('Event type "%s" does not support reasoning', $type->value),
         );
     }
 }

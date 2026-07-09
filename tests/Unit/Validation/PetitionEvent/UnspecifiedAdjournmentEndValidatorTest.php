@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Validation\PetitionEvent;
 
+use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
 use App\Services\DerivedState;
 use App\ValueObjects\CalendarDate;
@@ -33,6 +34,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
+            reasoning: AdjournmentEndReason::Event->value,
         );
         $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
         $result = $validator->validate($event, $state);
@@ -68,6 +70,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
                 date: CalendarDate::create('2025-01-10'),
                 createdAt: CarbonImmutable::now(),
+                reasoning: AdjournmentEndReason::Event->value,
             ),
         ]);
         $state = (new DerivedState())->addEvents($events);
@@ -75,6 +78,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
+            reasoning: AdjournmentEndReason::Event->value,
         );
         $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
         $result = $validator->validate($event, $state);
@@ -110,6 +114,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
             date: CalendarDate::create('2025-01-05'),
             createdAt: CarbonImmutable::now(),
+            reasoning: AdjournmentEndReason::Event->value,
         );
         $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
         $result = $validator->validate($event, $state);
@@ -153,6 +158,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
+            reasoning: AdjournmentEndReason::Event->value,
         );
         $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
         $result = $validator->validate($event, $state);
@@ -188,6 +194,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
+            reasoning: AdjournmentEndReason::Event->value,
         );
         $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
         $result = $validator->validate($event, $state);

@@ -145,6 +145,7 @@ return [
             'only_one_event_allowed' => 'Er kan maar één :event worden toegevoegd',
             'event_requires_dependency' => ':event kan alleen worden toegevoegd na :required_event',
             'event_requires_dependency_any' => ':event kan alleen worden toegevoegd als één van de volgende gebeurtenissen bestaat: :required_events',
+            'event_requires_open_dependency' => ':event kan alleen worden toegevoegd zolang er een openstaande :required_event is',
             'event_not_allowed_in_term_type' => ':event is niet toegestaan in dit termijntype',
             'date_not_allowed_in_term' => ':event is niet toegestaan tijdens :term',
             'date_must_be_in_term' => ':event kan alleen binnen de termijn',

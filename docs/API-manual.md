@@ -130,6 +130,43 @@ curl -H "Authorization: Bearer TOKEN" \
   http://localhost/api/v1/petition_timeline_items?page=1
 ```
 
+## 3b. Petition Assignments Endpoint
+
+### GET /api/v1/petition_assignments
+
+Retrieve petition-to-user assignments (lawyer assignments with PRIMARY and SECONDARY roles).
+
+**Authentication:** Required (Sanctum token)
+
+**Query Parameters:**
+- `page` - Page number (default: 1)
+- `per_page` - Items per page (default: 15, max: 100)
+- `petition_id` - Filter by specific petition ID
+- `user_id` - Filter by specific user/lawyer ID
+- `created_at_after` - ISO 8601 timestamp
+- `created_at_before` - ISO 8601 timestamp
+- `updated_at_after` - ISO 8601 timestamp
+- `updated_at_before` - ISO 8601 timestamp
+
+**Response Fields:**
+- `id` - Assignment record ID
+- `petition_id` - Petition ID
+- `user_id` - Assigned user/lawyer ID
+- `assignment_role` - Role type (`1` = PRIMARY, `2` = SECONDARY)
+- `created_at` - Creation timestamp
+- `updated_at` - Update timestamp
+
+**Example Requests:**
+```bash
+# Get all assignments for a specific petition
+curl -H "Authorization: Bearer TOKEN" \
+  "http://localhost/api/v1/petition_assignments?petition_id=<petition_id>"
+
+# Get all assignments for a specific lawyer/user
+curl -H "Authorization: Bearer TOKEN" \
+  "http://localhost/api/v1/petition_assignments?user_id=<user_id>"
+```
+
 ## 5. Use the Postman collection
 
 Collection file:

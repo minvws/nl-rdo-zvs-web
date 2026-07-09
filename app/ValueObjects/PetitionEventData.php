@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\ValueObjects;
 
-use App\Enums\AdjournmentEndReason;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
@@ -28,13 +27,13 @@ readonly class PetitionEventData
         public ?SuspensionType $suspensionType = null,
         public ?ResultType $resultType = null,
         public ?HearingForm $hearingForm = null,
-        public ?AdjournmentEndReason $adjournmentEndReason = null,
+        public ?string $reasoning = null,
     ) {
         $this->validateDomainRules();
     }
 
     /**
-     * @return array{type: string, date: string, duration: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, hearing_form?: string|null, adjournment_end_reason?: string|null, created_at: CarbonImmutable}
+     * @return array{type: string, date: string, duration: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, hearing_form?: string|null, reasoning?: string|null, created_at: CarbonImmutable}
      */
     public function toArray(): array
     {
@@ -63,8 +62,8 @@ readonly class PetitionEventData
             $data['hearing_form'] = $this->hearingForm->value;
         }
 
-        if ($this->adjournmentEndReason instanceof AdjournmentEndReason) {
-            $data['adjournment_end_reason'] = $this->adjournmentEndReason->value;
+        if ($this->reasoning !== null) {
+            $data['reasoning'] = $this->reasoning;
         }
 
         $data['created_at'] = $this->createdAt;
@@ -86,8 +85,12 @@ readonly class PetitionEventData
             throw InvalidPetitionEventData::hearingFormNotAllowed($this->type);
         }
 
-        if ($this->adjournmentEndReason instanceof AdjournmentEndReason && !$this->type->hasAdjournmentEndReason()) {
-            throw InvalidPetitionEventData::adjournmentEndReasonNotAllowed($this->type);
+        if ($this->reasoning !== null && !$this->type->hasReasoning()) {
+            throw InvalidPetitionEventData::reasoningNotAllowed($this->type);
+        }
+
+        if ($this->type->requiresReasoning($this->resultType) && $this->reasoning === null) {
+            throw InvalidPetitionEventData::reasoningRequired($this->type);
         }
     }
 }

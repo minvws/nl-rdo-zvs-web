@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\PetitionEvent;
 
-use App\Enums\AdjournmentEndReason;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
@@ -65,11 +64,32 @@ class AddPetitionEventRequest extends FormRequest
                     return $this->input('type') === PetitionEventType::HEARING_DATE->value;
                 }),
             ],
-            'adjournment_end_reason' => [
+            'reasoning' => [
                 'nullable',
-                Rule::enum(AdjournmentEndReason::class),
+                'string',
+                'max:1000',
                 Rule::requiredIf(function (): bool {
-                    return $this->input('type') === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->value;
+                    $type = $this->enum('type', PetitionEventType::class);
+
+                    if (!$type instanceof PetitionEventType) {
+                        return false;
+                    }
+
+                    $resultType = $this->enum('result_type', ResultType::class);
+
+                    return $type->requiresReasoning($resultType);
+                }),
+                Rule::when(function (): bool {
+                    $type = $this->enum('type', PetitionEventType::class);
+
+                    return $type?->reasoningSelectEnumClass() !== null;
+                }, function (): array {
+                    $type = $this->enum('type', PetitionEventType::class);
+
+                    $reasoningSelectEnumClass = $type?->reasoningSelectEnumClass();
+                    Assert::notNull($reasoningSelectEnumClass);
+
+                    return [Rule::enum($reasoningSelectEnumClass)];
                 }),
             ],
             'penalties' => ['sometimes', 'array', 'min:1'],
@@ -109,9 +129,7 @@ class AddPetitionEventRequest extends FormRequest
             ? $this->getEnum('hearing_form', HearingForm::class)
             : null;
 
-        $adjournmentEndReason = $this->filled('adjournment_end_reason')
-            ? $this->getEnum('adjournment_end_reason', AdjournmentEndReason::class)
-            : null;
+        $reasoning = $this->filled('reasoning') ? $this->string('reasoning')->toString() : null;
 
         $penalties = $this->resolvePenalties();
 
@@ -130,7 +148,7 @@ class AddPetitionEventRequest extends FormRequest
             suspensionType: $suspensionType,
             resultType: $resultType,
             hearingForm: $hearingForm,
-            adjournmentEndReason: $adjournmentEndReason,
+            reasoning: $reasoning,
         );
     }
 
@@ -192,7 +210,7 @@ class AddPetitionEventRequest extends FormRequest
             'suspension_type' => 'suspension type',
             'result_type' => 'result type',
             'hearing_form' => 'hearing form',
-            'adjournment_end_reason' => 'reden',
+            'reasoning' => 'toelichting',
             'penalties.*.amount' => 'penalty amount',
             'penalties.*.duration' => 'penalty duration',
         ];

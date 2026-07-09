@@ -30,7 +30,7 @@
                 <td>
                     @foreach ($day->petitionEvents as $event)
                         @php
-                            $isUnspecifiedAdjournmentWithdrawal = $event->type === App\Enums\PetitionEventType::UNSPECIFIED_ADJOURNMENT_END && $event->adjournmentEndReason === App\Enums\AdjournmentEndReason::Withdrawal;
+                            $isUnspecifiedAdjournmentWithdrawal = $event->type === App\Enums\PetitionEventType::UNSPECIFIED_ADJOURNMENT_END && $event->reasoning === App\Enums\AdjournmentEndReason::Withdrawal->value;
                             $eventTypeClass = $isUnspecifiedAdjournmentWithdrawal ? 'unspecified_adjournment_end_withdrawal' : $event->type->value;
                             $eventLabel = $isUnspecifiedAdjournmentWithdrawal ? __('term.unspecified_adjournment_end_withdrawal') : __('term.' . $event->type->value . ($event->suspensionType ? '.' . $event->suspensionType->value : '') . ($event->resultType ? '.' . $event->resultType->value : ''));
                         @endphp

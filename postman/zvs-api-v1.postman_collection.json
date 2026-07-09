@@ -577,6 +577,125 @@
       "response": []
     },
     {
+      "name": "petition_assignments",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "",
+            "value": "",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{host}}/api/v1/petition_assignments/",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "petition_assignments",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "petition_assignments by petition_id",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Description",
+            "value": "Filter assignments by petition_id",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{host}}/api/v1/petition_assignments?petition_id=<petition_id>",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "petition_assignments"
+          ],
+          "query": [
+            {
+              "key": "petition_id",
+              "value": "<petition_id>"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "petition_assignments by user_id",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Description",
+            "value": "Filter assignments by user_id (lawyer)",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{host}}/api/v1/petition_assignments?user_id=<user_id>",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "petition_assignments"
+          ],
+          "query": [
+            {
+              "key": "user_id",
+              "value": "<user_id>"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "petition_querysnapshots",
       "request": {
         "auth": {

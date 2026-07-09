@@ -124,16 +124,29 @@ class PetitionEventDataTest extends TestCase
     }
 
     #[Test]
-    public function itThrowsExceptionWhenAdjournmentEndReasonProvidedForUnsupportedEvent(): void
+    public function itThrowsExceptionWhenReasoningRequiredButMissingForAdjournmentEnd(): void
     {
         $this->expectException(InvalidPetitionEventData::class);
-        $this->expectExceptionMessage('Event type "primary_decision" does not support adjournment end reason');
+        $this->expectExceptionMessage('Event type "unspecified_adjournment_end" requires reasoning');
+
+        new PetitionEventData(
+            type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+        );
+    }
+
+    #[Test]
+    public function itThrowsExceptionWhenReasoningProvidedForUnsupportedEventType(): void
+    {
+        $this->expectException(InvalidPetitionEventData::class);
+        $this->expectExceptionMessage('Event type "primary_decision" does not support reasoning');
 
         new PetitionEventData(
             type: PetitionEventType::PRIMARY_DECISION,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
-            adjournmentEndReason: AdjournmentEndReason::Withdrawal,
+            reasoning: 'Not allowed here',
         );
     }
 
@@ -229,6 +242,9 @@ class PetitionEventDataTest extends TestCase
                 date: CalendarDate::create('2025-01-15'),
                 createdAt: CarbonImmutable::now(),
                 duration: 30,
+                reasoning: $type === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END
+                    ? AdjournmentEndReason::Event->value
+                    : null,
             );
 
             $this->assertSame($type, $event->type);
@@ -330,18 +346,18 @@ class PetitionEventDataTest extends TestCase
     }
 
     #[Test]
-    public function itConvertsToArrayWithAdjournmentEndReason(): void
+    public function itConvertsToArrayWithReasoning(): void
     {
         $event = new PetitionEventData(
             type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
-            adjournmentEndReason: AdjournmentEndReason::Withdrawal,
+            reasoning: AdjournmentEndReason::Withdrawal->value,
         );
 
         $array = $event->toArray();
 
-        $this->assertSame(AdjournmentEndReason::Withdrawal->value, $array['adjournment_end_reason']);
+        $this->assertSame(AdjournmentEndReason::Withdrawal->value, $array['reasoning']);
     }
 
     #[Test]
@@ -367,6 +383,7 @@ class PetitionEventDataTest extends TestCase
                 date: CalendarDate::create('2025-01-15'),
                 createdAt: CarbonImmutable::now(),
                 resultType: $resultType,
+                reasoning: $resultType === ResultType::OTHER ? 'Some explanation' : null,
             );
 
             $array = $event->toArray();

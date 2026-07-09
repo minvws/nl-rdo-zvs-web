@@ -12,7 +12,7 @@ use function in_array;
 enum ResultType: string
 {
     case FINAL_DECISION = 'final_decision';
-    case PARTIAL_DECISION = 'partial_decision';
+    case FINAL_DECISION_55_REQUEST = 'final_decision_55_request';
     case WITHDRAWN = 'withdrawn';
     case FORWARDED = 'forwarded';
     case REJECTED = 'rejected';
@@ -21,11 +21,35 @@ enum ResultType: string
     case ALREADY_PUBLIC = 'already_public';
     case OTHER = 'other';
 
+    /**
+     * Returns the PetitionEventTypes that may be added after a FINAL_RESULT with this result type.
+     * An empty array means no follow-up tiles should be shown.
+     *
+     * @return array<PetitionEventType>
+     */
+    public function allowedFollowUpEventTypes(): array
+    {
+        return match ($this) {
+            self::FINAL_DECISION => [PetitionEventType::ACTUAL_DISCLOSURE, PetitionEventType::PUBLICATION_DATE],
+            self::FINAL_DECISION_55_REQUEST => [PetitionEventType::ACTUAL_DISCLOSURE],
+            self::REJECTED => [PetitionEventType::PUBLICATION_DATE],
+            default => [],
+        };
+    }
+
+    public function requiresReasoning(): bool
+    {
+        return match ($this) {
+            self::OTHER => true,
+            default => false,
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {
             self::FINAL_DECISION => __('result_type.final_decision'),
-            self::PARTIAL_DECISION => __('result_type.partial_decision'),
+            self::FINAL_DECISION_55_REQUEST => __('result_type.final_decision_55_request'),
             self::WITHDRAWN => __('result_type.withdrawn'),
             self::FORWARDED => __('result_type.forwarded'),
             self::REJECTED => __('result_type.rejected'),
@@ -42,7 +66,7 @@ enum ResultType: string
     public static function getGroupedForPetitionType(PetitionVariant $petitionType): array
     {
         $all = self::getForPetitionType($petitionType);
-        $withDecision = [self::FINAL_DECISION, self::PARTIAL_DECISION, self::REJECTED, self::DISMISSED];
+        $withDecision = [self::FINAL_DECISION, self::FINAL_DECISION_55_REQUEST, self::REJECTED, self::DISMISSED];
 
         return [
             'with' => array_values(array_filter(
@@ -69,6 +93,7 @@ enum ResultType: string
             ],
             PetitionVariant::WOO_VERZOEK => [
                 self::FINAL_DECISION,
+                self::FINAL_DECISION_55_REQUEST,
                 self::WITHDRAWN,
                 self::FORWARDED,
                 self::REJECTED,

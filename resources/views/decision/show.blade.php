@@ -20,10 +20,10 @@
                     <div class="petition-details">
                         @if ($decision->archived_at)
                             <x-status-badge badge_type="danger">
-                                {{ __('decision.model_singular') }} ({{ __('decision.archived') }})
+                                {{ $decision->type->label() }} ({{ __('decision.archived') }})
                             </x-status-badge>
                         @else
-                            <x-status-badge badge_type="info">{{ __('decision.model_singular') }}</x-status-badge>
+                            <x-status-badge badge_type="info">{{ $decision->type->label() }}</x-status-badge>
                         @endif
                         <h1 class="petition-details__header">{{ $decision->name }}</h1>
                         <span class="petition-details__number">{{ $decision->reference }}</span>

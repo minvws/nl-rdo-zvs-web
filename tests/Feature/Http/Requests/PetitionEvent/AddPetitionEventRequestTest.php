@@ -9,6 +9,7 @@ use App\Enums\Authorization\Permission;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
+use App\Enums\ResultType;
 use App\Enums\RouteName;
 use App\Enums\SuspensionType;
 use App\Models\Department;
@@ -255,11 +256,11 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
             ]);
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('adjournment_end_reason');
+        $response->assertSessionHasErrors('reasoning');
     }
 
     #[Test]
-    public function testAdjournmentEndReasonAcceptsValidValueForUnspecifiedAdjournmentEndEvents(): void
+    public function testReasoningAcceptsValidValueForUnspecifiedAdjournmentEndEvents(): void
     {
         ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
 
@@ -296,7 +297,7 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
             ]), [
                 'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->value,
                 'date' => now()->subDay()->toDateString(),
-                'adjournment_end_reason' => AdjournmentEndReason::Withdrawal->value,
+                'reasoning' => AdjournmentEndReason::Withdrawal->value,
             ]);
 
         $response->assertRedirect();
@@ -304,7 +305,52 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
         $events = Session::get($sessionKey);
         $this->assertNotNull($events);
         $lastEvent = $events->last();
-        $this->assertSame(AdjournmentEndReason::Withdrawal, $lastEvent->adjournmentEndReason);
+        $this->assertSame(AdjournmentEndReason::Withdrawal->value, $lastEvent->reasoning);
+    }
+
+    #[Test]
+    public function testReasoningRejectsInvalidValueForUnspecifiedAdjournmentEndEvents(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->subDays(20)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->subDays(15)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                date: CalendarDate::create(now()->subDays(10)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 5,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->value,
+                'date' => now()->subDay()->toDateString(),
+                'reasoning' => 'not-an-enum-value',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('reasoning');
     }
 
     #[Test]
@@ -508,13 +554,85 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
         $this->assertSame(SuspensionType::SUSPENSION, $lastEvent->suspensionType);
     }
 
+    #[Test]
+    public function testReasoningIsRequiredForFinalResultOther(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(PetitionVariant::WOO_VERZOEK);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create(now()->subDays(2)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::FINAL_RESULT->value,
+                'date' => now()->subDay()->toDateString(),
+                'result_type' => ResultType::OTHER->value,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('reasoning');
+    }
+
+    #[Test]
+    public function testReasoningAcceptsValueForFinalResultOther(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(PetitionVariant::WOO_VERZOEK);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create(now()->subDays(2)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::FINAL_RESULT->value,
+                'date' => now()->subDay()->toDateString(),
+                'result_type' => ResultType::OTHER->value,
+                'reasoning' => 'Custom other final result explanation',
+            ]);
+
+        $response->assertRedirect();
+
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+        $lastEvent = $events->last();
+        $this->assertSame('Custom other final result explanation', $lastEvent->reasoning);
+        $this->assertSame(ResultType::OTHER, $lastEvent->resultType);
+    }
+
     /**
      * @return array{department: Department, petition: Petition}
      */
-    private function createPetitionSetup(): array
+    private function createPetitionSetup(PetitionVariant $petitionVariant = PetitionVariant::BEZWAAR): array
     {
         $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => $petitionVariant]);
         $petitionStatus = PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->create([
             'petition_type_id' => $petitionType->id,

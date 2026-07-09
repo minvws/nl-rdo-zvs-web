@@ -30,7 +30,7 @@ class PetitionEventDataFactoryTest extends FeatureTestCase
         $event->suspension_type = null;
         $event->result_type = null;
         $event->hearing_form = null;
-        $event->adjournment_end_reason = AdjournmentEndReason::Withdrawal;
+        $event->reasoning = AdjournmentEndReason::Withdrawal->value;
 
         $data = PetitionEventDataFactory::fromModel($event);
 
@@ -44,7 +44,7 @@ class PetitionEventDataFactoryTest extends FeatureTestCase
         ], $arr['penalties']);
         $this->assertInstanceOf(CarbonImmutable::class, $arr['created_at']);
         $this->assertArrayNotHasKey('hearing_form', $arr);
-        $this->assertSame(AdjournmentEndReason::Withdrawal->value, $arr['adjournment_end_reason']);
+        $this->assertSame(AdjournmentEndReason::Withdrawal->value, $arr['reasoning']);
     }
 
     #[Test]

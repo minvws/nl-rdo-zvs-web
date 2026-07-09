@@ -201,7 +201,9 @@ class DecisionControllerTest extends FeatureTestCase
     {
         $department = Department::factory()->create();
         $petition = Petition::factory()->recycle($department)->create();
-        $decision = Decision::factory()->recycle($department)->hasAttached($petition)->create();
+        $decision = Decision::factory()->recycle($department)->hasAttached($petition)->create([
+            'type' => DecisionType::CHAT,
+        ]);
 
         $authUser = User::factory()
             ->withPermissions(Permission::DECISION_READ)
@@ -213,7 +215,33 @@ class DecisionControllerTest extends FeatureTestCase
                 'decision' => $decision,
             ])
             ->assertOk()
-            ->assertViewIs('decision.show');
+            ->assertViewIs('decision.show')
+            ->assertSee(DecisionType::CHAT->label())
+            ->assertDontSee(DecisionType::REGULAR->label());
+    }
+
+    #[Test]
+    public function testShowDisplaysRegularDecisionLabel(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $decision = Decision::factory()->recycle($department)->hasAttached($petition)->create([
+            'type' => DecisionType::REGULAR,
+        ]);
+
+        $authUser = User::factory()
+            ->withPermissions(Permission::DECISION_READ)
+            ->fullyVerified()
+            ->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
+                'department' => $department,
+                'decision' => $decision,
+            ])
+            ->assertOk()
+            ->assertViewIs('decision.show')
+            ->assertSee(DecisionType::REGULAR->label())
+            ->assertDontSee(DecisionType::CHAT->label());
     }
 
     public function testShowNotFound(): void

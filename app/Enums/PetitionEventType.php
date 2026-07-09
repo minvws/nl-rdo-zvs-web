@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Enums;
 
 use App\Services\EventValidatorInterface;
+use BackedEnum;
 use Illuminate\Support\Facades\Lang;
 
 use function app;
@@ -98,10 +99,43 @@ enum PetitionEventType: string
         };
     }
 
-    public function hasAdjournmentEndReason(): bool
+    public function hasReasoning(): bool
+    {
+        if ($this->hasReasoningSelect()) {
+            return true;
+        }
+        return $this->hasReasoningTextarea();
+    }
+
+    public function hasReasoningSelect(): bool
+    {
+        return $this->reasoningSelectEnumClass() !== null;
+    }
+
+    /**
+     * @return class-string<BackedEnum>|null
+     */
+    public function reasoningSelectEnumClass(): ?string
+    {
+        return match ($this) {
+            self::UNSPECIFIED_ADJOURNMENT_END => AdjournmentEndReason::class,
+            default => null,
+        };
+    }
+
+    public function hasReasoningTextarea(): bool
+    {
+        return match ($this) {
+            self::FINAL_RESULT => true,
+            default => false,
+        };
+    }
+
+    public function requiresReasoning(?ResultType $resultType = null): bool
     {
         return match ($this) {
             self::UNSPECIFIED_ADJOURNMENT_END => true,
+            self::FINAL_RESULT => $resultType?->requiresReasoning() ?? false,
             default => false,
         };
     }
@@ -145,7 +179,7 @@ enum PetitionEventType: string
         return match ($this) {
             self::ACTUAL_DISCLOSURE => [self::FINAL_RESULT],
 
-            self::PUBLICATION_DATE => [self::ACTUAL_DISCLOSURE],
+            self::PUBLICATION_DATE => [self::ACTUAL_DISCLOSURE, self::FINAL_RESULT],
 
             self::RECEIPT_OF_OBJECTION => [self::PRIMARY_DECISION],
 

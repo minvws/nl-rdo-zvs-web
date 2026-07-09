@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Enums;
 
+use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
+use App\Enums\ResultType;
 use Illuminate\Support\Facades\Lang;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -290,10 +292,35 @@ class PetitionEventTypeTest extends TestCase
     }
 
     #[Test]
-    public function testHasAdjournmentEndReasonReturnsTrueOnlyForUnspecifiedAdjournmentEnd(): void
+    public function testHasReasoningReturnsTrueForConfiguredEventTypes(): void
     {
-        $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasAdjournmentEndReason());
-        $this->assertFalse(PetitionEventType::UNSPECIFIED_ADJOURNMENT->hasAdjournmentEndReason());
-        $this->assertFalse(PetitionEventType::HEARING_DATE->hasAdjournmentEndReason());
+        $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasReasoning());
+        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoning());
+        $this->assertFalse(PetitionEventType::UNSPECIFIED_ADJOURNMENT->hasReasoning());
+        $this->assertFalse(PetitionEventType::HEARING_DATE->hasReasoning());
+    }
+
+    #[Test]
+    public function testReasoningFieldTypeConfiguration(): void
+    {
+        $this->assertSame(
+            AdjournmentEndReason::class,
+            PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->reasoningSelectEnumClass(),
+        );
+        $this->assertNull(PetitionEventType::FINAL_RESULT->reasoningSelectEnumClass());
+
+        $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasReasoningSelect());
+        $this->assertFalse(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasReasoningTextarea());
+
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoningSelect());
+        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoningTextarea());
+    }
+
+    #[Test]
+    public function testRequiresReasoningUsesCentralConfiguration(): void
+    {
+        $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->requiresReasoning());
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->requiresReasoning(ResultType::FINAL_DECISION));
+        $this->assertTrue(PetitionEventType::FINAL_RESULT->requiresReasoning(ResultType::OTHER));
     }
 }

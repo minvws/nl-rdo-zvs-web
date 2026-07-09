@@ -119,24 +119,6 @@
                         </select>
                     </div>
 
-                    <div class="form-input-group">
-                        <x-input-label
-                            for="date_of_entry"
-                            required
-                            :content="__(sprintf('petition.date_of_entry.%s', $petitionType->type->value))" />
-                        <x-input-error
-                            id="date-error"
-                            :messages="$errors->get('date_of_entry')" />
-                        <input
-                            class="form-control @error('date_of_entry') input-error @enderror"
-                            id="date_of_entry"
-                            aria-describedby="date-error"
-                            type="date"
-                            name="date_of_entry"
-                            value="{{ Form::old('date_of_entry', now()->toDateString()) }}"
-                            step="1" />
-                    </div>
-
                     @if ($petitionTypeConfiguration['date_appealed_decision'] !== OptionalFormFieldSetting::EXCLUDED)
                         <div class="form-input-group">
                             <x-input-label
@@ -156,6 +138,24 @@
                                 step="1" />
                         </div>
                     @endif
+
+                    <div class="form-input-group">
+                        <x-input-label
+                            for="date_of_entry"
+                            required
+                            :content="__(sprintf('petition.date_of_entry.%s', $petitionType->type->value))" />
+                        <x-input-error
+                            id="date-error"
+                            :messages="$errors->get('date_of_entry')" />
+                        <input
+                            class="form-control @error('date_of_entry') input-error @enderror"
+                            id="date_of_entry"
+                            aria-describedby="date-error"
+                            type="date"
+                            name="date_of_entry"
+                            value="{{ Form::old('date_of_entry', now()->toDateString()) }}"
+                            step="1" />
+                    </div>
                 </fieldset>
                 <div class="button-container">
                     <x-primary-button>

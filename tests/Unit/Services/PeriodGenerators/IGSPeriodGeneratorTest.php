@@ -6,6 +6,7 @@ namespace Tests\Unit\Services\PeriodGenerators;
 
 use App\Enums\PetitionEventType;
 use App\Enums\TermType;
+use App\Services\DeadlineCalculatorInterface;
 use App\Services\PeriodGenerators\IGSPeriodGenerator;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\EventCalendar;
@@ -21,6 +22,22 @@ use function sprintf;
 
 class IGSPeriodGeneratorTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->app->instance('legal-term-deadline-calculator', new class () implements DeadlineCalculatorInterface {
+            public function calculate(CalendarDate $proposedDeadline): CalendarDate
+            {
+                while ($proposedDeadline->isWeekend()) {
+                    $proposedDeadline = $proposedDeadline->addDay();
+                }
+
+                return $proposedDeadline;
+            }
+        });
+    }
+
     #[Test]
     public function testGeneratesNoBudgetDaysWhenNoIGSEvents(): void
     {

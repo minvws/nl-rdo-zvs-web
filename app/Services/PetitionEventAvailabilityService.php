@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
+use App\Enums\ResultType;
 use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
 
@@ -19,6 +20,7 @@ class PetitionEventAvailabilityService
     private const array MULTIPLE_OCCURRENCE_TYPES = [
         PetitionEventType::LETTER_OF_SUSPENSION_SENT,
         PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
+        PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY,
         PetitionEventType::SUSPENSION_END,
         PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
         PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
@@ -101,6 +103,17 @@ class PetitionEventAvailabilityService
             return false;
         }
 
+        if (!$this->passesResultTypeFollowUpRules($eventType, $currentEvents)) {
+            return false;
+        }
+
+        if (
+            $eventType === PetitionEventType::APPEAL_DECISION_NOT_TIMELY
+            && !$this->hasOpenAppealNotTimelyReceipt($currentEvents)
+        ) {
+            return false;
+        }
+
         $dependencies = $eventType->getDependencies($petitionType);
 
         if (!$this->hasDependencies($dependencies, $usedTypes)) {
@@ -119,6 +132,51 @@ class PetitionEventAvailabilityService
         }
 
         return !in_array($eventType->value, $usedTypes, true);
+    }
+
+    private function hasOpenAppealNotTimelyReceipt(WizardEventCollection $currentEvents): bool
+    {
+        return $this->countOfType($currentEvents, PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY)
+            > $this->countOfType($currentEvents, PetitionEventType::APPEAL_DECISION_NOT_TIMELY);
+    }
+
+    /**
+     * Enforces result-type-dependent follow-up event visibility:
+     *  - ACTUAL_DISCLOSURE / PUBLICATION_DATE are only available for specific FINAL_RESULT result types
+     *  - For FINAL_DECISION, PUBLICATION_DATE additionally requires ACTUAL_DISCLOSURE to be present first
+     */
+    private function passesResultTypeFollowUpRules(PetitionEventType $eventType, WizardEventCollection $currentEvents): bool
+    {
+        $followUpTypes = [PetitionEventType::ACTUAL_DISCLOSURE, PetitionEventType::PUBLICATION_DATE];
+
+        if (!in_array($eventType, $followUpTypes, true)) {
+            return true;
+        }
+
+        $finalResultEvent = $currentEvents->all()->first(
+            static fn (PetitionEventData $event): bool => $event->type === PetitionEventType::FINAL_RESULT,
+        );
+
+        if (!$finalResultEvent instanceof PetitionEventData) {
+            return true; // No FINAL_RESULT yet; dependency rules handle availability
+        }
+
+        if (!$finalResultEvent->resultType instanceof ResultType) {
+            return false; // FINAL_RESULT present but no result type → block follow-ups
+        }
+
+        if (!in_array($eventType, $finalResultEvent->resultType->allowedFollowUpEventTypes(), true)) {
+            return false;
+        }
+
+        // For FINAL_DECISION, PUBLICATION_DATE requires ACTUAL_DISCLOSURE to be present first
+        if ($eventType === PetitionEventType::PUBLICATION_DATE && $finalResultEvent->resultType === ResultType::FINAL_DECISION) {
+            return $currentEvents->all()->contains(
+                static fn (PetitionEventData $event): bool => $event->type === PetitionEventType::ACTUAL_DISCLOSURE,
+            );
+        }
+
+        return true;
     }
 
     /**
@@ -180,7 +238,7 @@ class PetitionEventAvailabilityService
      */
     private function hasConflicts(array $conflicts, array $usedTypes): bool
     {
-        return array_any($conflicts, static function ($conflict) use ($usedTypes): bool {
+        return array_any($conflicts, static function (PetitionEventType $conflict) use ($usedTypes): bool {
             return in_array($conflict->value, $usedTypes, true);
         });
     }

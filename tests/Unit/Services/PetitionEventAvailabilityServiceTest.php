@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
+use App\Enums\ResultType;
 use App\Services\PetitionEventAvailabilityService;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
 use Carbon\CarbonImmutable;
 use Tests\TestCase;
+
+use function sprintf;
 
 class PetitionEventAvailabilityServiceTest extends TestCase
 {
@@ -1010,6 +1014,49 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $this->assertContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
     }
 
+    public function testReceiptAppealNotTimelyVisibleAgainAfterAppealDecisionNotTimely(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, '2025-03-15'))
+            ->add($this->createEvent(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, '2025-04-01'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+
+        $this->assertContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
+    }
+
+    public function testAppealDecisionNotTimelyNotVisibleWhenNoOpenReceiptAppealNotTimelyExists(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, '2025-03-15'))
+            ->add($this->createEvent(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, '2025-04-01'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+
+        $this->assertNotContains(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, $availableTypes);
+    }
+
+    public function testAppealDecisionNotTimelyVisibleWhenOpenReceiptAppealNotTimelyExists(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, '2025-03-01'))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, '2025-03-15'))
+            ->add($this->createEvent(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, '2025-04-01'))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, '2025-04-10'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+
+        $this->assertContains(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, $availableTypes);
+    }
+
     public function testUnspecifiedAdjournmentNotVisibleWhileSuspensionIsOpenForBezwaar(): void
     {
         $events = WizardEventCollection::make()
@@ -1101,13 +1148,151 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $this->assertContains(PetitionEventType::SUSPENSION_END, $available);
     }
 
-    private function createEvent(PetitionEventType $type, string $date = '2025-01-01', ?int $duration = null): PetitionEventData
+    public function testActualDisclosureVisibleAfterFinalResultWithFinalDecision(): void
     {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+            ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01', null, ResultType::FINAL_DECISION));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertContains(PetitionEventType::ACTUAL_DISCLOSURE, $availableTypes);
+    }
+
+    public function testActualDisclosureVisibleAfterFinalResultWithFinalDecision55Request(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+            ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01', null, ResultType::FINAL_DECISION_55_REQUEST));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertContains(PetitionEventType::ACTUAL_DISCLOSURE, $availableTypes);
+    }
+
+    public function testActualDisclosureNotVisibleAfterFinalResultWithRejected(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+            ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01', null, ResultType::REJECTED));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertNotContains(PetitionEventType::ACTUAL_DISCLOSURE, $availableTypes);
+    }
+
+    public function testActualDisclosureNotVisibleAfterFinalResultWithZonderBesluit(): void
+    {
+        foreach ([ResultType::WITHDRAWN, ResultType::FORWARDED, ResultType::DISMISSED, ResultType::RECONSIDERED, ResultType::ALREADY_PUBLIC, ResultType::OTHER] as $resultType) {
+            $events = WizardEventCollection::make()
+                ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+                ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01', null, $resultType));
+
+            $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+            $this->assertNotContains(
+                PetitionEventType::ACTUAL_DISCLOSURE,
+                $availableTypes,
+                sprintf('ACTUAL_DISCLOSURE should not be available for %s', $resultType->value),
+            );
+        }
+    }
+
+    public function testFollowUpTilesNotVisibleWhenFinalResultHasNoResultType(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+            ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertNotContains(PetitionEventType::ACTUAL_DISCLOSURE, $availableTypes);
+        $this->assertNotContains(PetitionEventType::PUBLICATION_DATE, $availableTypes);
+    }
+
+    public function testPublicationDateVisibleAfterActualDisclosureWithFinalDecision(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+            ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01', null, ResultType::FINAL_DECISION))
+            ->add($this->createEvent(PetitionEventType::ACTUAL_DISCLOSURE, '2025-04-01'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertContains(PetitionEventType::PUBLICATION_DATE, $availableTypes);
+    }
+
+    public function testPublicationDateNotVisibleBeforeActualDisclosureWithFinalDecision(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+            ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01', null, ResultType::FINAL_DECISION));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertNotContains(PetitionEventType::PUBLICATION_DATE, $availableTypes);
+    }
+
+    public function testPublicationDateNotVisibleWithFinalDecision55Request(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+            ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01', null, ResultType::FINAL_DECISION_55_REQUEST))
+            ->add($this->createEvent(PetitionEventType::ACTUAL_DISCLOSURE, '2025-04-01'));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertNotContains(PetitionEventType::PUBLICATION_DATE, $availableTypes);
+    }
+
+    public function testPublicationDateVisibleDirectlyAfterFinalResultWithRejected(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+            ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01', null, ResultType::REJECTED));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertContains(PetitionEventType::PUBLICATION_DATE, $availableTypes);
+    }
+
+    public function testNoFollowUpTilesAfterFinalResultWithZonderBesluit(): void
+    {
+        foreach ([ResultType::WITHDRAWN, ResultType::FORWARDED, ResultType::DISMISSED, ResultType::RECONSIDERED, ResultType::ALREADY_PUBLIC, ResultType::OTHER] as $resultType) {
+            $events = WizardEventCollection::make()
+                ->add($this->createEvent(PetitionEventType::PETITION_RECEIVED, '2025-01-01'))
+                ->add($this->createEvent(PetitionEventType::FINAL_RESULT, '2025-03-01', null, $resultType));
+
+            $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+            $this->assertNotContains(
+                PetitionEventType::ACTUAL_DISCLOSURE,
+                $availableTypes,
+                sprintf('ACTUAL_DISCLOSURE should not be available for %s', $resultType->value),
+            );
+            $this->assertNotContains(
+                PetitionEventType::PUBLICATION_DATE,
+                $availableTypes,
+                sprintf('PUBLICATION_DATE should not be available for %s', $resultType->value),
+            );
+        }
+    }
+
+    private function createEvent(PetitionEventType $type, string $date = '2025-01-01', ?int $duration = null, ?ResultType $resultType = null): PetitionEventData
+    {
+        $reasoning = match (true) {
+            $type === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END => AdjournmentEndReason::Event->value,
+            $type === PetitionEventType::FINAL_RESULT && $resultType?->requiresReasoning() === true => 'Test reasoning',
+            default => null,
+        };
+
         return new PetitionEventData(
             type: $type,
             date: CalendarDate::create($date),
             createdAt: CarbonImmutable::now(),
             duration: $duration,
+            reasoning: $reasoning,
+            resultType: $resultType,
         );
     }
 }

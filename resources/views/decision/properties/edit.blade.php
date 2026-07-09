@@ -3,7 +3,7 @@
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
         <header class="petition-property__header">
-            <h2 class="petition-property__title">{{ __("decision.model_singular") }}</h2>
+            <h2 class="petition-property__title">{{ $decision->type->label() }}</h2>
             <a
                 href="{{ route(RouteName::DEPARTMENTS_DECISIONS_PROPERTIES, ["department" => $decision->department->slug, "decision" => $decision->id]) }}"
                 class="icon-only petition-property__edit"

@@ -9,6 +9,7 @@ use App\Models\CustomCost;
 use App\Models\CustomPetitionProperty;
 use App\Models\Decision;
 use App\Models\Petition;
+use App\Models\PetitionAssignment;
 use App\Models\PetitionCustomDate;
 use App\Models\PetitionDeliverable;
 use App\Models\PetitionDraftTerm;
@@ -23,6 +24,8 @@ use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\FeatureTestCase;
+
+use function sprintf;
 
 class GenericApiControllerTest extends FeatureTestCase
 {
@@ -151,6 +154,63 @@ class GenericApiControllerTest extends FeatureTestCase
         ]);
     }
 
+    public function testFilteringPetitionAssignmentsByPetitionId(): void
+    {
+        $petition = Petition::factory()->create();
+        $user = User::factory()->create();
+        PetitionAssignment::create([
+            'petition_id' => $petition->id,
+            'user_id' => $user->id,
+            'assignment_role' => 1,
+        ]);
+
+        // Create another assignment for a different petition
+        $otherPetition = Petition::factory()->create();
+        $otherUser = User::factory()->create();
+        PetitionAssignment::create([
+            'petition_id' => $otherPetition->id,
+            'user_id' => $otherUser->id,
+            'assignment_role' => 1,
+        ]);
+
+        $response = $this->getJson(sprintf("/api/v1/petition_assignments?petition_id=%s", $petition->id));
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals($petition->id, $data[0]['petition_id']);
+        $this->assertEquals($user->id, $data[0]['user_id']);
+    }
+
+    public function testFilteringPetitionAssignmentsByUserId(): void
+    {
+        $petition = Petition::factory()->create();
+        $user = User::factory()->create();
+        PetitionAssignment::create([
+            'petition_id' => $petition->id,
+            'user_id' => $user->id,
+            'assignment_role' => 1,
+        ]);
+
+        // Create another assignment for the same user but different petition
+        $otherPetition = Petition::factory()->create();
+        PetitionAssignment::create([
+            'petition_id' => $otherPetition->id,
+            'user_id' => $user->id,
+            'assignment_role' => 2,
+        ]);
+
+        $response = $this->getJson(sprintf("/api/v1/petition_assignments?user_id=%s", $user->id));
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+        $this->assertCount(2, $data);
+        // Verify all results have the correct user_id
+        foreach ($data as $assignment) {
+            $this->assertEquals($user->id, $assignment['user_id']);
+        }
+    }
+
     #[DataProvider('genericApiEndpoints')]
     public function testPetitionEndpointsAccessible(string $endpoint, ?string $model = null): void
     {
@@ -180,6 +240,7 @@ class GenericApiControllerTest extends FeatureTestCase
             ['/api/v1/petition_custom_properties', CustomPetitionProperty::class],
             ['/api/v1/petition_custom_costs', CustomCost::class],
             ['/api/v1/petition_custom_dates', PetitionCustomDate::class],
+            ['/api/v1/petition_assignments', PetitionAssignment::class],
             ['/api/v1/decision_petition'],
             ['/api/v1/public_holidays', PublicHoliday::class],
             ['/api/v1/processing_steps', ProcessingStep::class],

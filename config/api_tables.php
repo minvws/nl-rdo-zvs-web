@@ -493,6 +493,24 @@ return [
                 'timelineable_id',
             ],
         ],
+
+        'petition_assignments' => [
+            'table' => 'petition_assignments',
+            'fields' => [
+                'id',
+                'petition_id',
+                'user_id',
+                'assignment_role',
+                'created_at',
+                'updated_at',
+            ],
+            'filterable_fields' => [
+                'created_at',
+                'updated_at',
+                'petition_id',
+                'user_id',
+            ],
+        ],
     ],
 
     /*

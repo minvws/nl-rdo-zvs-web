@@ -1,2 +1,2 @@
 ALTER TABLE decisions
-    ADD COLUMN reviewbatch VARCHAR(128) NULL;
+    ADD COLUMN IF NOT EXISTS reviewbatch VARCHAR(128) NULL;

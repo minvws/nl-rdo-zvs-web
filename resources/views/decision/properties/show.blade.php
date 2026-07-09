@@ -6,7 +6,7 @@
     class="petition-property__block"
     hx-target="this">
     <header class="petition-property__header">
-        <h2 class="petition-property__title">{{ __('decision.model_singular') }}</h2>
+        <h2 class="petition-property__title">{{ $decision->type->label() }}</h2>
         @can(Ability::UPDATE, [$decision])
             <a
                 href="{{ route(RouteName::DEPARTMENTS_DECISIONS_EDIT, ['department' => $decision->department->slug, 'decision' => $decision]) }}"

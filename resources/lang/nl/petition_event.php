@@ -12,6 +12,8 @@ return [
     'result_type' => 'Uitkomsttype',
     'hearing_form' => 'Hoorzittingsvorm',
     'adjournment_end_reason' => 'Reden',
+    'reasoning' => 'Reden',
+    'result_type_other_reasoning' => 'Toelichting',
     'result_type_optgroup_with' => 'Met besluit',
     'result_type_optgroup_without' => 'Zonder besluit',
 
@@ -44,6 +46,14 @@ return [
         'receipt_of_objection' => 'Aantal dagen beslistermijn',
         'meeting_scheduled' => 'Aantal dagen waarmee beslistermijn wordt verlengd',
         'unspecified_adjournment' => 'Aantal dagen beslistermijn na gebeurtenis of intrekking zoals beschreven in brief',
+    ],
+    'fieldset_title' => [
+        'duration' => [
+            'appeal_decision_not_timely' => [
+                'title' => 'Aanvang dwangsom',
+                'subtitle' => 'Vul of het aantal dagen of de concrete aanvang datum in.',
+            ],
+        ],
     ],
 
     'default' => [
@@ -129,4 +139,9 @@ return [
             'unspecified_adjournment' => 'Opschorting voor onbepaalde tijd in overeenstemming met de verzoeker.',
         ],
     ],
+
+    'penalties' => [
+        'title' => 'Dwangsommen',
+        'subtitle' => 'Meestal 1, maximaal 3'
+    ]
 ];

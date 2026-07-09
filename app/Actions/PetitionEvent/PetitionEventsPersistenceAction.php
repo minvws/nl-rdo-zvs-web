@@ -23,7 +23,7 @@ readonly class PetitionEventsPersistenceAction
     }
 
     /**
-     * @param array<int, array{type: string, date: string, duration?: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, hearing_form?: string|null, adjournment_end_reason?: string|null, created_at: mixed}> $petitionEventDataArray
+     * @param array<int, array{type: string, date: string, duration?: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, hearing_form?: string|null, reasoning?: string|null, created_at: mixed}> $petitionEventDataArray
      *
      * @throws Throwable
      */
@@ -44,7 +44,7 @@ readonly class PetitionEventsPersistenceAction
     }
 
     /**
-     * @param array<int, array{type: string, date: string, duration?: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, hearing_form?: string|null, adjournment_end_reason?: string|null, created_at: mixed}> $petitionEventDataArray
+     * @param array<int, array{type: string, date: string, duration?: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, hearing_form?: string|null, reasoning?: string|null, created_at: mixed}> $petitionEventDataArray
      */
     private function createTimelineItem(Petition $petition, array $petitionEventDataArray, User $user): void
     {

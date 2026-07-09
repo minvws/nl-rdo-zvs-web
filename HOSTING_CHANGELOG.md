@@ -30,11 +30,15 @@ Na iedere deployment moeten:
 
 ## Changelog per Tag:
 
-
 ### DEVELOP
 
+### v1.22.0
+
+- Verwerk migraties in `database/sql` v0.0.47
+
 ### v1.21.0
-- Geen bijzonderheden
+
+- run `php artisan petitions:import-appeals` met een excel file uit het ticket met de migratie files
 
 ### v1.20.0
 

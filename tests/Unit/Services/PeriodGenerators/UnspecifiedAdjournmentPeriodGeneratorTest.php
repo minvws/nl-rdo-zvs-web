@@ -97,6 +97,7 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
                 date: CalendarDate::create('2025-01-13'),
                 createdAt: CarbonImmutable::now(),
+                reasoning: AdjournmentEndReason::Event->value,
             ),
         ]);
 
@@ -143,6 +144,7 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
                 date: CalendarDate::create('2025-01-13'),
                 createdAt: CarbonImmutable::now(),
+                reasoning: AdjournmentEndReason::Event->value,
             ),
         ]);
 
@@ -189,6 +191,7 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
                 date: CalendarDate::create('2025-01-13'),
                 createdAt: CarbonImmutable::now(),
+                reasoning: AdjournmentEndReason::Event->value,
             ),
         ]);
 
@@ -248,6 +251,7 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
                 date: CalendarDate::create('2025-05-15'),
                 createdAt: CarbonImmutable::now(),
+                reasoning: AdjournmentEndReason::Event->value,
             ),
         ]);
 
@@ -300,6 +304,7 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
                 date: CalendarDate::create('2025-06-02'),
                 createdAt: CarbonImmutable::now(),
+                reasoning: AdjournmentEndReason::Event->value,
             ),
         ]);
 
@@ -332,6 +337,7 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
                 date: CalendarDate::create('2025-01-13'),
                 createdAt: CarbonImmutable::now(),
+                reasoning: AdjournmentEndReason::Event->value,
             ),
         ]);
 
@@ -368,7 +374,7 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
                 date: $endDate,
                 createdAt: CarbonImmutable::now(),
-                adjournmentEndReason: AdjournmentEndReason::Withdrawal,
+                reasoning: AdjournmentEndReason::Withdrawal->value,
             ),
         ]);
 
