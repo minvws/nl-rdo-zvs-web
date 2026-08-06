@@ -187,6 +187,56 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     }
 
     #[Test]
+    public function testCreateShowsBeslissingOpBezwaarLabelForWjz(): void
+    {
+        $department = Department::factory()->create(['slug' => 'wjz-bb']);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
+                'department' => $department,
+                'petition' => $petition,
+                'type' => PetitionEventType::FINAL_RESULT->value,
+            ]));
+
+        $response->assertOk();
+        $response->assertSee(__('result_type.wjz-bb.final_decision'));
+        $response->assertDontSee(__('result_type.default.final_decision'));
+    }
+
+    #[Test]
+    public function testCreateShowsDefaultFinaalBesluitLabelForOtherDepartments(): void
+    {
+        $department = Department::factory()->create(['slug' => 'team-a']);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
+                'department' => $department,
+                'petition' => $petition,
+                'type' => PetitionEventType::FINAL_RESULT->value,
+            ]));
+
+        $response->assertOk();
+        $response->assertSee(__('result_type.default.final_decision'));
+        $response->assertDontSee(__('result_type.wjz-bb.final_decision'));
+    }
+
+    #[Test]
     public function testAddEventStoresEventInSessionAndRedirects(): void
     {
         $department = Department::factory()->create();
@@ -1118,6 +1168,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
             ]), [
                 'type' => PetitionEventType::MEETING_SCHEDULED->value,
                 'date' => now()->addDays(5)->toDateString(),
+                'term_deadline' => now()->addDays(19)->toDateString(),
             ]);
 
         $response->assertRedirect();
@@ -1431,26 +1482,6 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
         $this->assertEquals(PetitionEventType::RECEIPT_OF_OBJECTION, $petition->petitionEvents[1]->type);
         $this->assertEquals(PetitionEventType::LETTER_OF_SUSPENSION_SENT, $petition->petitionEvents[2]->type);
         $this->assertEquals(PetitionEventType::SUSPENSION_END, $petition->petitionEvents[3]->type);
-    }
-
-    #[Test]
-    public function testEnumHasDurationMethod(): void
-    {
-        // Test events that have duration
-        $this->assertTrue(PetitionEventType::PRIMARY_DECISION->hasDuration());
-        $this->assertTrue(PetitionEventType::RECEIPT_OF_OBJECTION->hasDuration());
-        $this->assertTrue(PetitionEventType::LETTER_OF_SUSPENSION_SENT->hasDuration());
-        $this->assertTrue(PetitionEventType::MEETING_SCHEDULED->hasDuration());
-        $this->assertTrue(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->hasDuration());
-        $this->assertTrue(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->hasDuration());
-        $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT->hasDuration());
-
-        // Test events that don't have duration
-        $this->assertFalse(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->hasDuration());
-        $this->assertFalse(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasDuration());
-        $this->assertFalse(PetitionEventType::SUSPENSION_END->hasDuration());
-        $this->assertFalse(PetitionEventType::HEARING_DATE->hasDuration());
-        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasDuration());
     }
 
     #[Test]

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Rector\CodingStyle\Rector\Encapsed\EncapsedStringsToSprintfRector;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\Cast\RecastingRemovalRector;
+use Rector\DeadCode\Rector\StmtsAwareInterface\RemoveDeadInstanceOfAssertRector;
 use Rector\Set\ValueObject\SetList;
 use RectorLaravel\Set\LaravelSetList;
 
@@ -73,5 +74,11 @@ return RectorConfig::configure()
             __DIR__ . '/app/Http/Controllers/PetitionEventWizardController.php',
             __DIR__ . '/app/Http/Requests/PetitionEvent/AddPetitionEventRequest.php',
             __DIR__ . '/app/Factories/PetitionEventDataFactory.php',
+        ],
+        // RectorLaravel types Request::route() as non-null, so it flags the
+        // assert() as dead, but Larastan types it as Route|null and needs the
+        // narrowing. Keep the assert to satisfy PHPStan.
+        RemoveDeadInstanceOfAssertRector::class => [
+            __DIR__ . '/app/Http/Middleware/RememberActiveDepartmentMiddleware.php',
         ],
     ]);

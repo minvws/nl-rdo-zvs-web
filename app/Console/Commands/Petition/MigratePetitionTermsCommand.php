@@ -26,8 +26,8 @@ use function sprintf;
 /**
  * @SuppressWarnings(PHPMD)
  */
-#[Signature('petition:migrate-terms {zaaknummer} {--commit} {--overwrite}')]
 #[Description('Migrate petition terms to petition events')]
+#[Signature('petition:migrate-terms {zaaknummer} {--commit} {--overwrite}')]
 class MigratePetitionTermsCommand extends Command
 {
     private const array BLOCKING_TERM_TYPES = [

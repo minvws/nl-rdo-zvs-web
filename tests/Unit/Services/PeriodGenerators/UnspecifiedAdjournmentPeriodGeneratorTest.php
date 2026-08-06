@@ -6,14 +6,15 @@ namespace Tests\Unit\Services\PeriodGenerators;
 
 use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
-use App\Enums\SuspensionType;
 use App\Enums\TermType;
 use App\Services\DerivedState;
 use App\Services\PeriodGenerators\UnspecifiedAdjournmentPeriodGenerator;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\EventCalendar;
+use App\ValueObjects\EventCalendarDay;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -22,198 +23,83 @@ use function collect;
 class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
 {
     #[Test]
-    public function testMarksDecisionPeriodDaysAfterAdjournment(): void
+    public function testFreezesDaysBetweenStartAndEndExclusive(): void
     {
         $calendar = new EventCalendar();
-        $adjournmentDate = CalendarDate::create('2025-01-10');
-        $decisionDay1 = CalendarDate::create('2025-01-11');
-        $decisionDay2 = CalendarDate::create('2025-01-12');
-        $otherDay = CalendarDate::create('2025-01-09');
-
-        // Voeg dagen toe aan de kalender
-        $calendar->upsertDay($adjournmentDate, [
-            'applicableTerm' => TermType::DECISION_PERIOD->value,
-        ]);
-        $calendar->upsertDay($decisionDay1, [
-            'applicableTerm' => TermType::DECISION_PERIOD->value,
-            'isDeadline' => true,
-        ]);
-        $calendar->upsertDay($decisionDay2, [
-            'applicableTerm' => TermType::DECISION_PERIOD->value,
-            'isDeadline' => true,
-        ]);
-        $calendar->upsertDay($otherDay, [
-            'applicableTerm' => TermType::OBJECTION_PERIOD->value,
-        ]);
-
         $events = collect([
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
-                date: CalendarDate::create('2025-01-10'),
-                createdAt: CarbonImmutable::now(),
-            ),
+            $this->adjournment('2025-01-10'),
+            $this->adjournmentEnd('2025-01-13', AdjournmentEndReason::Event),
         ]);
 
-        $generator = new UnspecifiedAdjournmentPeriodGenerator();
-        $generator->generate($events, $calendar);
+        (new UnspecifiedAdjournmentPeriodGenerator())->generate($events, $calendar);
 
-        $day1 = $calendar->findDay($decisionDay1);
-        $day2 = $calendar->findDay($decisionDay2);
-        $other = $calendar->findDay($otherDay);
+        // The frozen range is [start, end): start up to the day before the end event.
+        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-10'))->isUnspecifiedAdjournment);
+        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-11'))->isUnspecifiedAdjournment);
+        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-12'))->isUnspecifiedAdjournment);
 
-        $this->assertTrue($day1->isUnspecifiedAdjournment);
-        $this->assertTrue($day2->isUnspecifiedAdjournment);
-        $this->assertFalse($other->isUnspecifiedAdjournment);
-        $this->assertFalse($day1->isDeadline);
-        $this->assertFalse($day2->isDeadline);
+        // The end-event day itself counts towards the term again, so it is not frozen.
+        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-13')));
     }
 
     #[Test]
-    public function testMarksPeriodBetweenStartAndEndWhenEndEventExists(): void
+    public function testOpenAdjournmentFreezesUpToButNotIncludingToday(): void
     {
         $calendar = new EventCalendar();
-        $startDate = CalendarDate::create('2025-01-10');
-        $day1 = CalendarDate::create('2025-01-11');
-        $day2 = CalendarDate::create('2025-01-12');
-        $endDate = CalendarDate::create('2025-01-13');
-        $dayAfterEnd = CalendarDate::create('2025-01-14');
+        $start = CalendarDate::today()->addDays(-5);
+        $events = collect([$this->adjournment($start->toDateString())]);
 
-        // Voeg decision_period dagen toe
-        foreach ([$startDate, $day1, $day2, $endDate, $dayAfterEnd] as $date) {
-            $calendar->upsertDay($date, [
-                'applicableTerm' => TermType::DECISION_PERIOD->value,
-                'isDeadline' => true,
-            ]);
-        }
+        (new UnspecifiedAdjournmentPeriodGenerator())->generate($events, $calendar);
 
-        $events = collect([
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
-                date: CalendarDate::create('2025-01-10'),
-                createdAt: CarbonImmutable::now(),
-                duration: 3,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
-                date: CalendarDate::create('2025-01-13'),
-                createdAt: CarbonImmutable::now(),
-                reasoning: AdjournmentEndReason::Event->value,
-            ),
-        ]);
-
-        $generator = new UnspecifiedAdjournmentPeriodGenerator();
-        $generator->generate($events, $calendar);
-
-        // Dagen tussen START en END moeten gemarkeerd zijn
-        $this->assertTrue($calendar->findDay($startDate)->isUnspecifiedAdjournment);
-        $this->assertTrue($calendar->findDay($day1)->isUnspecifiedAdjournment);
-        $this->assertTrue($calendar->findDay($day2)->isUnspecifiedAdjournment);
-
-        // END dag en daarna NIET gemarkeerd als adjournment
-        $this->assertFalse($calendar->findDay($endDate)->isUnspecifiedAdjournment);
-        $this->assertFalse($calendar->findDay($dayAfterEnd)->isUnspecifiedAdjournment);
-
-        // Deadline op oorspronkelijke days moet verwijderd zijn
-        $this->assertFalse($calendar->findDay($startDate)->isDeadline);
-        $this->assertFalse($calendar->findDay($day1)->isDeadline);
-        $this->assertFalse($calendar->findDay($day2)->isDeadline);
-        $this->assertFalse($calendar->findDay($endDate)->isDeadline);
+        $this->assertTrue($calendar->findDay($start)->isUnspecifiedAdjournment);
+        $this->assertTrue($calendar->findDay(CalendarDate::today()->addDays(-1))->isUnspecifiedAdjournment);
+        $this->assertNull($calendar->findDay(CalendarDate::today()));
     }
 
     #[Test]
-    public function testGeneratesAdjournmentBudgetDaysAfterEnd(): void
+    public function testMarksWithdrawalOnEndDay(): void
     {
         $calendar = new EventCalendar();
-        $startDate = CalendarDate::create('2025-01-10');
-
-        // Voeg decision_period dagen toe tussen START en END
-        foreach ([$startDate, CalendarDate::create('2025-01-11'), CalendarDate::create('2025-01-12')] as $date) {
-            $calendar->upsertDay($date, [
-                'applicableTerm' => TermType::DECISION_PERIOD->value,
-            ]);
-        }
-
         $events = collect([
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
-                date: CalendarDate::create('2025-01-10'),
-                createdAt: CarbonImmutable::now(),
-                duration: 5,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
-                date: CalendarDate::create('2025-01-13'),
-                createdAt: CarbonImmutable::now(),
-                reasoning: AdjournmentEndReason::Event->value,
-            ),
+            $this->adjournment('2025-01-10'),
+            $this->adjournmentEnd('2025-01-13', AdjournmentEndReason::Withdrawal),
         ]);
 
-        $generator = new UnspecifiedAdjournmentPeriodGenerator();
-        $generator->generate($events, $calendar);
+        (new UnspecifiedAdjournmentPeriodGenerator())->generate($events, $calendar);
 
-        // Controleer dat er 5 aanhoudingbudget dagen zijn gegenereerd vanaf END + 1
-        $budgetDays = collect($calendar->all())
-            ->filter(static fn($day) => $day->date->greaterThanOrEqualTo(CalendarDate::create('2025-01-14')))
-            ->filter(static fn($day) => $day->applicableTerm === TermType::DECISION_PERIOD->value && $day->isBudgetDay)
-            ->count();
-
-        $this->assertEquals(5, $budgetDays);
-
-        // Controleer first/last markers
-        $firstBudgetDay = $calendar->findDay(CalendarDate::create('2025-01-14'));
-        $this->assertTrue($firstBudgetDay->isFirstDayOfBudget);
-
-        $lastBudgetDay = $calendar->findDay(CalendarDate::create('2025-01-18'));
-        $this->assertTrue($lastBudgetDay->isLastDayOfBudget);
-        $this->assertTrue($lastBudgetDay->isDeadline);
-        // Intermediate budget days geen deadline
-        $middleBudgetDay = $calendar->findDay(CalendarDate::create('2025-01-16'));
-        $this->assertFalse($middleBudgetDay->isDeadline);
+        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-13'))->isUnspecifiedAdjournmentWithdrawal);
     }
 
     #[Test]
-    public function testDoesNotGenerateBudgetDaysWhenDurationIsZero(): void
+    public function testMultipleCyclesFreezeEachRange(): void
     {
         $calendar = new EventCalendar();
-
-        $calendar->upsertDay(CalendarDate::create('2025-01-10'), [
-            'applicableTerm' => TermType::DECISION_PERIOD->value,
-        ]);
-
         $events = collect([
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
-                date: CalendarDate::create('2025-01-10'),
-                createdAt: CarbonImmutable::now(),
-                duration: 0,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
-                date: CalendarDate::create('2025-01-13'),
-                createdAt: CarbonImmutable::now(),
-                reasoning: AdjournmentEndReason::Event->value,
-            ),
+            $this->adjournment('2025-01-10'),
+            $this->adjournmentEnd('2025-01-12', AdjournmentEndReason::Event),
+            $this->adjournment('2025-01-20'),
+            $this->adjournmentEnd('2025-01-22', AdjournmentEndReason::Event),
         ]);
 
-        $generator = new UnspecifiedAdjournmentPeriodGenerator();
-        $generator->generate($events, $calendar);
+        (new UnspecifiedAdjournmentPeriodGenerator())->generate($events, $calendar);
 
-        // Geen budget dagen na END
-        $budgetDays = collect($calendar->all())
-            ->filter(static fn($day) => $day->date->greaterThanOrEqualTo(CalendarDate::create('2025-01-14')))
-            ->filter(static fn($day) => $day->isBudgetDay)
-            ->count();
-
-        $this->assertEquals(0, $budgetDays);
+        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-10'))->isUnspecifiedAdjournment);
+        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-11'))->isUnspecifiedAdjournment);
+        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-12')));
+        // Gap between the two cycles is untouched.
+        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-15')));
+        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-20'))->isUnspecifiedAdjournment);
+        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-21'))->isUnspecifiedAdjournment);
+        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-22')));
     }
 
     #[Test]
-    public function testGeneratesAdjournmentBudgetDaysAfterEndWithinTerm(): void
+    public function testClosedAdjournmentShiftsDecisionDeadlineForwardWithoutSpendingBudget(): void
     {
-        $events = collect([
+        $baseEvents = [
             new PetitionEventData(
                 type: PetitionEventType::PRIMARY_DECISION,
-                date: CalendarDate::create('2025-01-13'),
+                date: CalendarDate::create('2025-01-01'),
                 createdAt: CarbonImmutable::now(),
                 duration: 42,
             ),
@@ -223,50 +109,46 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
                 createdAt: CarbonImmutable::now(),
                 duration: 42,
             ),
-            new PetitionEventData(
-                type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
-                date: CalendarDate::create('2025-02-21'),
-                createdAt: CarbonImmutable::now(),
-                duration: 40,
-                suspensionType: SuspensionType::SPECIFIED_ADJOURNMENT,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::MEETING_SCHEDULED,
-                date: CalendarDate::create('2025-03-04'),
-                createdAt: CarbonImmutable::now(),
-                duration: 42,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::SUSPENSION_END,
-                date: CalendarDate::create('2025-03-08'),
-                createdAt: CarbonImmutable::now(),
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
-                date: CalendarDate::create('2025-05-13'),
-                createdAt: CarbonImmutable::now(),
-                duration: 7,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
-                date: CalendarDate::create('2025-05-15'),
-                createdAt: CarbonImmutable::now(),
-                reasoning: AdjournmentEndReason::Event->value,
-            ),
-        ]);
+        ];
 
-        $calendar = new DerivedState()->addEvents($events)->buildCalendar()->getCalendar()->sortBy('date');
+        $withoutAdjournment = $this->build(collect($baseEvents));
 
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-05-30'))->isDeadline);
+        // Five frozen days (03-01..03-05); the end event on 03-06 counts again.
+        $withAdjournment = $this->build(collect([
+            ...$baseEvents,
+            $this->adjournment('2025-03-01'),
+            $this->adjournmentEnd('2025-03-06', AdjournmentEndReason::Event),
+        ]));
+
+        // Frozen days do not spend budget, so the number of decision-period budget days is conserved.
+        $this->assertSame(
+            $this->decisionBudgetDayCount($withoutAdjournment->getCalendar()),
+            $this->decisionBudgetDayCount($withAdjournment->getCalendar()),
+        );
+
+        // The five frozen days sit inside the decision period without spending budget.
+        $frozenDecisionDays = $withAdjournment->getCalendar()->filter(
+            static fn(EventCalendarDay $day): bool => $day->isUnspecifiedAdjournment
+                && $day->applicableTerm === TermType::DECISION_PERIOD->value
+                && !$day->isBudgetDay,
+        );
+        $this->assertCount(5, $frozenDecisionDays);
+
+        // The decision deadline is pushed forward by the freeze.
+        $this->assertTrue(
+            $withAdjournment->deadlineDateForTerm(TermType::DECISION_PERIOD)->greaterThan(
+                $withoutAdjournment->deadlineDateForTerm(TermType::DECISION_PERIOD),
+            ),
+        );
     }
 
     #[Test]
-    public function testGeneratesAdjournmentBudgetDaysAfterEndOutsideTerm(): void
+    public function testOpenAdjournmentMakesPetitionDeadlineToday(): void
     {
         $events = collect([
             new PetitionEventData(
                 type: PetitionEventType::PRIMARY_DECISION,
-                date: CalendarDate::create('2025-01-13'),
+                date: CalendarDate::create('2025-01-01'),
                 createdAt: CarbonImmutable::now(),
                 duration: 42,
             ),
@@ -276,111 +158,94 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
                 createdAt: CarbonImmutable::now(),
                 duration: 42,
             ),
+            $this->adjournment('2025-03-01'),
+        ]);
+
+        $derivedState = $this->build($events);
+
+        $this->assertTrue($derivedState->deadlineDate()->equals(CalendarDate::today()));
+    }
+
+    #[Test]
+    public function testAdjournmentDuringObjectionPeriodShiftsBothTerms(): void
+    {
+        $baseEvents = [
             new PetitionEventData(
-                type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
-                date: CalendarDate::create('2025-02-21'),
-                createdAt: CarbonImmutable::now(),
-                duration: 40,
-                suspensionType: SuspensionType::SPECIFIED_ADJOURNMENT,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::MEETING_SCHEDULED,
-                date: CalendarDate::create('2025-03-04'),
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-01'),
                 createdAt: CarbonImmutable::now(),
                 duration: 42,
             ),
             new PetitionEventData(
-                type: PetitionEventType::SUSPENSION_END,
-                date: CalendarDate::create('2025-03-08'),
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-01-05'),
                 createdAt: CarbonImmutable::now(),
+                duration: 42,
             ),
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
-                date: CalendarDate::create('2025-05-13'),
-                createdAt: CarbonImmutable::now(),
-                duration: 5,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
-                date: CalendarDate::create('2025-06-02'),
-                createdAt: CarbonImmutable::now(),
-                reasoning: AdjournmentEndReason::Event->value,
-            ),
-        ]);
+        ];
 
-        $calendar = new DerivedState()->addEvents($events)->buildCalendar()->getCalendar()->sortBy('date');
+        $withoutAdjournment = $this->build(collect($baseEvents));
 
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-06-07'))->isDeadline);
+        // Adjournment starts inside the objection period (bezwaartermijn) and lasts four days.
+        $withAdjournment = $this->build(collect([
+            ...$baseEvents,
+            $this->adjournment('2025-01-10'),
+            $this->adjournmentEnd('2025-01-14', AdjournmentEndReason::Event),
+        ]));
+
+        $this->assertTrue(
+            $withAdjournment->deadlineDateForTerm(TermType::OBJECTION_PERIOD)->greaterThan(
+                $withoutAdjournment->deadlineDateForTerm(TermType::OBJECTION_PERIOD),
+            ),
+        );
+        $this->assertTrue(
+            $withAdjournment->deadlineDateForTerm(TermType::DECISION_PERIOD)->greaterThan(
+                $withoutAdjournment->deadlineDateForTerm(TermType::DECISION_PERIOD),
+            ),
+        );
+
+        // The objection-period budget is preserved; the frozen days only shift it forward.
+        $this->assertSame(
+            $withoutAdjournment->getCalendar()->filter(
+                static fn(EventCalendarDay $day): bool => $day->isBudgetDay
+                    && $day->applicableTerm === TermType::OBJECTION_PERIOD->value,
+            )->count(),
+            $withAdjournment->getCalendar()->filter(
+                static fn(EventCalendarDay $day): bool => $day->isBudgetDay
+                    && $day->applicableTerm === TermType::OBJECTION_PERIOD->value,
+            )->count(),
+        );
     }
 
-    #[Test]
-    public function testDoesNotSetDeadlineWhenNoDecisionPeriodDaysExist(): void
+    private function build(Collection $events): DerivedState
     {
-        $calendar = new EventCalendar();
-
-        // Add only non-decision period days
-        $calendar->upsertDay(CalendarDate::create('2025-01-10'), [
-            'applicableTerm' => TermType::OBJECTION_PERIOD->value,
-        ]);
-        $calendar->upsertDay(CalendarDate::create('2025-01-11'), [
-            'applicableTerm' => TermType::OBJECTION_PERIOD->value,
-        ]);
-
-        $events = collect([
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
-                date: CalendarDate::create('2025-01-10'),
-                createdAt: CarbonImmutable::now(),
-                duration: 0,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
-                date: CalendarDate::create('2025-01-13'),
-                createdAt: CarbonImmutable::now(),
-                reasoning: AdjournmentEndReason::Event->value,
-            ),
-        ]);
-
-        $generator = new UnspecifiedAdjournmentPeriodGenerator();
-        $generator->generate($events, $calendar);
-
-        // Verify no deadline was set (since no decision period days exist)
-        foreach ($calendar->all() as $day) {
-            $this->assertFalse($day->isDeadline);
-        }
+        return (new DerivedState())->addEvents($events)->buildCalendar();
     }
 
-    #[Test]
-    public function testMarksWithdrawalOnEndDayWhenReasonIsWithdrawal(): void
+    private function decisionBudgetDayCount(EventCalendar $calendar): int
     {
-        $calendar = new EventCalendar();
-        $startDate = CalendarDate::create('2025-01-10');
-        $endDate = CalendarDate::create('2025-01-13');
+        return $calendar->filter(
+            static fn(EventCalendarDay $day): bool => $day->isBudgetDay
+                && $day->applicableTerm === TermType::DECISION_PERIOD->value,
+        )->count();
+    }
 
-        foreach ([$startDate, CalendarDate::create('2025-01-11'), CalendarDate::create('2025-01-12'), $endDate] as $date) {
-            $calendar->upsertDay($date, [
-                'applicableTerm' => TermType::DECISION_PERIOD->value,
-            ]);
-        }
+    private function adjournment(string $date): PetitionEventData
+    {
+        return new PetitionEventData(
+            type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+            date: CalendarDate::create($date),
+            createdAt: CarbonImmutable::now(),
+        );
+    }
 
-        $events = collect([
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
-                date: $startDate,
-                createdAt: CarbonImmutable::now(),
-                duration: 3,
-            ),
-            new PetitionEventData(
-                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
-                date: $endDate,
-                createdAt: CarbonImmutable::now(),
-                reasoning: AdjournmentEndReason::Withdrawal->value,
-            ),
-        ]);
-
-        $generator = new UnspecifiedAdjournmentPeriodGenerator();
-        $generator->generate($events, $calendar);
-
-        $this->assertTrue($calendar->findDay($endDate)->isUnspecifiedAdjournmentWithdrawal);
+    private function adjournmentEnd(string $date, AdjournmentEndReason $reason): PetitionEventData
+    {
+        return new PetitionEventData(
+            type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
+            date: CalendarDate::create($date),
+            createdAt: CarbonImmutable::now(),
+            reasoning: $reason->value,
+        );
     }
 }

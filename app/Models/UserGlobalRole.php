@@ -16,8 +16,8 @@ use Override;
 /**
  * @property GlobalRole $role
  */
-#[UseFactory(UserGlobalRoleFactory::class)]
 #[Table('user_global_roles')]
+#[UseFactory(UserGlobalRoleFactory::class)]
 class UserGlobalRole extends EloquentModel
 {
     /** @use HasFactory<UserGlobalRoleFactory> */

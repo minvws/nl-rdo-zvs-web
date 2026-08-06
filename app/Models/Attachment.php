@@ -17,8 +17,8 @@ use Ramsey\Uuid\UuidInterface;
  * @property string $path
  * @property string $name
  */
-#[UseFactory(AttachmentFactory::class)]
 #[Table('attachments')]
+#[UseFactory(AttachmentFactory::class)]
 class Attachment extends EloquentModel
 {
     /** @use HasFactory<AttachmentFactory> */

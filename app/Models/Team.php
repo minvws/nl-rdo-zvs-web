@@ -29,9 +29,9 @@ use Override;
  * @property-read Collection<int, Decision> $decisions
  */
 #[CollectedBy(TeamCollection::class)]
+#[Table('teams')]
 #[UseEloquentBuilder(TeamQueryBuilder::class)]
 #[UseFactory(TeamFactory::class)]
-#[Table('teams')]
 class Team extends EloquentModel implements DepartmentAwareInterface
 {
      /** @use HasFactory<TeamFactory> */

@@ -1,0 +1,29 @@
+info:
+  name: petition_types
+  type: http
+  seq: 19
+
+http:
+  method: GET
+  url: "{{host}}/api/v1/petition_types/?per_page=100"
+  headers:
+    - name: ""
+      value: ""
+      disabled: true
+  params:
+    - name: department_id
+      value: ""
+      type: query
+      disabled: true
+    - name: per_page
+      value: "100"
+      type: query
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -18,8 +18,8 @@ use Webmozart\Assert\Assert;
 
 use function sprintf;
 
-#[Signature('api:create-user')]
 #[Description('Create a new API user with generated credentials')]
+#[Signature('api:create-user')]
 class CreateApiUserCommand extends Command
 {
     public function handle(Hasher $hasher, LogService $logService): int

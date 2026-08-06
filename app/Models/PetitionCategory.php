@@ -25,9 +25,9 @@ use Override;
  * @property bool $active
  */
 #[CollectedBy(PetitionCategoryCollection::class)]
+#[Table('petition_categories')]
 #[UseEloquentBuilder(PetitionCategoryQueryBuilder::class)]
 #[UseFactory(PetitionCategoryFactory::class)]
-#[Table('petition_categories')]
 class PetitionCategory extends EloquentModel implements DepartmentAwareInterface
 {
     use HasDepartment;

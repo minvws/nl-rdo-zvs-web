@@ -7,9 +7,11 @@ namespace App\Config;
 use App\Enums\DecisionType;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
+use App\Enums\ResultType;
 use App\Models\Department;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Lang;
 use Webmozart\Assert\Assert;
 
 use function __;
@@ -53,6 +55,20 @@ readonly class DepartmentConfigurationService
         }
 
         return $options;
+    }
+
+    public function resultTypeLabel(Department $department, ResultType $resultType): string
+    {
+        $key = sprintf('result_type.%s.%s', $department->slug, $resultType->value);
+
+        if (!Lang::has($key)) {
+            return $resultType->label();
+        }
+
+        $label = Lang::get($key);
+        Assert::string($label);
+
+        return $label;
     }
 
     /**

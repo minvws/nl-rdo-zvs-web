@@ -16,8 +16,8 @@ use Throwable;
 
 use function sprintf;
 
-#[Signature('api:generate-credentials {api_user_id}')]
 #[Description('Generates API credentials for a given (API) user ID.')]
+#[Signature('api:generate-credentials {api_user_id}')]
 class GenerateApiCredentials extends Command
 {
     public function handle(Hasher $hasher, LogService $logService): int

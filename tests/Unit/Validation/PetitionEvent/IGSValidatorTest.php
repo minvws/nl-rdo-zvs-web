@@ -87,7 +87,7 @@ class IGSValidatorTest extends TestCase
     }
 
     #[Test]
-    public function testItFailsWhenDateIsWithinObjectionOrDecisionPeriod(): void
+    public function testItPassesWhenDateIsWithinObjectionOrDecisionPeriod(): void
     {
         $validator = PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->rule();
         $state = new DerivedState();
@@ -113,15 +113,8 @@ class IGSValidatorTest extends TestCase
             duration: 30,
         ), $state);
 
-        $this->assertFalse($result->isValid());
-        $this->assertArrayHasKey('date', $result->getErrors());
-        $this->assertStringContainsString(
-            __('term.validation.common.date_not_allowed_in_term', [
-                'event' => PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->label(),
-                'term' => __('term.term_type.objection_period'),
-            ]),
-            $result->getErrors()['date'],
-        );
+        $this->assertTrue($result->isValid());
+        $this->assertEmpty($result->getErrors());
     }
 
     #[Test]

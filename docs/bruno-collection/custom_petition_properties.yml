@@ -1,0 +1,21 @@
+info:
+  name: custom_petition_properties
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{host}}/api/v1/custom_petition_properties/"
+  headers:
+    - name: ""
+      value: ""
+      disabled: true
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

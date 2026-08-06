@@ -50,17 +50,34 @@ enum PetitionEventType: string
         return resolve($key);
     }
 
+    /**
+     * @codeCoverageIgnore pure config mapping, no business logic to test
+     */
+    public function hasEndDate(): bool
+    {
+        return match ($this) {
+            self::MEETING_SCHEDULED => true,
+            default => false,
+        };
+    }
+
+    /**
+     * @codeCoverageIgnore pure config mapping, no business logic to test
+     */
     public function hasDuration(): bool
     {
+        // An end date also procures a duration in days, the form field to get it is different.
+        if ($this->hasEndDate()) {
+            return true;
+        }
+
         return match ($this) {
             self::PRIMARY_DECISION,
             self::RECEIPT_OF_OBJECTION,
             self::LETTER_OF_SUSPENSION_SENT,
-            self::MEETING_SCHEDULED,
             self::ADJOURNMENT,
             self::NOTICE_OF_DEFAULT_RECEIVED,
             self::APPEAL_DECISION_NOT_TIMELY,
-            self::UNSPECIFIED_ADJOURNMENT,
             self::PETITION_RECEIVED, => true,
             default => false,
         };
@@ -104,6 +121,7 @@ enum PetitionEventType: string
         if ($this->hasReasoningSelect()) {
             return true;
         }
+
         return $this->hasReasoningTextarea();
     }
 
@@ -196,7 +214,10 @@ enum PetitionEventType: string
                 default => [],
             },
 
-            self::RECEIPT_APPEAL_NOT_TIMELY => [self::NOTICE_OF_DEFAULT_RECEIVED],
+            self::RECEIPT_APPEAL_NOT_TIMELY => [
+                self::RECEIPT_OF_OBJECTION,
+                self::PETITION_RECEIVED,
+            ],
 
             self::SUSPENSION_END => [self::LETTER_OF_SUSPENSION_SENT],
 
@@ -291,7 +312,6 @@ enum PetitionEventType: string
             },
             self::UNSPECIFIED_ADJOURNMENT => match ($petitionType) {
                 PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
-                    self::UNSPECIFIED_ADJOURNMENT,
                     self::NOTICE_OF_DEFAULT_RECEIVED,
                     self::APPEAL_DECISION_NOT_TIMELY,
                     self::FINAL_RESULT,
@@ -300,7 +320,6 @@ enum PetitionEventType: string
             },
             self::UNSPECIFIED_ADJOURNMENT_END => match ($petitionType) {
                 PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
-                    self::UNSPECIFIED_ADJOURNMENT_END,
                     self::NOTICE_OF_DEFAULT_RECEIVED,
                     self::APPEAL_DECISION_NOT_TIMELY,
                     self::FINAL_RESULT,

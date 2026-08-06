@@ -626,6 +626,92 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
         $this->assertSame(ResultType::OTHER, $lastEvent->resultType);
     }
 
+    #[Test]
+    public function testTermDeadlineRequiredForMeetingScheduled(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->addDay()->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::MEETING_SCHEDULED->value,
+                'date' => now()->addDays(5)->toDateString(),
+                // term_deadline intentionally omitted
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('term_deadline');
+    }
+
+    #[Test]
+    public function testTermDeadlineDeriveDurationForMeetingScheduled(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->addDay()->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            )));
+
+        $eventDate = now()->addDays(5)->toDateString();
+        $termDeadline = now()->addDays(19)->toDateString(); // 14 days after event date
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::MEETING_SCHEDULED->value,
+                'date' => $eventDate,
+                'term_deadline' => $termDeadline,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+        $lastEvent = $events->last();
+        $this->assertSame(14, $lastEvent->duration);
+    }
+
     /**
      * @return array{department: Department, petition: Petition}
      */

@@ -171,6 +171,9 @@ return [
         'postal_address_postal_code' => [
             'regex' => 'Vul een geldige postcode in',
         ],
+        'petition_status_date' => [
+            'before_or_equal' => 'Vul een datum in die vandaag of eerder is',
+        ],
     ],
     'secure_file_upload' => [
         'uploaded_file' => 'De :attribute moet een geüpload bestand zijn.',

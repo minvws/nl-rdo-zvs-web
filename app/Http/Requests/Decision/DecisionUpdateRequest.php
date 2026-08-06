@@ -53,14 +53,6 @@ class DecisionUpdateRequest extends FormRequest
         }
     }
 
-    private function getDepartmentId(): UuidInterface
-    {
-        $department = $this->route('department');
-        Assert::isInstanceOf($department, Department::class);
-
-        return $department->id;
-    }
-
     #[Override]
     protected function getRedirectUrl(): string
     {
@@ -80,5 +72,13 @@ class DecisionUpdateRequest extends FormRequest
         }
 
         return route(RouteName::DEPARTMENTS_DECISIONS_EDIT, $parameters);
+    }
+
+    private function getDepartmentId(): UuidInterface
+    {
+        $department = $this->route('department');
+        Assert::isInstanceOf($department, Department::class);
+
+        return $department->id;
     }
 }

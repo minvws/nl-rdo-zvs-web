@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Petition;
 
+use App\Actions\PetitionEvent\UpdatePetitionTotalsFromEventsAction;
 use App\Enums\Authorization\Permission;
+use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
 use App\Enums\ProcessingStepStatus;
 use App\Enums\RouteName;
 use App\Enums\TermType;
 use App\Enums\TimelineFilterGroup;
 use App\Enums\TimelineType;
+use App\Facades\DisplayDate;
 use App\Models\Decision;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionEvent;
 use App\Models\PetitionTerm;
 use App\Models\PetitionType;
 use App\Models\ProcessingStep;
@@ -24,6 +28,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 
 use function __;
+use function app;
 use function array_keys;
 use function config;
 
@@ -96,6 +101,40 @@ class PetitionShowControllerTest extends FeatureTestCase
             ->assertOk()
             ->assertViewIs('petition.show')
             ->assertSee(__('term.overview'));
+    }
+
+    public function testShowDisplaysPenaltyPeriodEndDateInSidebar(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        PetitionEvent::factory()
+            ->for($petition)
+            ->create([
+                'type' => PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                'date' => CalendarDate::create('2025-02-17'),
+                'duration' => 2,
+                'penalties' => [
+                    ['amount' => 100, 'duration' => 3],
+                ],
+            ]);
+
+        app(UpdatePetitionTotalsFromEventsAction::class)->execute($petition);
+        $petition->refresh();
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition->id,
+            ])
+            ->assertOk()
+            ->assertViewIs('petition.show')
+            ->assertSee(__('petition.deadline_notice_of_default'))
+            ->assertSee(__('petition.deadline_notice_of_default_penalty_period_end'))
+            ->assertSee(DisplayDate::date($petition->deadline_notice_of_default))
+            ->assertSee(DisplayDate::date(CalendarDate::create('2025-02-22')));
     }
 
     public function testShowWithTimelineFilter(): void

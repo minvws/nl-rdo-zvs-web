@@ -107,9 +107,9 @@ use Ramsey\Uuid\UuidInterface;
  * @SuppressWarnings(PHPMD)
  */
 #[CollectedBy(PetitionCollection::class)]
+#[Table('petitions')]
 #[UseEloquentBuilder(PetitionQueryBuilder::class)]
 #[UsePolicy(PetitionPolicy::class)]
-#[Table('petitions')]
 class Petition extends EloquentModel implements DepartmentAwareInterface, TimelineableInterface
 {
     use HasDepartment;

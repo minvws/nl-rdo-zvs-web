@@ -25,9 +25,9 @@ use Ramsey\Uuid\UuidInterface;
  *
  * @mixin DepartmentTermTypeSettingBuilder
  */
+#[Table('department_term_type_settings', timestamps: false)]
 #[UseEloquentBuilder(DepartmentTermTypeSettingBuilder::class)]
 #[UseFactory(DepartmentTermTypeSettingFactory::class)]
-#[Table('department_term_type_settings', timestamps: false)]
 class DepartmentTermTypeSetting extends EloquentModel
 {
     /** @use HasFactory<DepartmentTermTypeSettingFactory> */

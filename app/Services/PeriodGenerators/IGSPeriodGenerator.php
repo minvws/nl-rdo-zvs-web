@@ -75,6 +75,7 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
         }
 
         $proposedDeadline = $startDate->addDays($budget - 1);
+
         return $this->markDeadline($calendar, $proposedDeadline);
     }
 
@@ -120,10 +121,12 @@ class IGSPeriodGenerator implements PeriodGeneratorInterface
 
         if ($proposedDeadline->equals($actualDeadline)) {
             $calendar->upsertDay($proposedDeadline, ['isDeadline' => true]);
+
             return $proposedDeadline; // ← no ATW shift, deadline is the proposed date
         }
 
         $this->addAtwDaysIfDeadlineMoved($calendar, $proposedDeadline, $actualDeadline);
+
         return $actualDeadline; // ← shifted deadline
     }
 

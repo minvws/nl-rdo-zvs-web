@@ -13,8 +13,8 @@ use Laravel\Prompts\TextPrompt;
 use Throwable;
 use Webmozart\Assert\Assert;
 
-#[Signature('app:create-admin-user')]
 #[Description('Create an admin user for the application')]
+#[Signature('app:create-admin-user')]
 class CreateAdminUserCommand extends Command
 {
     public function handle(

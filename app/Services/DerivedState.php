@@ -111,12 +111,39 @@ class DerivedState
             return null;
         }
 
+        // While an unspecified adjournment is still open its end date is "today", so the running
+        // term has no fixed last day yet. The petition deadline is therefore today (and keeps
+        // moving forward daily), decoupled from the projected last-day marker in the calendar.
+        if ($this->hasOpenUnspecifiedAdjournment()) {
+            return CalendarDate::today();
+        }
+
         $lastDeadlineDay = $this->calendar
             ->filter(static fn($day): bool => $day->isDeadline)
             ->sortByDesc(static fn($day): string => $day->date->toDateString())
             ->first();
 
-        return $lastDeadlineDay?->date;
+        $deadline = $lastDeadlineDay?->date;
+
+        foreach ([TermType::NOTICE_OF_DEFAULT, TermType::APPEAL_NOT_TIMELY] as $penaltyTerm) {
+            $penaltyEnd = $this->activePenaltyPeriodEndDateForTerm($penaltyTerm);
+
+            if ($penaltyEnd instanceof CalendarDate && ($deadline === null || $penaltyEnd->greaterThan($deadline))) {
+                $deadline = $penaltyEnd;
+            }
+        }
+
+        return $deadline;
+    }
+
+    private function hasOpenUnspecifiedAdjournment(): bool
+    {
+        $countOfType = fn(PetitionEventType $type): int => $this->events
+            ->filter(static fn(PetitionEventData $event): bool => $event->type === $type)
+            ->count();
+
+        return $countOfType(PetitionEventType::UNSPECIFIED_ADJOURNMENT)
+            > $countOfType(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END);
     }
 
     public function deadlineDateForTerm(TermType $term): ?CalendarDate
@@ -127,6 +154,18 @@ class DerivedState
             ->first();
 
         return $deadlineDay?->date;
+    }
+
+    public function penaltyPeriodEndDateForTerm(TermType $term): ?CalendarDate
+    {
+        $penaltyEndDay = $this->calendar
+            ->filter(static fn($day): bool => $day->applicableTerm === TermType::PENALTY_PERIOD->value
+                && $day->penaltySourceTerm === $term->value
+                && $day->penaltyTodayInEuros > 0)
+            ->sortByDesc(static fn($day): string => $day->date->toDateString())
+            ->first();
+
+        return $penaltyEndDay?->date;
     }
 
     public function penaltyTodayForTerm(CalendarDate $date, TermType $term): int
@@ -174,6 +213,21 @@ class DerivedState
     }
 
     /**
+     * Once the decision deadline for a penalty term has passed, the date on which the penalties stop
+     * accruing becomes the relevant deadline.
+     */
+    private function activePenaltyPeriodEndDateForTerm(TermType $term): ?CalendarDate
+    {
+        $termDeadline = $this->deadlineDateForTerm($term);
+
+        if ($termDeadline instanceof CalendarDate && $termDeadline->isInThePast()) {
+            return $this->penaltyPeriodEndDateForTerm($term);
+        }
+
+        return null;
+    }
+
+    /**
      * @return array<int, PeriodGeneratorInterface>
      */
     private function defaultGenerators(): array
@@ -182,12 +236,12 @@ class DerivedState
         // maybe resolve them from config
         return [
             new SuspensionPeriodGenerator(),
+            new UnspecifiedAdjournmentPeriodGenerator(),
             new ObjectionPeriodGenerator(),
             new BeslisPeriodGenerator(),
             new IGSPeriodGenerator(),
             new BNTPeriodGenerator(),
             new FinalDecisionDateGenerator(),
-            new UnspecifiedAdjournmentPeriodGenerator(),
             new EventsGenerator(),
         ];
     }

@@ -55,7 +55,15 @@ final class ObjectionPetitionEventsCreationStrategyTest extends FeatureTestCase
             'type' => PetitionEventType::PRIMARY_DECISION->value,
         ]);
 
-        $this->assertEquals(2, $petition->petitionEvents()->count());
+        $this->assertEquals(
+            [
+                PetitionEventType::PRIMARY_DECISION,
+                PetitionEventType::RECEIPT_OF_OBJECTION,
+            ],
+            $petition->petitionEvents->map(
+                static fn (PetitionEvent $event) => $event->type,
+            )->toArray(),
+        );
     }
 
     #[Test]

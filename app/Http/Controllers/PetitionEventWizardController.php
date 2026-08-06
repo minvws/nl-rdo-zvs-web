@@ -8,6 +8,7 @@ use App\Actions\PetitionEvent\EventsStoreAction;
 use App\Actions\PetitionEvent\PetitionEventPersistAction;
 use App\Config\DepartmentConfigurationService;
 use App\Enums\PetitionEventType;
+use App\Enums\ResultType;
 use App\Enums\RouteName;
 use App\Factories\WizardEventCollectionFactory;
 use App\Http\Requests\PetitionEvent\AddPetitionEventRequest;
@@ -69,7 +70,22 @@ final readonly class PetitionEventWizardController
             'selectedType' => $type,
             'department' => $department,
             'petition' => $petition,
+            'resultTypeLabels' => $this->resultTypeLabels($department),
         ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function resultTypeLabels(Department $department): array
+    {
+        $labels = [];
+
+        foreach (ResultType::cases() as $resultType) {
+            $labels[$resultType->value] = $this->configurationService->resultTypeLabel($department, $resultType);
+        }
+
+        return $labels;
     }
 
     public function add(

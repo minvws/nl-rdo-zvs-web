@@ -21,8 +21,8 @@ use Override;
  *
  * @property-read Petition $petition
  */
-#[UseFactory(PetitionQuerysnapshotFactory::class)]
 #[Table('petition_querysnapshots')]
+#[UseFactory(PetitionQuerysnapshotFactory::class)]
 class PetitionQuerysnapshot extends EloquentModel
 {
     /** @use HasFactory<PetitionQuerysnapshotFactory> */

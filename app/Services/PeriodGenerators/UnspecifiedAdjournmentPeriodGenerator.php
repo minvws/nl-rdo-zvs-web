@@ -6,15 +6,25 @@ namespace App\Services\PeriodGenerators;
 
 use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
-use App\Enums\TermType;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\EventCalendar;
-use App\ValueObjects\EventCalendarDay;
 use App\ValueObjects\PetitionEventData;
 use Illuminate\Support\Collection;
 
-use function collect;
-
+/**
+ * An unspecified adjournment ("ongespecificeerde aanhouding") pauses the running term for
+ * an unknown length. This generator only marks the frozen days; it runs before the objection
+ * and decision period generators, which skip frozen days when spending their budget. Freezing
+ * a day therefore shifts the running term (and its deadline) one day forward.
+ *
+ * The frozen range is [start, end): the day the adjournment ends ('gebeurtenis heeft
+ * plaatsgevonden' / 'intrekking akkoord') counts towards the term again, just like the day a
+ * decision on objection is sent counts for an IGS penalty. While an adjournment is still open
+ * the range runs up to today, which is why the term keeps extending by a day for every day the
+ * adjournment stays open.
+ *
+ * Multiple adjournment cycles are supported by pairing starts and ends in chronological order.
+ */
 class UnspecifiedAdjournmentPeriodGenerator implements PeriodGeneratorInterface
 {
     /**
@@ -22,170 +32,44 @@ class UnspecifiedAdjournmentPeriodGenerator implements PeriodGeneratorInterface
      */
     public function generate(Collection $events, EventCalendar $calendar): void
     {
-        $startEvent = $this->findUnspecifiedAdjournmentStartEvent($events);
-        if (!$startEvent instanceof PetitionEventData) {
-            return;
-        }
+        $starts = $this->sortedEventsOfType($events, PetitionEventType::UNSPECIFIED_ADJOURNMENT);
+        $ends = $this->sortedEventsOfType($events, PetitionEventType::UNSPECIFIED_ADJOURNMENT_END);
 
-        $endEvent = $this->findUnspecifiedAdjournmentEndEvent($events);
-
-        if (!$endEvent instanceof PetitionEventData) {
-            $this->handleOpenAdjournment($calendar, $startEvent);
-
-            return;
-        }
-
-        $this->handleClosedAdjournment($calendar, $startEvent, $endEvent);
+        $starts->each(function (PetitionEventData $start, int $index) use ($ends, $calendar): void {
+            $this->freezeAdjournment($calendar, $start, $ends->get($index));
+        });
     }
 
     /**
      * @param Collection<int, PetitionEventData> $events
+     *
+     * @return Collection<int, PetitionEventData>
      */
-    private function findUnspecifiedAdjournmentStartEvent(Collection $events): ?PetitionEventData
+    private function sortedEventsOfType(Collection $events, PetitionEventType $type): Collection
     {
-        /** @var PetitionEventData|null $petitionEventData */
-        $petitionEventData = $events->first(
-            static function (PetitionEventData $event): bool {
-                return $event->type === PetitionEventType::UNSPECIFIED_ADJOURNMENT;
-            },
-        );
-
-        return $petitionEventData;
+        return $events
+            ->filter(static fn(PetitionEventData $event): bool => $event->type === $type)
+            ->sortBy(static fn(PetitionEventData $event): string => $event->date->toDateString())
+            ->values();
     }
 
-    /**
-     * @param Collection<int, PetitionEventData> $events
-     */
-    private function findUnspecifiedAdjournmentEndEvent(Collection $events): ?PetitionEventData
-    {
-        /** @var PetitionEventData|null $petitionEventData */
-        $petitionEventData = $events->first(
-            static function (PetitionEventData $event): bool {
-                return $event->type === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END;
-            },
-        );
-
-        return $petitionEventData;
-    }
-
-    private function handleOpenAdjournment(EventCalendar $calendar, PetitionEventData $startEvent): void
-    {
-        $this->markDecisionPeriodDaysAsAdjournment($calendar, $startEvent->date, null);
-    }
-
-    private function handleClosedAdjournment(
+    private function freezeAdjournment(
         EventCalendar $calendar,
-        PetitionEventData $startEvent,
-        PetitionEventData $endEvent,
+        PetitionEventData $start,
+        ?PetitionEventData $end,
     ): void {
-        $this->markDecisionPeriodDaysAsAdjournment($calendar, $startEvent->date, $endEvent->date);
-        $this->addAdjournmentBudgetDays($calendar, $startEvent, $endEvent);
-        $this->setDeadlineOnLastDecisionPeriodDay($calendar);
+        // While the adjournment is still open the freeze runs up to (but not including) today,
+        // so the deadline keeps moving forward for every day it stays open.
+        $endDate = $end instanceof PetitionEventData ? $end->date : CalendarDate::today();
 
-        if ($endEvent->reasoning === AdjournmentEndReason::Withdrawal->value) {
-            $calendar->upsertDay($endEvent->date, ['isUnspecifiedAdjournmentWithdrawal' => true]);
-        }
-    }
-
-    private function markDecisionPeriodDaysAsAdjournment(
-        EventCalendar $calendar,
-        CalendarDate $startDate,
-        ?CalendarDate $endDate,
-    ): void {
-        foreach ($calendar as $day) {
-            if (!$this->isDecisionPeriodDay($day)) {
-                continue;
-            }
-
-            if (!$this->isWithinAdjournmentPeriod($day->date, $startDate, $endDate)) {
-                continue;
-            }
-
-            $calendar->upsertDay($day->date, [
-                'isUnspecifiedAdjournment' => true,
-                'isDeadline' => false,
-            ]);
-        }
-    }
-
-    private function addAdjournmentBudgetDays(
-        EventCalendar $calendar,
-        PetitionEventData $startEvent,
-        PetitionEventData $endEvent,
-    ): void {
-        $budget = $startEvent->duration ?? 0;
-        if ($budget === 0) {
-            return;
-        }
-
-        $this->clearExistingDecisionPeriodDeadlines($calendar);
-        $this->generateBudgetDays($calendar, $endEvent->date->addDay(), $budget);
-    }
-
-    private function clearExistingDecisionPeriodDeadlines(EventCalendar $calendar): void
-    {
-        foreach ($calendar as $day) {
-            if ($this->isDecisionPeriodDay($day) && $day->isDeadline) {
-                $calendar->upsertDay($day->date, ['isDeadline' => false]);
-            }
-        }
-    }
-
-    private function generateBudgetDays(EventCalendar $calendar, CalendarDate $startDate, int $budget): void
-    {
-        $currentDate = $startDate;
-
-        for ($dayIndex = 0; $dayIndex < $budget; $dayIndex++) {
-            $calendar->upsertDay($currentDate, [
-                'applicableTerm' => TermType::DECISION_PERIOD->value,
-                'isBudgetDay' => true,
-                'isFirstDayOfBudget' => $dayIndex === 0,
-                'isLastDayOfBudget' => $dayIndex === $budget - 1,
-            ]);
+        $currentDate = $start->date;
+        while ($currentDate->isBefore($endDate)) {
+            $calendar->upsertDay($currentDate, ['isUnspecifiedAdjournment' => true]);
             $currentDate = $currentDate->addDay();
         }
-    }
 
-    private function setDeadlineOnLastDecisionPeriodDay(EventCalendar $calendar): void
-    {
-        $lastDay = $this->findLastDecisionPeriodDay($calendar);
-        if (!$lastDay instanceof EventCalendarDay) {
-            return;
+        if ($end instanceof PetitionEventData && $end->reasoning === AdjournmentEndReason::Withdrawal->value) {
+            $calendar->upsertDay($end->date, ['isUnspecifiedAdjournmentWithdrawal' => true]);
         }
-
-        $calendar->upsertDay($lastDay->date, ['isDeadline' => true]);
-    }
-
-    private function findLastDecisionPeriodDay(EventCalendar $calendar): ?EventCalendarDay
-    {
-        return collect($calendar->all())
-            ->filter(function (EventCalendarDay $day): bool {
-                return $this->isDecisionPeriodDay($day);
-            })
-            ->sortByDesc(static function (EventCalendarDay $day): string {
-                return $day->date->toDateString();
-            })
-            ->first();
-    }
-
-    private function isDecisionPeriodDay(EventCalendarDay $day): bool
-    {
-        return $day->applicableTerm === TermType::DECISION_PERIOD->value;
-    }
-
-    private function isWithinAdjournmentPeriod(
-        CalendarDate $date,
-        CalendarDate $startDate,
-        ?CalendarDate $endDate,
-    ): bool {
-        $afterStart = $date->greaterThanOrEqualTo($startDate);
-
-        if (!$endDate instanceof CalendarDate) {
-            return $afterStart;
-        }
-
-        $beforeEnd = $date->lessThanOrEqualTo($endDate->addDays(-1));
-
-        return $afterStart && $beforeEnd;
     }
 }

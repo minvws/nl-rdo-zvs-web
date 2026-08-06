@@ -112,10 +112,21 @@ class BeslisPeriodGenerator implements PeriodGeneratorInterface
 
     private function processDayForBudget(EventCalendar $calendar, CalendarDate $currentDate, int $budget): void
     {
-        $isSuspended = $this->isDaySuspended($calendar, $currentDate);
-
-        if ($isSuspended) {
+        if ($this->isDaySuspended($calendar, $currentDate)) {
             $calendar->totalDaysSuspended++;
+            $calendar->upsertDay($currentDate, [
+                'applicableTerm' => TermType::DECISION_PERIOD->value,
+                'isBudgetDay' => false,
+                'isFirstDayOfBudget' => false,
+                'isLastDayOfBudget' => false,
+            ]);
+
+            return;
+        }
+
+        // A day frozen by an unspecified adjournment does not spend decision-period budget,
+        // shifting the term (and its deadline) forward, but stays part of the decision period.
+        if ($this->isDayFrozen($calendar, $currentDate)) {
             $calendar->upsertDay($currentDate, [
                 'applicableTerm' => TermType::DECISION_PERIOD->value,
                 'isBudgetDay' => false,
@@ -160,6 +171,13 @@ class BeslisPeriodGenerator implements PeriodGeneratorInterface
         $existingDay = $calendar->findDay($date);
 
         return $existingDay instanceof EventCalendarDay && $existingDay->suspensionType instanceof SuspensionType;
+    }
+
+    private function isDayFrozen(EventCalendar $calendar, CalendarDate $date): bool
+    {
+        $existingDay = $calendar->findDay($date);
+
+        return $existingDay instanceof EventCalendarDay && $existingDay->isUnspecifiedAdjournment;
     }
 
     private function addAtwDaysIfDeadlineMoved(

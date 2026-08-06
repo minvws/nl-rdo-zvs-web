@@ -19,6 +19,67 @@ use function collect;
 class BNTValidatorTest extends TestCase
 {
     #[Test]
+    public function testReceiptAppealNotTimelyPassesWhenReceiptOfObjectionExists(): void
+    {
+        $validator = PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->rule();
+        $state = new DerivedState();
+        $state->addEvents(collect([
+            new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-01-10'),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ),
+        ]));
+
+        $result = $validator->validate(new PetitionEventData(
+            type: PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY,
+            date: CalendarDate::create('2025-01-10'),
+            createdAt: CarbonImmutable::now(),
+        ), $state);
+
+        $this->assertTrue($result->isValid());
+        $this->assertEmpty($result->getErrors());
+    }
+
+    #[Test]
+    public function testReceiptAppealNotTimelyFailsWhenNoStartEventExists(): void
+    {
+        $validator = PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->rule();
+        $state = new DerivedState();
+        $state->addEvents(collect([
+            new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+        ]));
+
+        $result = $validator->validate(new PetitionEventData(
+            type: PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY,
+            date: CalendarDate::create('2025-01-10'),
+            createdAt: CarbonImmutable::now(),
+        ), $state);
+
+        $this->assertFalse($result->isValid());
+        $this->assertArrayHasKey('general', $result->getErrors());
+        $this->assertSame(
+            __('term.validation.common.event_requires_dependency_any', [
+                'event' => PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->label(),
+                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label() . ' of ' . PetitionEventType::PETITION_RECEIVED->label(),
+            ]),
+            $result->getErrors()['general'],
+        );
+    }
+
+    #[Test]
     public function testItPassesWhenReceiptAppealNotTimelyExistsAndDateIsValid(): void
     {
         $validator = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule();
@@ -136,7 +197,7 @@ class BNTValidatorTest extends TestCase
     }
 
     #[Test]
-    public function testItFailsWhenDateIsWithinRestrictedTerms(): void
+    public function testItPassesWhenDateIsWithinPenaltyPeriod(): void
     {
         $validator = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule();
         $state = new DerivedState();
@@ -174,12 +235,8 @@ class BNTValidatorTest extends TestCase
             duration: 20,
         ), $state);
 
-        $this->assertFalse($result->isValid());
-        $this->assertArrayHasKey('date', $result->getErrors());
-        $this->assertStringContainsString(
-            'is niet toegestaan tijdens',
-            $result->getErrors()['date'],
-        );
+        $this->assertTrue($result->isValid());
+        $this->assertEmpty($result->getErrors());
     }
 
     #[Test]

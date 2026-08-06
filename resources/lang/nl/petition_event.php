@@ -47,6 +47,9 @@ return [
         'meeting_scheduled' => 'Aantal dagen waarmee beslistermijn wordt verlengd',
         'unspecified_adjournment' => 'Aantal dagen beslistermijn na gebeurtenis of intrekking zoals beschreven in brief',
     ],
+    'deadline' => [
+        'meeting_scheduled' => 'Overeengekomen nieuwe uiterste beslisdatum',
+    ],
     'fieldset_title' => [
         'duration' => [
             'appeal_decision_not_timely' => [
@@ -70,7 +73,7 @@ return [
             'opinion_outside_term' => 'Zienswijzeverzoek buiten de termijn verzonden',
             'petition_received' => 'Ontvangst Woo-verzoek',
             'term_duration' => 'Termijnduur',
-            'term_deadline' => 'Overeengekomen nieuwe uiterste beslisdatum',
+            'term_deadline' => 'Eerste dag dat behandeltermijn voorbij is',
             'primary_decision' => 'Primair besluit',
             'publication_date' => 'Publicatie',
             'receipt_appeal_not_timely' => 'Ontvangstdatum BNT',
@@ -83,12 +86,12 @@ return [
         'description' => [
             'actual_disclosure' => 'Dit is de datum waarop de werkelijke verstrekking heeft plaatsgevonden.',
             'adjournment' => 'Dit is de datum waarop er is verdaagd.',
-            'appeal_decision_not_timely' => 'Dit is de datum waarop de uitspraak van het BNT is gedaan. Dit kan alleen na de deadline IGS en eventuele dwangsommen.',
+            'appeal_decision_not_timely' => 'Dit is de datum waarop de uitspraak van het BNT is gedaan.',
             'final_result' => 'Dit is de datum waarop het definitieve besluit is genomen, de zaak is ingetrokken of is doorgezonden. Alle termijnen en dwangsommen zijn hiermee beëindigd.',
             'hearing_date' => 'Dit is de datum van de hoorzitting.',
             'letter_of_suspension_sent' => 'Dit is de datum waarop de brief is verzonden.',
             'meeting_scheduled' => 'Datum die in de plaats komt van de oorspronkelijke einddatum van de beslistermijn.',
-            'notice_of_default_received' => 'Dit is de datum waarop de ingebrekestelling is ontvangen. Dit kan alleen na de deadline beslistermijn.',
+            'notice_of_default_received' => 'Dit is de datum waarop de ingebrekestelling is ontvangen.',
             'notice_of_default_withdrawn' => 'Dit is de datum waarop de ingebrekestelling is ingetrokken.',
             'opinion_outside_term' => 'Dit is de datum waarop een zienswijzeverzoek buiten de termijn is verzonden en daarom niet wordt opgeschort.',
             'petition_received' => 'Dit is de datum waarop het Woo-verzoek is ontvangen.',

@@ -1,0 +1,21 @@
+info:
+  name: contact_petition
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{host}}/api/v1/contact_petition/"
+  headers:
+    - name: ""
+      value: ""
+      disabled: true
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

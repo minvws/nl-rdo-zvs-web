@@ -15,6 +15,8 @@
             [
                 'petition' => $petition,
                 'petitionTypeConfiguration' => $petitionTypeConfiguration,
+                'deadlineNoticeOfDefaultPenaltyPeriodEnd' => $deadlineNoticeOfDefaultPenaltyPeriodEnd,
+                'deadlineAppealNotTimelyPenaltyPeriodEnd' => $deadlineAppealNotTimelyPenaltyPeriodEnd,
             ]
         )
     </div>

@@ -17,8 +17,8 @@ use function str_contains;
 use function str_starts_with;
 use function trim;
 
-#[Signature('app:decisions:fix-references')]
 #[Description('Fix duplicate and null/empty decision references')]
+#[Signature('app:decisions:fix-references')]
 final class FixDuplicateReferencesCommand extends Command
 {
     public function __construct(

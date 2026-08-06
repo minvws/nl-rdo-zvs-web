@@ -21,8 +21,8 @@ use function sprintf;
  * This command connects to a MinIO instance using configured S3-compatible credentials
  * and creates the required storage bucket if it doesn't already exist.
  */
-#[Signature('minio:setup')]
 #[Description('Create MinIO buckets for file storage')]
+#[Signature('minio:setup')]
 class CreateMinIOBucketsCommand extends Command
 {
     private const array DISKS = ['uploads', 'exports'];

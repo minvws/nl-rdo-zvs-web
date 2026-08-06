@@ -30,8 +30,8 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read ?DepartmentUser $pivot
  * @property-read Collection<int, UserDepartmentFilter> $departmentFilters
  */
-#[UseFactory(DepartmentFactory::class)]
 #[Table('departments')]
+#[UseFactory(DepartmentFactory::class)]
 class Department extends EloquentModel
 {
     /** @use HasFactory<DepartmentFactory> */

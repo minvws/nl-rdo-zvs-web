@@ -22,8 +22,8 @@ use function in_array;
 use function Laravel\Prompts\select;
 use function sprintf;
 
-#[Signature('app:custom-dates:create')]
 #[Description('Create a new Custom Date Label for a Petition Type')]
+#[Signature('app:custom-dates:create')]
 class CustomDatesCreateCommand extends Command
 {
     use Colors;

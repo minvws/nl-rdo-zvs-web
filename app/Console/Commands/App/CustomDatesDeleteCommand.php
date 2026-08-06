@@ -19,8 +19,8 @@ use function __;
 use function Laravel\Prompts\select;
 use function sprintf;
 
-#[Signature('app:custom-dates:delete')]
 #[Description('Delete a Custom Date Label from a Petition Type')]
+#[Signature('app:custom-dates:delete')]
 class CustomDatesDeleteCommand extends Command
 {
     public function __construct(

@@ -23,8 +23,8 @@ use Override;
  * @property-read Petition $petition
  */
 
-#[UseFactory(CustomCostFactory::class)]
 #[Table('custom_costs')]
+#[UseFactory(CustomCostFactory::class)]
 class CustomCost extends EloquentModel
 {
     /** @use HasFactory<CustomCostFactory> */

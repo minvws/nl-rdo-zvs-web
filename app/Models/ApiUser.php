@@ -17,8 +17,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $api_key
  * @property string $api_secret
  */
-#[UseFactory(ApiUserFactory::class)]
 #[Table('api_users')]
+#[UseFactory(ApiUserFactory::class)]
 class ApiUser extends Authenticatable
 {
     /** @use HasFactory<ApiUserFactory> */

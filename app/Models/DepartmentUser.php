@@ -19,8 +19,8 @@ use Ramsey\Uuid\UuidInterface;
  * @property UuidInterface $department_id
  * @property UuidInterface $user_id
  */
-#[UseFactory(DepartmentUserFactory::class)]
 #[Table('department_user', timestamps: false)]
+#[UseFactory(DepartmentUserFactory::class)]
 class DepartmentUser extends Pivot
 {
     /** @use HasFactory<DepartmentUserFactory> */

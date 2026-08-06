@@ -115,7 +115,7 @@ class HearingDateValidatorTest extends TestCase
     }
 
     #[Test]
-    public function testItFailsWhenHearingDateAlreadyExists(): void
+    public function testItPassesWhenAnotherHearingDateAlreadyExists(): void
     {
         $validator = PetitionEventType::HEARING_DATE->rule();
         $state = new DerivedState();
@@ -145,13 +145,7 @@ class HearingDateValidatorTest extends TestCase
             createdAt: CarbonImmutable::now(),
         ), $state);
 
-        $this->assertFalse($result->isValid());
-        $this->assertArrayHasKey('general', $result->getErrors());
-        $this->assertStringContainsString(
-            __('term.validation.common.only_one_event_allowed', [
-                'event' => PetitionEventType::HEARING_DATE->label(),
-            ]),
-            $result->getErrors()['general'],
-        );
+        $this->assertTrue($result->isValid());
+        $this->assertEmpty($result->getErrors());
     }
 }

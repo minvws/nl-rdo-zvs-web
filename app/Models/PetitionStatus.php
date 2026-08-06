@@ -27,9 +27,9 @@ use Override;
  * @property string $bg_color
  */
 #[CollectedBy(PetitionStatusCollection::class)]
+#[Table('petition_statuses')]
 #[UseEloquentBuilder(PetitionStatusQueryBuilder::class)]
 #[UseFactory(PetitionStatusFactory::class)]
-#[Table('petition_statuses')]
 class PetitionStatus extends EloquentModel
 {
     /** @use HasFactory<PetitionStatusFactory> */

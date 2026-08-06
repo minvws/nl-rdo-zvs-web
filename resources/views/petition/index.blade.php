@@ -111,6 +111,29 @@
                         @endforeach
                     </select>
                 </div>
+
+                <div
+                    class="form-filter-group"
+                    data-hide-table-column-content="{{ strtolower(__("petition.particularities")) }}">
+                    <x-input-label
+                        class="form-label"
+                        for="petition-particularities"
+                        :content="__('petition.particularities')" />
+                    <select
+                        data-auto-submit="input"
+                        id="petition-particularities"
+                        name="filter[{{ PetitionCriteria::PARTICULARITIES->value }}]"
+                        class="form-select">
+                        <option value="">{{ __("petition.filter.no_filter") }}</option>
+                        @foreach ($usedPetitionParticularities as $particularity)
+                            <option
+                                value="{{ $particularity }}"
+                                @selected(request(sprintf("filter.%s", PetitionCriteria::PARTICULARITIES->value)) === $particularity)>
+                                {{ $particularity }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 @if ($usedCustomProperties->isNotEmpty())
                     <div
                         class="form-filter-group"
@@ -474,8 +497,15 @@
                                 </th>
                                 <th
                                     scope="col"
+                                    aria-sort="{{ Sort::getAria(PetitionCriteria::PARTICULARITIES) }}"
                                     data-hide-table-column-content="{{ strtolower(__("petition.particularities")) }}">
-                                    {{ __("petition.particularities") }}
+                                    <a
+                                        class="sort-link"
+                                        href="{{ Sort::getLink(PetitionCriteria::PARTICULARITIES) }}">
+                                        <span class="visually-hidden">{{ __("general.sort_by") }}</span>
+                                        {{ __("petition.particularities") }}
+                                        <x-sort-icon />
+                                    </a>
                                 </th>
                                 <th
                                     scope="col"

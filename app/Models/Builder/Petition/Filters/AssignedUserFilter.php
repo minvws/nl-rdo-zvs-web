@@ -17,6 +17,7 @@ class AssignedUserFilter implements Filter
     {
         if ($value === 'none') {
             $query->doesntHave('assignments');
+
             return;
         }
 

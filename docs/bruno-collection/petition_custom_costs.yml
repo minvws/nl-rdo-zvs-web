@@ -1,0 +1,21 @@
+info:
+  name: petition_custom_costs
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{host}}/api/v1/petition_custom_costs/"
+  headers:
+    - name: ""
+      value: ""
+      disabled: true
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

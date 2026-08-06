@@ -57,9 +57,9 @@ use function implode;
  * @property-read ContactPetition $pivot
  */
 
+#[Table('contacts')]
 #[UseEloquentBuilder(ContactQueryBuilder::class)]
 #[UseFactory(ContactFactory::class)]
-#[Table('contacts')]
 class Contact extends EloquentModel implements DepartmentAwareInterface
 {
     use HasArchivedAt;

@@ -58,7 +58,7 @@ class ResultTypeTest extends TestCase
     {
         $label = ResultType::FINAL_DECISION->label();
 
-        $this->assertEquals(__('result_type.final_decision'), $label);
+        $this->assertEquals(__('result_type.default.final_decision'), $label);
     }
 
     #[Test]
@@ -66,7 +66,7 @@ class ResultTypeTest extends TestCase
     {
         $label = ResultType::FINAL_DECISION_55_REQUEST->label();
 
-        $this->assertEquals(__('result_type.final_decision_55_request'), $label);
+        $this->assertEquals(__('result_type.default.final_decision_55_request'), $label);
     }
 
     #[Test]
@@ -74,7 +74,7 @@ class ResultTypeTest extends TestCase
     {
         $label = ResultType::WITHDRAWN->label();
 
-        $this->assertEquals(__('result_type.withdrawn'), $label);
+        $this->assertEquals(__('result_type.default.withdrawn'), $label);
     }
 
     #[Test]
@@ -82,7 +82,7 @@ class ResultTypeTest extends TestCase
     {
         $label = ResultType::FORWARDED->label();
 
-        $this->assertEquals(__('result_type.forwarded'), $label);
+        $this->assertEquals(__('result_type.default.forwarded'), $label);
     }
 
     #[Test]

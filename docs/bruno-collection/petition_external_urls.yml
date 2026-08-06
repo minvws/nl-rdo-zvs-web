@@ -1,0 +1,21 @@
+info:
+  name: petition_external_urls
+  type: http
+  seq: 13
+
+http:
+  method: GET
+  url: "{{host}}/api/v1/petition_external_urls/"
+  headers:
+    - name: ""
+      value: ""
+      disabled: true
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -56,6 +56,7 @@ return [
     'appeal_decision_not_timely' => 'Uitspraak BNT',
     'final_result' => [
         'final_decision' => 'Finaal besluit',
+        'final_decision_55_request' => 'Finaal besluit (5.5-verzoek)',
         'forwarded' => 'Doorgezonden',
         'withdrawn' => 'Ingetrokken',
         'partial_decision' => 'Deelbesluit',

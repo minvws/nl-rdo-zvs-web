@@ -48,15 +48,15 @@ enum ResultType: string
     public function label(): string
     {
         return match ($this) {
-            self::FINAL_DECISION => __('result_type.final_decision'),
-            self::FINAL_DECISION_55_REQUEST => __('result_type.final_decision_55_request'),
-            self::WITHDRAWN => __('result_type.withdrawn'),
-            self::FORWARDED => __('result_type.forwarded'),
-            self::REJECTED => __('result_type.rejected'),
-            self::DISMISSED => __('result_type.dismissed'),
-            self::RECONSIDERED => __('result_type.reconsidered'),
-            self::ALREADY_PUBLIC => __('result_type.already_public'),
-            self::OTHER => __('result_type.other'),
+            self::FINAL_DECISION => __('result_type.default.final_decision'),
+            self::FINAL_DECISION_55_REQUEST => __('result_type.default.final_decision_55_request'),
+            self::WITHDRAWN => __('result_type.default.withdrawn'),
+            self::FORWARDED => __('result_type.default.forwarded'),
+            self::REJECTED => __('result_type.default.rejected'),
+            self::DISMISSED => __('result_type.default.dismissed'),
+            self::RECONSIDERED => __('result_type.default.reconsidered'),
+            self::ALREADY_PUBLIC => __('result_type.default.already_public'),
+            self::OTHER => __('result_type.default.other'),
         };
     }
 

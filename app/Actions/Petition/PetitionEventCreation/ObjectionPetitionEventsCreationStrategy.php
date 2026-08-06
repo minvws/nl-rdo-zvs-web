@@ -32,27 +32,6 @@ readonly class ObjectionPetitionEventsCreationStrategy implements PetitionEvents
     {
         $petitionEventDataArray = [];
 
-        $dateOfEntry = $attributes['date_of_entry'];
-        Assert::string($dateOfEntry);
-        $dateOfEntry = CalendarDate::createFromFormat('Y-m-d', $dateOfEntry);
-
-        $config = $this->departmentConfigurationService->getEventConfiguration(
-            $petition->department,
-            $petition->petitionType->type,
-            PetitionEventType::RECEIPT_OF_OBJECTION,
-        );
-
-        $duration = $config['duration'];
-        Assert::integerish($duration);
-        $duration = (int) $duration;
-
-        $petitionEventDataArray[] = [
-            'date' => $dateOfEntry->toDateString(),
-            'type' => PetitionEventType::RECEIPT_OF_OBJECTION->value,
-            'duration' => $duration,
-            'created_at' => CarbonImmutable::now(),
-        ];
-
         $dateAppealedDecision = $attributes['date_appealed_decision'];
         Assert::string($dateAppealedDecision);
         $dateAppealedDecision = CalendarDate::createFromFormat('Y-m-d', $dateAppealedDecision);
@@ -70,6 +49,27 @@ readonly class ObjectionPetitionEventsCreationStrategy implements PetitionEvents
         $petitionEventDataArray[] = [
             'date' => $dateAppealedDecision->toDateString(),
             'type' => PetitionEventType::PRIMARY_DECISION->value,
+            'duration' => $duration,
+            'created_at' => CarbonImmutable::now(),
+        ];
+
+        $dateOfEntry = $attributes['date_of_entry'];
+        Assert::string($dateOfEntry);
+        $dateOfEntry = CalendarDate::createFromFormat('Y-m-d', $dateOfEntry);
+
+        $config = $this->departmentConfigurationService->getEventConfiguration(
+            $petition->department,
+            $petition->petitionType->type,
+            PetitionEventType::RECEIPT_OF_OBJECTION,
+        );
+
+        $duration = $config['duration'];
+        Assert::integerish($duration);
+        $duration = (int) $duration;
+
+        $petitionEventDataArray[] = [
+            'date' => $dateOfEntry->toDateString(),
+            'type' => PetitionEventType::RECEIPT_OF_OBJECTION->value,
             'duration' => $duration,
             'created_at' => CarbonImmutable::now(),
         ];

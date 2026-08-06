@@ -18,6 +18,7 @@ enum PetitionCriteria: string
     case NAME = 'name';
     case NUMBER = 'number';
     case PENALTY_TO_DATE = 'penalty_to_date';
+    case PARTICULARITIES = 'particularities';
     case PETITION_TYPE = 'petition_type';
     case POLICY_DEPARTMENT = 'policy_department';
     case SEARCH = 'search';

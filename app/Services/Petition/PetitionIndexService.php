@@ -49,6 +49,7 @@ final readonly class PetitionIndexService
      *     usedPetitionCategories: PetitionCategoryCollection,
      *     usedPetitionTypes: PetitionTypeCollection,
      *     usedPetitionStatuses: PetitionStatusCollection,
+     *     usedPetitionParticularities: Collection<int, string>,
      *     usedCustomProperties: Collection<int, CustomPetitionProperty>,
      *     usedTeams: TeamCollection,
      *     department: Department,
@@ -79,6 +80,7 @@ final readonly class PetitionIndexService
             'usedPetitionCategories' => $this->getUsedPetitionCategories($department),
             'usedPetitionTypes' => $this->getUsedPetitionTypes($department),
             'usedPetitionStatuses' => $this->getUsedPetitionStatuses($department),
+            'usedPetitionParticularities' => $this->getUsedPetitionParticularities($department),
             'usedCustomProperties' => $this->getUsedCustomProperties($department),
             'usedTeams' => $this->getUsedTeams($department),
             'department' => $department,
@@ -107,6 +109,32 @@ final readonly class PetitionIndexService
             ->isInUse()
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public function getUsedPetitionParticularities(Department $department): Collection
+    {
+        /** @var Collection<int, string> $labels */
+        $labels = PetitionType::query()
+            ->where('department_id', $department->id)
+            ->isInUse()
+            ->pluck('particularity_label');
+
+        /** @var Collection<int, string> $result */
+        $result = $labels
+            ->merge([
+                PetitionParticularityCollector::LABEL_ADJOURNMENT,
+                PetitionParticularityCollector::LABEL_NOTICE_OF_DEFAULT,
+                PetitionParticularityCollector::LABEL_SUSPENSION,
+            ])
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
+        return $result;
     }
 
     private function getPolicyDepartments(Department $department): PolicyDepartmentCollection

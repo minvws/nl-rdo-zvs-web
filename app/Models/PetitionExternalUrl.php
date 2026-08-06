@@ -21,8 +21,8 @@ use Override;
  * @property Uri $url
  */
 
-#[UseFactory(PetitionExternalUrlFactory::class)]
 #[Table('petition_external_urls')]
+#[UseFactory(PetitionExternalUrlFactory::class)]
 class PetitionExternalUrl extends EloquentModel
 {
     /** @use HasFactory<PetitionExternalUrlFactory> */

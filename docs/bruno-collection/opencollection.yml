@@ -1,0 +1,39 @@
+opencollection: 1.0.0
+
+info:
+  name: ZVS
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+request:
+  variables:
+    - name: host
+      value: ************
+    - name: api_key
+      value: *************
+    - name: api_secret
+      value: ************
+    - name: access_token
+      value: ************
+
+docs:
+  content: |-
+    **Zaakvolgsysteem (ZVS)**
+
+    Open Source Repo: [https://github.com/minvws/nl-rdo-zvs-web](https://github.com/minvws/nl-rdo-zvs-web)
+  type: text/markdown
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git

@@ -10,6 +10,7 @@ use App\Models\Builder\Petition\Filters\ApplicantFilter;
 use App\Models\Builder\Petition\Filters\AssignedUserFilter;
 use App\Models\Builder\Petition\Filters\CategoryFilter;
 use App\Models\Builder\Petition\Filters\CustomPropertyFilter;
+use App\Models\Builder\Petition\Filters\ParticularityFilter;
 use App\Models\Builder\Petition\Filters\PetitionStatusFilter;
 use App\Models\Builder\Petition\Filters\PetitionStatusGroupFilter;
 use App\Models\Builder\Petition\Filters\PetitionTypeFilter;
@@ -19,6 +20,7 @@ use App\Models\Builder\Petition\Filters\TeamFilter;
 use App\Models\Builder\Petition\Sorts\ApplicantSort;
 use App\Models\Builder\Petition\Sorts\AssignedUserSort;
 use App\Models\Builder\Petition\Sorts\CategorySort;
+use App\Models\Builder\Petition\Sorts\ParticularitySort;
 use App\Models\Builder\Petition\Sorts\PenaltyToDateSort;
 use App\Models\Builder\Petition\Sorts\PetitionTypeSort;
 use App\Models\Builder\Petition\Sorts\StatusGroupSort;
@@ -72,6 +74,7 @@ readonly class PetitionQueryBuilder
             AllowedFilter::custom(PetitionCriteria::CUSTOM_PROPERTY->value, new CustomPropertyFilter()),
             AllowedFilter::custom(PetitionCriteria::PETITION_TYPE->value, new PetitionTypeFilter()),
             AllowedFilter::custom(PetitionCriteria::POLICY_DEPARTMENT->value, new PolicyDepartmentFilter()),
+            AllowedFilter::custom(PetitionCriteria::PARTICULARITIES->value, new ParticularityFilter()),
             AllowedFilter::custom(PetitionCriteria::SEARCH->value, new SearchFilter()),
             AllowedFilter::custom(PetitionCriteria::STATUS->value, new PetitionStatusFilter()),
             AllowedFilter::custom(PetitionCriteria::STATUS_GROUP->value, new PetitionStatusGroupFilter()),
@@ -95,6 +98,7 @@ readonly class PetitionQueryBuilder
             AllowedSort::custom(PetitionCriteria::ASSIGNED_USER->value, new AssignedUserSort()),
             AllowedSort::custom(PetitionCriteria::CATEGORY->value, new CategorySort()),
             AllowedSort::custom(PetitionCriteria::PENALTY_TO_DATE->value, new PenaltyToDateSort()),
+            AllowedSort::custom(PetitionCriteria::PARTICULARITIES->value, new ParticularitySort()),
             AllowedSort::custom(PetitionCriteria::PETITION_TYPE->value, new PetitionTypeSort()),
             AllowedSort::custom(PetitionCriteria::STATUS->value, new StatusSort()),
             AllowedSort::custom(PetitionCriteria::STATUS_GROUP->value, new StatusGroupSort()),

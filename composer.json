@@ -156,7 +156,8 @@
         "fix": [
             "@prettier-fix",
             "@rector-fix",
-            "@phpcbf-fix"
+            "@phpcbf-fix",
+            "@php-cs-fixer"
         ],
         "rector": "vendor/bin/rector -n",
         "rector-fix": "vendor/bin/rector process",

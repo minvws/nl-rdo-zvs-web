@@ -11,8 +11,8 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Database\DatabaseManager;
 
-#[Signature('app:convert-legacy-processing-step-timeline-items')]
 #[Description('Convert legacy processing_step timeline items to use first_assignee key')]
+#[Signature('app:convert-legacy-processing-step-timeline-items')]
 final class ConvertLegacyProcessingStepTimelineItems extends Command
 {
     public function __construct(

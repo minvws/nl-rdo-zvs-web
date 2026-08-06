@@ -173,8 +173,9 @@ class PetitionEventTypeTest extends TestCase
     {
         $dependencies = PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->getDependencies(PetitionVariant::BEZWAAR);
 
-        $this->assertCount(1, $dependencies);
-        $this->assertContains(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, $dependencies);
+        $this->assertCount(2, $dependencies);
+        $this->assertContains(PetitionEventType::RECEIPT_OF_OBJECTION, $dependencies);
+        $this->assertContains(PetitionEventType::PETITION_RECEIVED, $dependencies);
     }
 
     #[Test]

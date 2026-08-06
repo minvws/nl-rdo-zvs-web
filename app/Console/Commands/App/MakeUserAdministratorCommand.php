@@ -14,8 +14,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Laravel\Prompts\TextPrompt;
 use Webmozart\Assert\Assert;
 
-#[Signature('app:make-user-administrator')]
 #[Description('Make a user admininstrator')]
+#[Signature('app:make-user-administrator')]
 class MakeUserAdministratorCommand extends Command
 {
     public function handle(

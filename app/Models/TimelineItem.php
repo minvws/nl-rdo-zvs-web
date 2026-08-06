@@ -29,8 +29,8 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read Model $timelineable
  * @property-read User $user
  */
-#[UseFactory(TimelineItemFactory::class)]
 #[Table('timeline_items', key: 'internal_id')]
+#[UseFactory(TimelineItemFactory::class)]
 class TimelineItem extends EloquentModel
 {
     /** @use HasFactory<TimelineItemFactory> */

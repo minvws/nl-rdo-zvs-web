@@ -20,8 +20,8 @@ use function collect;
 use function Laravel\Prompts\select;
 use function sprintf;
 
-#[Signature('app:custom-dates:adjust')]
 #[Description('Adjust a Custom Date on a Petition Type')]
+#[Signature('app:custom-dates:adjust')]
 class CustomDatesAdjustCommand extends Command
 {
     public function __construct(

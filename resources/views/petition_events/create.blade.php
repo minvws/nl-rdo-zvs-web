@@ -128,7 +128,7 @@
                                                 <option
                                                     value="{{ $type->value }}"
                                                     @selected(old("result_type", $config["result_type"]->value ?? null) === $type->value)>
-                                                    {{ $type->label() }}
+                                                    {{ $resultTypeLabels[$type->value] }}
                                                 </option>
                                             @endforeach
                                         </optgroup>
@@ -217,7 +217,30 @@
                         </div>
                     @endif
 
-                    @if ($selectedType->hasDuration())
+                    @if ($selectedType->hasEndDate())
+                        <div class="form-input-group">
+                            <x-input-label
+                                for="term_deadline"
+                                required
+                                :content="Lang::has('petition_event.deadline.' . $selectedType->value) ? __('petition_event.deadline.' . $selectedType->value) : __('petition_event.default.label.term_deadline')" />
+                            <x-input-error
+                                id="term_deadline-error"
+                                :messages="$errors->get('term_deadline')" />
+                            <x-text-input
+                                id="term_deadline"
+                                :hasError="$errors->has('term_deadline')"
+                                name="term_deadline"
+                                type="date"
+                                aria-describedby="term_deadline-error"
+                                required
+                                value="{{ old('term_deadline', $config['term_deadline'] ?? null) }}" />
+                        </div>
+                        <input
+                            type="hidden"
+                            id="duration"
+                            name="duration"
+                            value="{{ Form::old("duration", $config["duration"] ?? null) }}" />
+                    @elseif ($selectedType->hasDuration())
                         <div class="form-input-group">
                             @if (Lang::has("petition_event.fieldset_title.duration." . $selectedType->value))
                                 <legend>
@@ -243,21 +266,6 @@
                                 aria-describedby="duration-error"
                                 required
                                 value="{{ Form::old('duration', $config['duration'] ?? null) }}" />
-                        </div>
-                        <div class="form-input-group js-only">
-                            <x-input-label
-                                for="term_deadline"
-                                :content="__('petition_event.default.label.term_deadline' )" />
-                            <x-input-error
-                                id="term_deadline-error"
-                                :messages="$errors->get('term_deadline')" />
-                            <x-text-input
-                                id="term_deadline"
-                                :hasError="$errors->has('term_deadline')"
-                                name="term_deadline"
-                                type="date"
-                                aria-describedby="term_deadline-error"
-                                value="{{ old('term_deadline', $config['term_deadline'] ?? null) }}" />
                         </div>
                     @endif
 

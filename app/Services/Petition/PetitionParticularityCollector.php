@@ -17,9 +17,9 @@ use function in_array;
 
 class PetitionParticularityCollector
 {
-    private const string LABEL_NOTICE_OF_DEFAULT = 'IGS';
-    private const string LABEL_SUSPENSION = 'Opsch';
-    private const string LABEL_ADJOURNMENT = 'Aanh';
+    public const string LABEL_NOTICE_OF_DEFAULT = 'IGS';
+    public const string LABEL_SUSPENSION = 'Opsch';
+    public const string LABEL_ADJOURNMENT = 'Aanh';
 
     private const array ADJOURNMENT_TERM_TYPES = [
         TermType::SPECIFIED_ADJOURNMENT,

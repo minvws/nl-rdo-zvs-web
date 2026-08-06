@@ -43,6 +43,15 @@ class AddPetitionEventRequest extends FormRequest
             'type' => ['required', Rule::enum(PetitionEventType::class)],
             'date' => ['required', new CalendarDateRule()],
             'duration' => ['nullable', 'integer', 'min:1', 'max:730'],
+            'term_deadline' => [
+                'nullable',
+                new CalendarDateRule(),
+                Rule::requiredIf(function (): bool {
+                    $type = $this->enum('type', PetitionEventType::class);
+
+                    return $type instanceof PetitionEventType && $type->hasEndDate();
+                }),
+            ],
             'suspension_type' => [
                 'nullable',
                 Rule::enum(SuspensionType::class),
@@ -135,13 +144,13 @@ class AddPetitionEventRequest extends FormRequest
 
         /** @var string $dateInput */
         $dateInput = $this->input('date');
+        $eventDate = CalendarDate::create($dateInput);
 
-        /** @var int|null $durationInput */
-        $durationInput = $this->filled('duration') ? $this->integer('duration') : null;
+        $durationInput = $this->resolveDuration($type, $eventDate);
 
         return new PetitionEventData(
             type: $type,
-            date: CalendarDate::create($dateInput),
+            date: $eventDate,
             createdAt: CarbonImmutable::now(),
             duration: $durationInput,
             penalties: $penalties,
@@ -207,6 +216,7 @@ class AddPetitionEventRequest extends FormRequest
             'type' => 'event type',
             'date' => 'event date',
             'duration' => 'duration',
+            'term_deadline' => 'term deadline',
             'suspension_type' => 'suspension type',
             'result_type' => 'result type',
             'hearing_form' => 'hearing form',
@@ -214,6 +224,18 @@ class AddPetitionEventRequest extends FormRequest
             'penalties.*.amount' => 'penalty amount',
             'penalties.*.duration' => 'penalty duration',
         ];
+    }
+
+    private function resolveDuration(PetitionEventType $type, CalendarDate $eventDate): ?int
+    {
+        if ($type->hasEndDate() && $this->filled('term_deadline')) {
+            /** @var string $termDeadline */
+            $termDeadline = $this->input('term_deadline');
+
+            return $eventDate->diffInDays(CalendarDate::create($termDeadline));
+        }
+
+        return $this->filled('duration') ? $this->integer('duration') : null;
     }
 
     /**

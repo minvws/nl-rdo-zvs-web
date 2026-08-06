@@ -26,8 +26,8 @@ use Ramsey\Uuid\UuidInterface;
  * @property UuidInterface $petition_type_id
  */
 #[CollectedBy(CustomPetitionPropertyCollection::class)]
-#[UseFactory(CustomPetitionPropertyFactory::class)]
 #[Table('custom_petition_properties')]
+#[UseFactory(CustomPetitionPropertyFactory::class)]
 class CustomPetitionProperty extends EloquentModel
 {
     /** @use HasFactory<CustomPetitionPropertyFactory> */

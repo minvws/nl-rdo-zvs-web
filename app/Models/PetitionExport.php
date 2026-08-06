@@ -33,8 +33,8 @@ use Override;
  *
  * @property-read Department $department
  */
-#[UseFactory(PetitionExportFactory::class)]
 #[Table('petition_exports')]
+#[UseFactory(PetitionExportFactory::class)]
 class PetitionExport extends EloquentModel implements DepartmentAwareInterface
 {
     use HasDepartment;

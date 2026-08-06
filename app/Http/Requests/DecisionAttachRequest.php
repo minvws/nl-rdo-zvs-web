@@ -12,6 +12,15 @@ use function is_string;
 class DecisionAttachRequest extends FormRequest
 {
     /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
+    {
+        return [
+            'reference' => ['required', 'string', 'exists:decisions'],
+        ];
+    }
+    /**
      * Lowercase the reference before validation rules are applied.
      */
     #[Override]
@@ -22,15 +31,5 @@ class DecisionAttachRequest extends FormRequest
         if (is_string($reference) && $reference !== '') {
             $this->merge(['reference' => Str::lower($reference)]);
         }
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function rules(): array
-    {
-        return [
-            'reference' => ['required', 'string', 'exists:decisions'],
-        ];
     }
 }

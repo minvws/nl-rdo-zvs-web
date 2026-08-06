@@ -12,7 +12,6 @@ use App\Validation\Rules\DateMustBeInSuspensionRule;
 use App\Validation\Rules\DateMustBeInTermRule;
 use App\Validation\Rules\DateMustBeLatestEventRule;
 use App\Validation\Rules\DateMustNotBeInSuspensionRule;
-use App\Validation\Rules\DateMustNotBeInTermRule;
 use App\Validation\Rules\LastEventMustBeOneOfRule;
 use App\Validation\Rules\NextDayMustBeInTermRule;
 use App\Validation\Rules\RequiresDependencyRule;
@@ -91,7 +90,6 @@ class ValidationServiceProvider extends ServiceProvider
                         PetitionEventType::PETITION_RECEIVED,
                     ]),
                     $app->make(DateMustBeLatestEventRule::class),
-                    new DateMustNotBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
                 ]);
             },
         );
@@ -116,12 +114,11 @@ class ValidationServiceProvider extends ServiceProvider
             'validation.rule.' . PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->value,
             static function (Application $app): ComposableValidator {
                 return new ComposableValidator([
-                    new RequiresDependencyRule(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED),
-                    $app->make(DateMustBeLatestEventRule::class),
-                    new DateMustNotBeInTermRule([
-                        TermType::NOTICE_OF_DEFAULT->value,
-                        TermType::APPEAL_NOT_TIMELY->value,
+                    new RequiresDependencyRule([
+                        PetitionEventType::RECEIPT_OF_OBJECTION,
+                        PetitionEventType::PETITION_RECEIVED,
                     ]),
+                    $app->make(DateMustBeLatestEventRule::class),
                 ]);
             },
         );
@@ -136,10 +133,6 @@ class ValidationServiceProvider extends ServiceProvider
                     new RequiresDependencyRule(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY),
                     new RequiresOpenAppealNotTimelyReceiptRule(),
                     $app->make(DateMustBeLatestEventRule::class),
-                    new DateMustNotBeInTermRule([
-                        TermType::NOTICE_OF_DEFAULT->value,
-                        TermType::APPEAL_NOT_TIMELY->value,
-                    ]),
                 ]);
             },
         );
@@ -236,7 +229,6 @@ class ValidationServiceProvider extends ServiceProvider
                         PetitionEventType::RECEIPT_OF_OBJECTION,
                         PetitionEventType::PETITION_RECEIVED,
                     ]),
-                    $app->make(UniquenessRule::class),
                 ]);
             },
         );
@@ -248,13 +240,12 @@ class ValidationServiceProvider extends ServiceProvider
             'validation.rule.' . PetitionEventType::UNSPECIFIED_ADJOURNMENT->value,
             static function (Application $app): ComposableValidator {
                 return new ComposableValidator([
-                    $app->make(UniquenessRule::class),
                     new RequiresDependencyRule([
                         PetitionEventType::RECEIPT_OF_OBJECTION,
                         PetitionEventType::PETITION_RECEIVED,
                     ]),
                     $app->make(DateMustBeLatestEventRule::class),
-                    new DateMustBeInTermRule([TermType::DECISION_PERIOD->value]),
+                    new DateMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
                     new DateMustNotBeInSuspensionRule(),
                 ]);
             },
@@ -268,7 +259,6 @@ class ValidationServiceProvider extends ServiceProvider
             static function (Application $app): ComposableValidator {
                 return new ComposableValidator([
                     new RequiresDependencyRule(PetitionEventType::UNSPECIFIED_ADJOURNMENT),
-                    $app->make(UniquenessRule::class),
                     new DateMustBeAfterDependencyRule(PetitionEventType::UNSPECIFIED_ADJOURNMENT),
                     $app->make(DateMustBeLatestEventRule::class),
                 ]);

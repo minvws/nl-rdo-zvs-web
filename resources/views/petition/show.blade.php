@@ -299,6 +299,8 @@
             <x-petition.sidebar
                 :petition="$petition"
                 :department="$department"
+                :deadlineNoticeOfDefaultPenaltyPeriodEnd="$deadlineNoticeOfDefaultPenaltyPeriodEnd"
+                :deadlineAppealNotTimelyPenaltyPeriodEnd="$deadlineAppealNotTimelyPenaltyPeriodEnd"
                 :petitionTypeConfiguration="$petitionTypeConfiguration"
                 :availableCostTypes="$availableCostTypes" />
         </div>

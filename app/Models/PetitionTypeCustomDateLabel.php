@@ -21,8 +21,8 @@ use Ramsey\Uuid\UuidInterface;
  * @property CustomDateLabel $date_label
  */
 #[CollectedBy(PetitionTypeCustomDateLabelCollection::class)]
-#[UseFactory(PetitionTypeCustomDateLabelFactory::class)]
 #[Table('petition_type_custom_dates_labels', key: 'internal_id')]
+#[UseFactory(PetitionTypeCustomDateLabelFactory::class)]
 class PetitionTypeCustomDateLabel extends EloquentModel
 {
     /** @use HasFactory<PetitionTypeCustomDateLabelFactory> */

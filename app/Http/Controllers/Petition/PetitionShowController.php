@@ -6,19 +6,23 @@ namespace App\Http\Controllers\Petition;
 
 use App\Config\Config;
 use App\Enums\Ability;
+use App\Enums\TermType;
 use App\Enums\TimelineFilterGroup;
 use App\Factories\WizardEventCollectionFactory;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\User;
+use App\Services\DerivedState;
 use App\Services\Petition\PetitionTimelineService;
 use App\Services\Timeline\TimelineFilterService;
+use App\ValueObjects\CalendarDate;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Collection;
+use Webmozart\Assert\Assert;
 
 use function sprintf;
 
@@ -29,6 +33,7 @@ final readonly class PetitionShowController
         private PetitionTimelineService $petitionTimelineService,
         private TimelineFilterService $timelineFilterService,
         private WizardEventCollectionFactory $eventCollectionFactory,
+        private DerivedState $derivedState,
     ) {
     }
 
@@ -45,10 +50,23 @@ final readonly class PetitionShowController
         $timelineFilterGroups = $this->timelineFilterService->availableGroupsFor($petition->timelineItems);
         $petitionTimelineItems = $this->petitionTimelineService->getFilteredTimelineItems($petition, $timelineFilterGroup);
         $events = $this->eventCollectionFactory::fromModels($petition->petitionEvents);
+        $deadlineNoticeOfDefaultPenaltyPeriodEnd = null;
+        $deadlineAppealNotTimelyPenaltyPeriodEnd = null;
+
+        if ($petition->isTermEngineConverted()) {
+            $this->derivedState->addEvents($events->all())->buildCalendar();
+            $deadlineNoticeOfDefaultPenaltyPeriodEnd = $this->derivedState->penaltyPeriodEndDateForTerm(TermType::NOTICE_OF_DEFAULT);
+            $deadlineAppealNotTimelyPenaltyPeriodEnd = $this->derivedState->penaltyPeriodEndDateForTerm(TermType::APPEAL_NOT_TIMELY);
+        }
+
+        Assert::nullOrIsInstanceOf($deadlineNoticeOfDefaultPenaltyPeriodEnd, CalendarDate::class);
+        Assert::nullOrIsInstanceOf($deadlineAppealNotTimelyPenaltyPeriodEnd, CalendarDate::class);
 
         return $this->view->make('petition.show', [
             'availableCostTypes' => new Collection($availableCostTypes),
             'department' => $department,
+            'deadlineNoticeOfDefaultPenaltyPeriodEnd' => $deadlineNoticeOfDefaultPenaltyPeriodEnd,
+            'deadlineAppealNotTimelyPenaltyPeriodEnd' => $deadlineAppealNotTimelyPenaltyPeriodEnd,
             'petition' => $petition,
             'events' => $events,
             'petitionTypeConfiguration' => $petitionTypeConfiguration,

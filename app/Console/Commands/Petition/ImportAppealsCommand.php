@@ -46,12 +46,12 @@ use function strtolower;
 use function time;
 use function trim;
 
+#[Description('Import an Excel file with appeals (beroepen) and insert data into petition table')]
 #[Signature('petitions:import-appeals
     {file? : Path to Excel file to import}
     {--commit : Commit changes to database (default is dry-run)}
     {--rollback= : Rollback import by batch ID}
     {--file-jurist= : Excel file mapping jurist names to email addresses}')]
-#[Description('Import an Excel file with appeals (beroepen) and insert data into petition table')]
 class ImportAppealsCommand extends Command
 {
     /**
@@ -89,6 +89,48 @@ class ImportAppealsCommand extends Command
         }
 
         return $this->handleImport();
+    }
+
+    protected function transformColumnName(string $excelColumn): string
+    {
+        $normalized = strtolower(trim($excelColumn));
+
+        if (isset($this->columnMapping[$normalized])) {
+            return $this->columnMapping[$normalized];
+        }
+
+        return strtolower(str_replace([' ', '.'], '_', $excelColumn));
+    }
+
+    protected function convertDateFormat(string|int $date): ?string
+    {
+        if (in_array($date, ['', '0', 0], true)) {
+            return null;
+        }
+
+        if (is_int($date)) {
+            try {
+                $unixTimestamp = ($date - 25_569) * 86_400;
+
+                return date('Y-m-d', $unixTimestamp);
+            } catch (Throwable) { // @codeCoverageIgnore
+                return null; // @codeCoverageIgnore
+            } // @codeCoverageIgnore
+        }
+
+        try {
+            $calendarDate = CalendarDate::createFromFormat('j-n-Y', $date);
+
+            return $calendarDate->format('Y-m-d');
+        } catch (Throwable) {
+            try {
+                $calendarDate = CalendarDate::createFromFormat('n/j/y', $date);
+
+                return $calendarDate->format('Y-m-d');
+            } catch (Throwable) {
+                return null;
+            }
+        }
     }
 
     private function handleImport(): int
@@ -645,48 +687,6 @@ class ImportAppealsCommand extends Command
         }
     }
 
-    protected function transformColumnName(string $excelColumn): string
-    {
-        $normalized = strtolower(trim($excelColumn));
-
-        if (isset($this->columnMapping[$normalized])) {
-            return $this->columnMapping[$normalized];
-        }
-
-        return strtolower(str_replace([' ', '.'], '_', $excelColumn));
-    }
-
-    protected function convertDateFormat(string|int $date): ?string
-    {
-        if (in_array($date, ['', '0', 0], true)) {
-            return null;
-        }
-
-        if (is_int($date)) {
-            try {
-                $unixTimestamp = ($date - 25_569) * 86_400;
-
-                return date('Y-m-d', $unixTimestamp);
-            } catch (Throwable) { // @codeCoverageIgnore
-                return null; // @codeCoverageIgnore
-            } // @codeCoverageIgnore
-        }
-
-        try {
-            $calendarDate = CalendarDate::createFromFormat('j-n-Y', $date);
-
-            return $calendarDate->format('Y-m-d');
-        } catch (Throwable) {
-            try {
-                $calendarDate = CalendarDate::createFromFormat('n/j/y', $date);
-
-                return $calendarDate->format('Y-m-d');
-            } catch (Throwable) {
-                return null;
-            }
-        }
-    }
-
     private function loadJuristEmailMapping(string $filePath): void
     {
         try {
@@ -700,7 +700,7 @@ class ImportAppealsCommand extends Command
             }
 
             $headers = array_map(
-                static fn ($header) => strtolower(trim((string) $header)),
+                static fn ($header): string => strtolower(trim((string) $header)),
                 $sheetData[0],
             );
 

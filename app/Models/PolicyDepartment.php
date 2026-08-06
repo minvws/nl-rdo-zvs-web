@@ -22,9 +22,9 @@ use Override;
  * @property bool $active
  */
 #[CollectedBy(PolicyDepartmentCollection::class)]
+#[Table('policy_departments')]
 #[UseEloquentBuilder(PolicyDepartmentQueryBuilder::class)]
 #[UseFactory(PolicyDepartmentFactory::class)]
-#[Table('policy_departments')]
 class PolicyDepartment extends EloquentModel
 {
     /** @use HasFactory<PolicyDepartmentFactory> */

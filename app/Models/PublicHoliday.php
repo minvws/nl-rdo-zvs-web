@@ -18,8 +18,8 @@ use Override;
  * @property string $name
  * @property CalendarDate $date
  */
-#[UseFactory(PublicHolidayFactory::class)]
 #[Table('public_holidays')]
+#[UseFactory(PublicHolidayFactory::class)]
 class PublicHoliday extends EloquentModel
 {
     use HasId;

@@ -9,6 +9,7 @@ use App\Enums\ContactType;
 use App\Enums\PetitionCriteria;
 use App\Models\Builder\Petition\PetitionQueryBuilder;
 use App\Models\Contact;
+use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionCategory;
 use App\Models\PetitionStatus;
@@ -162,11 +163,36 @@ class PetitionQueryBuilderSortTest extends FeatureTestCase
         $this->assertOrder(PetitionCriteria::PENALTY_TO_DATE, $petition1, $petition2);
     }
 
-    private function assertOrder(PetitionCriteria $petitionCriteria, Petition $petition1, Petition $petition2): void
+    public function testSortByParticularities(): void
     {
+        $department = Department::factory()->create();
+
+        $petition1 = Petition::factory()->recycle($department)->create();
+        $this->attachParticularity($petition1, $department, 'Alpha');
+        $this->attachParticularity($petition1, $department, 'Beta');
+
+        $petition2 = Petition::factory()->recycle($department)->create();
+        $this->attachParticularity($petition2, $department, 'Alpha');
+        $this->attachParticularity($petition2, $department, 'Gamma');
+
+        $petition3 = Petition::factory()->recycle($department)->create();
+
+        $this->assertOrder(PetitionCriteria::PARTICULARITIES, $petition1, $petition2, $petition3, $department);
+    }
+
+    private function assertOrder(
+        PetitionCriteria $petitionCriteria,
+        Petition $petition1,
+        Petition $petition2,
+        ?Petition $petition3 = null,
+        ?Department $department = null,
+    ): void {
         // assert asc
         $request = new Request(['sort' => $petitionCriteria->value]);
         $petitionQueryBuilder = PetitionQueryBuilder::make($request);
+        if ($department instanceof Department) {
+            $petitionQueryBuilder->whereDepartment($department);
+        }
         if ($petitionCriteria === PetitionCriteria::SUM_OF_PENALTIES_PER_DATE) {
             $petitionQueryBuilder->withSumOfPenaltiesPerDate();
         }
@@ -176,11 +202,18 @@ class PetitionQueryBuilderSortTest extends FeatureTestCase
         $petitionQueryBuilderCollection = $petitionQueryBuilder->get();
 
         $this->assertEquals($petition1->id->toString(), $petitionQueryBuilderCollection->first()->id->toString());
-        $this->assertEquals($petition2->id->toString(), $petitionQueryBuilderCollection->last()->id->toString());
+        if ($petition3 instanceof Petition) {
+            $this->assertEquals($petition3->id->toString(), $petitionQueryBuilderCollection->last()->id->toString());
+        } else {
+            $this->assertEquals($petition2->id->toString(), $petitionQueryBuilderCollection->last()->id->toString());
+        }
 
         // assert desc
         $request = new Request(['sort' => sprintf('-%s', $petitionCriteria->value)]);
         $petitionQueryBuilder = PetitionQueryBuilder::make($request);
+        if ($department instanceof Department) {
+            $petitionQueryBuilder->whereDepartment($department);
+        }
         if ($petitionCriteria === PetitionCriteria::SUM_OF_PENALTIES_PER_DATE) {
             $petitionQueryBuilder->withSumOfPenaltiesPerDate();
         }
@@ -189,7 +222,24 @@ class PetitionQueryBuilderSortTest extends FeatureTestCase
         }
         $petitionQueryBuilderCollection = $petitionQueryBuilder->get();
 
-        $this->assertEquals($petition2->id->toString(), $petitionQueryBuilderCollection->first()->id->toString());
-        $this->assertEquals($petition1->id->toString(), $petitionQueryBuilderCollection->last()->id->toString());
+        if ($petition3 instanceof Petition) {
+            $this->assertEquals($petition2->id->toString(), $petitionQueryBuilderCollection->first()->id->toString());
+            $this->assertEquals($petition3->id->toString(), $petitionQueryBuilderCollection->last()->id->toString());
+        } else {
+            $this->assertEquals($petition2->id->toString(), $petitionQueryBuilderCollection->first()->id->toString());
+            $this->assertEquals($petition1->id->toString(), $petitionQueryBuilderCollection->last()->id->toString());
+        }
+    }
+
+    private function attachParticularity(Petition $petition, Department $department, string $label): void
+    {
+        $relatedDepartment = Department::factory()->create();
+        $relatedPetitionType = PetitionType::factory()->recycle($relatedDepartment)->create([
+            'particularity_label' => $label,
+        ]);
+
+        $relatedPetition = Petition::factory()->recycle($relatedDepartment)->recycle($relatedPetitionType)->create();
+
+        $petition->relatedPetitions()->attach($relatedPetition);
     }
 }

@@ -29,8 +29,8 @@ use Ramsey\Uuid\UuidInterface;
  *
  * @property-read Petition $petition
  */
-#[UseFactory(PetitionDraftTermFactory::class)]
 #[Table('petition_draft_terms')]
+#[UseFactory(PetitionDraftTermFactory::class)]
 class PetitionDraftTerm extends EloquentModel
 {
     /** @use HasFactory<PetitionDraftTermFactory> */

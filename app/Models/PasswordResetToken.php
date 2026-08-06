@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property string $email
  * @property string $token
  */
-#[UseFactory(PasswordResetTokenFactory::class)]
 #[Table('password_reset_tokens', timestamps: false)]
+#[UseFactory(PasswordResetTokenFactory::class)]
 class PasswordResetToken extends EloquentModel
 {
     use HasCreatedAt;

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
+use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
 
@@ -15,17 +16,20 @@ use function array_filter;
 use function array_values;
 use function in_array;
 
-class PetitionEventAvailabilityService
+readonly class PetitionEventAvailabilityService
 {
     private const array MULTIPLE_OCCURRENCE_TYPES = [
         PetitionEventType::LETTER_OF_SUSPENSION_SENT,
         PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
         PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY,
         PetitionEventType::SUSPENSION_END,
+        PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+        PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
         PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
         PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
         PetitionEventType::SENT_PARTIAL_DECISION,
         PetitionEventType::MEETING_SCHEDULED,
+        PetitionEventType::HEARING_DATE,
     ];
 
     /**
@@ -100,6 +104,10 @@ class PetitionEventAvailabilityService
         }
 
         if (!$this->passesOpenStateRules($eventType, $currentEvents)) {
+            return false;
+        }
+
+        if (!$this->passesDeadlineRules($eventType, $currentEvents)) {
             return false;
         }
 
@@ -190,12 +198,36 @@ class PetitionEventAvailabilityService
         $adjournmentOpen = $this->hasOpenAdjournment($currentEvents);
 
         return match ($eventType) {
-            PetitionEventType::LETTER_OF_SUSPENSION_SENT => !$adjournmentOpen,
-            PetitionEventType::UNSPECIFIED_ADJOURNMENT => !$suspensionOpen,
+            PetitionEventType::LETTER_OF_SUSPENSION_SENT => !$adjournmentOpen && !$suspensionOpen,
+            PetitionEventType::UNSPECIFIED_ADJOURNMENT => !$adjournmentOpen && !$suspensionOpen,
             PetitionEventType::SUSPENSION_END => $suspensionOpen,
             PetitionEventType::UNSPECIFIED_ADJOURNMENT_END => $adjournmentOpen,
             default => true,
         };
+    }
+
+    private function passesDeadlineRules(PetitionEventType $eventType, WizardEventCollection $currentEvents): bool
+    {
+        $hasExpiredDeadline = $this->hasExpiredDeadline($currentEvents);
+
+        return match ($eventType) {
+            PetitionEventType::OPINION_OUTSIDE_TERM => $hasExpiredDeadline,
+            default => true,
+        };
+    }
+
+    private function hasExpiredDeadline(WizardEventCollection $currentEvents): bool
+    {
+        $derivedState = new DerivedState()
+            ->addEvents($currentEvents->all())
+            ->buildCalendar();
+
+        $deadline = $derivedState->deadlineDate();
+        if (!$deadline instanceof CalendarDate) {
+            return false;
+        }
+
+        return $deadline->isInThePast();
     }
 
     private function hasOpenSuspension(WizardEventCollection $currentEvents): bool

@@ -29,8 +29,8 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read Petition $petition
  */
 #[CollectedBy(PetitionDeliverableCollection::class)]
-#[UseFactory(PetitionDeliverableFactory::class)]
 #[Table('petition_deliverables')]
+#[UseFactory(PetitionDeliverableFactory::class)]
 class PetitionDeliverable extends EloquentModel
 {
     /** @use HasFactory<PetitionDeliverableFactory> */

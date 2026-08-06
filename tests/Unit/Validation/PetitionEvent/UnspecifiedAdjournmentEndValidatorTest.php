@@ -51,8 +51,10 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
     }
 
     #[Test]
-    public function testUniqueConstraint(): void
+    public function testAllowsAnotherEndForAnotherAdjournmentCycle(): void
     {
+        // Each adjournment cycle may be ended, so more than one end event is allowed. That a
+        // second end requires a matching open adjournment is enforced by the availability service.
         $events = Collection::make([
             new PetitionEventData(
                 type: PetitionEventType::RECEIPT_OF_OBJECTION,
@@ -64,7 +66,6 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
                 date: CalendarDate::create('2025-01-05'),
                 createdAt: CarbonImmutable::now(),
-                duration: 3,
             ),
             new PetitionEventData(
                 type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
@@ -72,24 +73,23 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
                 createdAt: CarbonImmutable::now(),
                 reasoning: AdjournmentEndReason::Event->value,
             ),
+            new PetitionEventData(
+                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                date: CalendarDate::create('2025-01-20'),
+                createdAt: CarbonImmutable::now(),
+            ),
         ]);
         $state = (new DerivedState())->addEvents($events);
         $event = new PetitionEventData(
             type: PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
-            date: CalendarDate::create('2025-01-15'),
+            date: CalendarDate::create('2025-01-25'),
             createdAt: CarbonImmutable::now(),
             reasoning: AdjournmentEndReason::Event->value,
         );
         $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
         $result = $validator->validate($event, $state);
 
-        $this->assertFalse($result->isValid());
-        $errors = $result->getErrors();
-        $this->assertArrayHasKey('general', $errors);
-        $this->assertStringContainsString(
-            __('term.validation.common.only_one_event_allowed', ['event' => PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->label()]),
-            $errors['general'],
-        );
+        $this->assertTrue($result->isValid());
     }
 
     #[Test]

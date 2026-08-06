@@ -14,8 +14,8 @@ use Throwable;
 use function array_diff;
 use function sprintf;
 
-#[Signature('petition:delete-by-numbers {numbers* : Zaaknummers to delete}')]
 #[Description('Permanently delete petitions by zaaknummer, including all related data')]
+#[Signature('petition:delete-by-numbers {numbers* : Zaaknummers to delete}')]
 class DeletePetitionsByNumberCommand extends Command
 {
     public function handle(): int

@@ -284,6 +284,52 @@ class DerivedStateTest extends FeatureTestCase
         $this->assertEquals(500, $derivedState->forfeited('2025-02-25'));
     }
 
+    public function testPenaltyPeriodEndDateForIGS(): void
+    {
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-02-17'),
+                createdAt: CarbonImmutable::now(),
+                duration: 2,
+                penalties: [
+                    new PenaltyData(amount: 100, duration: 3),
+                ],
+            ),
+        ]);
+
+        $derivedState = new DerivedState();
+        $derivedState->addEvents($events)->buildCalendar();
+
+        $penaltyPeriodEndDate = $derivedState->penaltyPeriodEndDateForTerm(TermType::NOTICE_OF_DEFAULT);
+
+        $this->assertNotNull($penaltyPeriodEndDate);
+        $this->assertSame('2025-02-22', $penaltyPeriodEndDate->toDateString());
+    }
+
+    public function testPenaltyPeriodEndDateForBNT(): void
+    {
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
+                date: CalendarDate::create('2025-02-17'),
+                createdAt: CarbonImmutable::now(),
+                duration: 2,
+                penalties: [
+                    new PenaltyData(amount: 100, duration: 4),
+                ],
+            ),
+        ]);
+
+        $derivedState = new DerivedState();
+        $derivedState->addEvents($events)->buildCalendar();
+
+        $penaltyPeriodEndDate = $derivedState->penaltyPeriodEndDateForTerm(TermType::APPEAL_NOT_TIMELY);
+
+        $this->assertNotNull($penaltyPeriodEndDate);
+        $this->assertSame('2025-02-23', $penaltyPeriodEndDate->toDateString());
+    }
+
     public function testBesluit(): void
     {
         $events = collect([
@@ -540,5 +586,66 @@ class DerivedStateTest extends FeatureTestCase
         $deadlineDate = $derivedState->deadlineDate();
         $this->assertNotNull($deadlineDate);
         $this->assertEquals('2025-04-07', $deadlineDate->toDateString());
+    }
+
+    public function testDeadlineDateSwitchesToPenaltyEndAfterIgsDeadlineHasPassed(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::create(2025, 2, 25));
+
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-02-17'),
+                createdAt: CarbonImmutable::now(),
+                duration: 2,
+                penalties: [
+                    new PenaltyData(amount: 100, duration: 3),
+                ],
+            ),
+        ]);
+
+        $derivedState = new DerivedState()->addEvents($events)->buildCalendar();
+
+        // IGS deadline is 2025-02-19, penalty period runs 2025-02-20 through 2025-02-22.
+        $this->assertEquals('2025-02-22', $derivedState->deadlineDate()->toDateString());
+    }
+
+    public function testDeadlineDateStaysOnIgsDeadlineUntilItHasPassed(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::create(2025, 2, 19));
+
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-02-17'),
+                createdAt: CarbonImmutable::now(),
+                duration: 2,
+                penalties: [
+                    new PenaltyData(amount: 100, duration: 3),
+                ],
+            ),
+        ]);
+
+        $derivedState = new DerivedState()->addEvents($events)->buildCalendar();
+
+        $this->assertEquals('2025-02-19', $derivedState->deadlineDate()->toDateString());
+    }
+
+    public function testDeadlineDateStaysOnIgsDeadlineWhenNoPenaltyPeriodExists(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::create(2025, 2, 25));
+
+        $events = collect([
+            new PetitionEventData(
+                type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                date: CalendarDate::create('2025-02-17'),
+                createdAt: CarbonImmutable::now(),
+                duration: 2,
+            ),
+        ]);
+
+        $derivedState = new DerivedState()->addEvents($events)->buildCalendar();
+
+        $this->assertEquals('2025-02-19', $derivedState->deadlineDate()->toDateString());
     }
 }

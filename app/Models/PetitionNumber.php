@@ -18,8 +18,8 @@ use Ramsey\Uuid\UuidInterface;
  * @property int $number
  * @property int $id
  */
-#[UseFactory(PetitionNumberFactory::class)]
 #[Table('petition_number', timestamps: false)]
+#[UseFactory(PetitionNumberFactory::class)]
 class PetitionNumber extends EloquentModel
 {
     /** @use HasFactory<PetitionNumberFactory> */

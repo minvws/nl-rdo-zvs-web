@@ -2,6 +2,10 @@
 @use(App\Enums\RouteName)
 @use(App\Facades\DisplayDate)
 @use(App\Enums\OptionalFormFieldSetting)
+@php
+    $deadlineNoticeOfDefaultPenaltyPeriodEnd ??= null;
+    $deadlineAppealNotTimelyPenaltyPeriodEnd ??= null;
+@endphp
 
 <div
     class="petition-property__block"
@@ -88,9 +92,21 @@
                     </dd>
                 </div>
                 <div class="description-list__item">
+                    <dt>{{ __('petition.deadline_notice_of_default_penalty_period_end') }}</dt>
+                    <dd>
+                        {{ $deadlineNoticeOfDefaultPenaltyPeriodEnd ? DisplayDate::date($deadlineNoticeOfDefaultPenaltyPeriodEnd) : '-' }}
+                    </dd>
+                </div>
+                <div class="description-list__item">
                     <dt>{{ __('petition.deadline_appeal_not_timely') }}</dt>
                     <dd>
                         {{ $petition->deadline_appeal_not_timely ? DisplayDate::date($petition->deadline_appeal_not_timely) : '-' }}
+                    </dd>
+                </div>
+                <div class="description-list__item">
+                    <dt>{{ __('petition.deadline_appeal_not_timely_penalty_period_end') }}</dt>
+                    <dd>
+                        {{ $deadlineAppealNotTimelyPenaltyPeriodEnd ? DisplayDate::date($deadlineAppealNotTimelyPenaltyPeriodEnd) : '-' }}
                     </dd>
                 </div>
                 <x-petition.term-exceeded :petition="$petition" />

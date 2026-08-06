@@ -8,6 +8,7 @@ use App\Config\DepartmentConfigurationService;
 use App\Enums\DecisionType;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
+use App\Enums\ResultType;
 use App\Models\Department;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -97,6 +98,40 @@ class DepartmentConfigurationServiceTest extends TestCase
         $type = DecisionType::REGULAR;
 
         $this->assertFalse($this->service->createProcessingStepsOnDecisionCreation($department, $type));
+    }
+
+    public function testResultTypeLabelReturnsDepartmentOverrideForWjz(): void
+    {
+        $department = Department::factory()->make(['slug' => 'wjz-bb']);
+
+        $this->assertSame(
+            __('result_type.wjz-bb.final_decision'),
+            $this->service->resultTypeLabel($department, ResultType::FINAL_DECISION),
+        );
+        $this->assertSame(
+            __('result_type.wjz-bb.final_decision_55_request'),
+            $this->service->resultTypeLabel($department, ResultType::FINAL_DECISION_55_REQUEST),
+        );
+    }
+
+    public function testResultTypeLabelFallsBackToDefaultForOtherDepartments(): void
+    {
+        $department = Department::factory()->make(['slug' => 'team-a']);
+
+        $this->assertSame(
+            ResultType::FINAL_DECISION->label(),
+            $this->service->resultTypeLabel($department, ResultType::FINAL_DECISION),
+        );
+    }
+
+    public function testResultTypeLabelFallsBackToDefaultForNonOverriddenType(): void
+    {
+        $department = Department::factory()->make(['slug' => 'wjz-bb']);
+
+        $this->assertSame(
+            ResultType::WITHDRAWN->label(),
+            $this->service->resultTypeLabel($department, ResultType::WITHDRAWN),
+        );
     }
 
     public function testGetEventConfigurationReturnsSpecificConfiguration(): void

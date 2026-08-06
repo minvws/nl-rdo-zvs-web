@@ -31,8 +31,8 @@ use Ramsey\Uuid\UuidInterface;
  */
 #[CollectedBy(PetitionCustomDateCollection::class)]
 #[Fillable(['petition_id', 'date_label', 'date'])]
-#[UseFactory(PetitionCustomDateFactory::class)]
 #[Table('petition_custom_dates')]
+#[UseFactory(PetitionCustomDateFactory::class)]
 class PetitionCustomDate extends EloquentModel
 {
     /** @use HasFactory<PetitionCustomDateFactory> */

@@ -8,16 +8,22 @@ use App\Enums\AssignmentRole;
 use App\Enums\ContactRole;
 use App\Enums\ContactType;
 use App\Enums\PetitionCriteria;
+use App\Enums\PetitionEventType;
 use App\Enums\StatusGroup;
+use App\Enums\TermType;
 use App\Models\Builder\Petition\PetitionQueryBuilder;
 use App\Models\Contact;
 use App\Models\CustomPetitionProperty;
+use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionAssignment;
+use App\Models\PetitionEvent;
 use App\Models\PetitionStatus;
+use App\Models\PetitionType;
 use App\Models\PolicyDepartment;
 use App\Models\Team;
 use App\Models\User;
+use App\ValueObjects\CalendarDate;
 use Illuminate\Http\Request;
 use Tests\Feature\FeatureTestCase;
 
@@ -143,6 +149,83 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
         $filterPetition = Petition::factory()->create();
 
         $this->assertSingleFilterResult(PetitionCriteria::STATUS, $filterPetition->petitionStatus->status);
+    }
+
+    public function testParticularitiesFilter(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        $this->attachParticularity($filterPetition, $department, 'Alpha');
+
+        $otherPetition = Petition::factory()->recycle($department)->create();
+        $this->attachParticularity($otherPetition, $department, 'Beta');
+
+        $request = new Request([
+            'filter' => [
+                PetitionCriteria::PARTICULARITIES->value => 'Alpha',
+            ],
+        ]);
+
+        $results = PetitionQueryBuilder::make($request)
+            ->whereDepartment($department)
+            ->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals($filterPetition->id->toString(), $results->first()->id->toString());
+    }
+
+    public function testParticularitiesFilterIgssMatchesNoticeOfDefault(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        $filterPetition->petitionTerms()->create([
+            'id' => $this->faker->uuid(),
+            'type' => TermType::NOTICE_OF_DEFAULT,
+            'start_date' => CalendarDate::today(),
+            'duration_in_days' => $this->faker->numberBetween(1, 100),
+            'penalty_amount_in_euros' => $this->faker->numberBetween(1, 100),
+        ]);
+
+        Petition::factory()->recycle($department)->create();
+
+        $request = new Request([
+            'filter' => [
+                PetitionCriteria::PARTICULARITIES->value => 'IGS',
+            ],
+        ]);
+
+        $results = PetitionQueryBuilder::make($request)->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals($filterPetition->id->toString(), $results->first()->id->toString());
+    }
+
+    public function testParticularitiesFilterIgssMatchesNoticeOfDefaultEvents(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($filterPetition)
+            ->withType(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED)
+            ->create();
+
+        Petition::factory()->recycle($department)->create();
+
+        $request = new Request([
+            'filter' => [
+                PetitionCriteria::PARTICULARITIES->value => 'IGS',
+            ],
+        ]);
+
+        $results = PetitionQueryBuilder::make($request)
+            ->whereDepartment($department)
+            ->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals($filterPetition->id->toString(), $results->first()->id->toString());
     }
 
     public function testSearchNumberFilter(): void
@@ -318,5 +401,17 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
         ]);
 
         $this->assertEquals(1, PetitionQueryBuilder::make($request)->count());
+    }
+
+    private function attachParticularity(Petition $petition, Department $department, string $label): void
+    {
+        $relatedDepartment = Department::factory()->create();
+        $relatedPetitionType = PetitionType::factory()->recycle($relatedDepartment)->create([
+            'particularity_label' => $label,
+        ]);
+
+        $relatedPetition = Petition::factory()->recycle($relatedDepartment)->recycle($relatedPetitionType)->create();
+
+        $petition->relatedPetitions()->attach($relatedPetition);
     }
 }

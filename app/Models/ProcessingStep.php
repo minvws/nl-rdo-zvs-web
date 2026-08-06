@@ -36,8 +36,8 @@ use Ramsey\Uuid\UuidInterface;
  */
 
 #[CollectedBy(ProcessingStepCollection::class)]
-#[UseFactory(ProcessingStepFactory::class)]
 #[Table('processing_steps')]
+#[UseFactory(ProcessingStepFactory::class)]
 class ProcessingStep extends EloquentModel
 {
     /** @use HasFactory<ProcessingStepFactory> */

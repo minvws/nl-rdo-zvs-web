@@ -15,8 +15,8 @@ use Throwable;
 
 use function count;
 
-#[Signature('processing-steps:reorder')]
 #[Description('Reorder all processing steps by deadline_at and created_at per decision')]
+#[Signature('processing-steps:reorder')]
 final class ReorderProcessingStepsCommand extends Command
 {
     public function __construct(
