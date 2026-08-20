@@ -10,6 +10,7 @@ use App\Enums\ContactType;
 use App\Enums\PetitionCriteria;
 use App\Enums\PetitionEventType;
 use App\Enums\StatusGroup;
+use App\Enums\SuspensionType;
 use App\Enums\TermType;
 use App\Models\Builder\Petition\PetitionQueryBuilder;
 use App\Models\Contact;
@@ -228,6 +229,113 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
         $this->assertEquals($filterPetition->id->toString(), $results->first()->id->toString());
     }
 
+    public function testParticularitiesFilterOpschortingMatchesSuspensionEvent(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($filterPetition)
+            ->withType(PetitionEventType::LETTER_OF_SUSPENSION_SENT)
+            ->create([
+                'date' => CalendarDate::today()->subDays(3),
+                'duration' => 10,
+                'suspension_type' => SuspensionType::SUSPENSION,
+            ]);
+
+        $endedPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($endedPetition)
+            ->withType(PetitionEventType::LETTER_OF_SUSPENSION_SENT)
+            ->create([
+                'date' => CalendarDate::today()->subDays(10),
+                'duration' => 30,
+                'suspension_type' => SuspensionType::SUSPENSION,
+            ]);
+        PetitionEvent::factory()
+            ->recycle($endedPetition)
+            ->withType(PetitionEventType::SUSPENSION_END)
+            ->create(['date' => CalendarDate::today()->subDay(), 'duration' => null]);
+
+        $this->assertParticularityFilterMatches($department, 'Opschorting', $filterPetition);
+    }
+
+    public function testParticularitiesFilterAanhoudingMatchesSpecifiedAdjournmentEvent(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($filterPetition)
+            ->withType(PetitionEventType::LETTER_OF_SUSPENSION_SENT)
+            ->create([
+                'date' => CalendarDate::today()->subDays(3),
+                'duration' => 10,
+                'suspension_type' => SuspensionType::SPECIFIED_ADJOURNMENT,
+            ]);
+
+        Petition::factory()->recycle($department)->create();
+
+        $this->assertParticularityFilterMatches($department, 'Aanhouding', $filterPetition);
+    }
+
+    public function testParticularitiesFilterAanhoudingMatchesOpenUnspecifiedAdjournment(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($filterPetition)
+            ->withType(PetitionEventType::UNSPECIFIED_ADJOURNMENT)
+            ->create(['date' => CalendarDate::today()->subDays(3)]);
+
+        $endedPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($endedPetition)
+            ->withType(PetitionEventType::UNSPECIFIED_ADJOURNMENT)
+            ->create(['date' => CalendarDate::today()->subDays(3)]);
+        PetitionEvent::factory()
+            ->recycle($endedPetition)
+            ->withType(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END)
+            ->create(['date' => CalendarDate::today()->subDay()]);
+
+        $this->assertParticularityFilterMatches($department, 'Aanhouding', $filterPetition);
+    }
+
+    public function testParticularitiesFilterBntMatchesRunningAppealNotTimelyTerm(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($filterPetition)
+            ->withType(PetitionEventType::APPEAL_DECISION_NOT_TIMELY)
+            ->create(['date' => CalendarDate::today()->subDays(2), 'duration' => 14]);
+
+        $passedPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($passedPetition)
+            ->withType(PetitionEventType::APPEAL_DECISION_NOT_TIMELY)
+            ->create(['date' => CalendarDate::today()->subDays(20), 'duration' => 14]);
+
+        $this->assertParticularityFilterMatches($department, 'BNT', $filterPetition);
+    }
+
+    public function testParticularitiesFilterVerdagingMatchesAdjournmentEvent(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($filterPetition)
+            ->withType(PetitionEventType::ADJOURNMENT)
+            ->create(['date' => CalendarDate::today()->subDays(30), 'duration' => 42]);
+
+        Petition::factory()->recycle($department)->create();
+
+        $this->assertParticularityFilterMatches($department, 'Verdaging', $filterPetition);
+    }
+
     public function testSearchNumberFilter(): void
     {
         $filterPetition = Petition::factory()->create();
@@ -413,5 +521,24 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
         $relatedPetition = Petition::factory()->recycle($relatedDepartment)->recycle($relatedPetitionType)->create();
 
         $petition->relatedPetitions()->attach($relatedPetition);
+    }
+
+    private function assertParticularityFilterMatches(
+        Department $department,
+        string $label,
+        Petition $expected,
+    ): void {
+        $request = new Request([
+            'filter' => [
+                PetitionCriteria::PARTICULARITIES->value => $label,
+            ],
+        ]);
+
+        $results = PetitionQueryBuilder::make($request)
+            ->whereDepartment($department)
+            ->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals($expected->id->toString(), $results->first()->id->toString());
     }
 }

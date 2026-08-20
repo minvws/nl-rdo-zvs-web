@@ -24,6 +24,7 @@ return [
 
     'string' => 'Vul een tekstuele waarde in',
     'uuid' => 'Vul een geldig uuid in',
+    'url' => 'Vul een geldige URL in',
 
     'required' => 'Het veld :attribute is verplicht.',
     'required_without' => 'Het veld :attribute is verplicht wanneer :values niet ingevuld is.',

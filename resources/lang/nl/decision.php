@@ -22,6 +22,7 @@ return [
     'reference' => 'Referentienummer',
     'date' => 'Datum besluit',
     'reviewbatch' => 'Reviewbatch',
+    'url' => 'URL',
     'detail_page' => 'Overzicht van',
     'edit_properties' => 'Besluitdetails aanpassen',
     'attach' => 'Besluit koppelen',

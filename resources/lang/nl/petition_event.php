@@ -113,7 +113,7 @@ return [
             'meeting_scheduled' => 'Commissiezitting bepaald',
             'suspension_end' => 'Einde aanhouding/opschorting',
             'unspecified_adjournment_end' => 'Einde ongespecificeerde aanhouding',
-            'unspecified_adjournment' => 'Brief ongespecificeerde aanhouding verzonden',
+            'unspecified_adjournment' => 'Ongespecificeerde aanhouding',
         ],
         'description' => [
             'letter_of_suspension_sent' => 'Dit is de datum waarop de aanhouding- of opschortingsbrief is verzonden. Opschortingen zijn niet van toepassing op de bezwaartermijn, wel op de beslistermijn.',

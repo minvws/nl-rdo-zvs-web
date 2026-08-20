@@ -29,6 +29,7 @@ class DecisionCreateRequest extends FormRequest
             'date' => ['nullable', new CalendarDateRule()],
             'type' => ['required', new Enum(DecisionType::class)],
             'reviewbatch' => ['nullable', 'string', 'max:128'],
+            'url' => ['nullable', 'string', 'url', 'max:1024'],
             'team_id' => [
                 'nullable',
                 'uuid',

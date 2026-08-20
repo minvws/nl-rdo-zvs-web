@@ -116,13 +116,13 @@ enum PetitionEventType: string
         };
     }
 
-    public function hasReasoning(): bool
+    public function hasReasoning(?ResultType $resultType = null): bool
     {
         if ($this->hasReasoningSelect()) {
             return true;
         }
 
-        return $this->hasReasoningTextarea();
+        return $this->hasReasoningTextarea($resultType);
     }
 
     public function hasReasoningSelect(): bool
@@ -141,10 +141,11 @@ enum PetitionEventType: string
         };
     }
 
-    public function hasReasoningTextarea(): bool
+    public function hasReasoningTextarea(?ResultType $resultType = null): bool
     {
         return match ($this) {
-            self::FINAL_RESULT => true,
+            self::FINAL_RESULT => $resultType?->requiresReasoning() ?? false,
+            self::UNSPECIFIED_ADJOURNMENT => true,
             default => false,
         };
     }

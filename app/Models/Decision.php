@@ -36,6 +36,7 @@ use function strtolower;
  * @property string $name
  * @property ?string $reference
  * @property ?string $reviewbatch
+ * @property ?string $url
  * @property ?CalendarDate $date
  * @property UuidInterface $department_id
  * @property ?UuidInterface $team_id

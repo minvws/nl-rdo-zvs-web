@@ -100,7 +100,22 @@
                     aria-describedby="reviewbatch-error"
                     value="{{ Form::old('reviewbatch', $decision->reviewbatch) }}" />
             </div>
-
+            <div>
+                <x-input-label
+                    for="decision-url"
+                    :content="__('decision.url')" />
+                <x-input-error
+                    id="url-error"
+                    :messages="$errors->get('url')" />
+                <x-text-input
+                    id="decision-url"
+                    :hasError="$errors->has('url')"
+                    name="url"
+                    type="text"
+                    maxlength="1024"
+                    aria-describedby="url-error"
+                    value="{{ Form::old('url', $decision->url) }}" />
+            </div>
             <div>
                 <x-input-label
                     for="decision-team-id"

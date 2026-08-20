@@ -102,7 +102,7 @@ readonly class PetitionCreateAction
 
     private function createPetitionStatusHistory(Petition $petition, User $user): void
     {
-        $date = $petition->date_of_entry->addDay()->toDateString();
+        $date = $petition->date_of_entry->toDateString();
 
         PetitionStatusHistory::query()->create([
             'petition_id' => $petition->id,

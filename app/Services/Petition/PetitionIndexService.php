@@ -126,6 +126,8 @@ final readonly class PetitionIndexService
         $result = $labels
             ->merge([
                 PetitionParticularityCollector::LABEL_ADJOURNMENT,
+                PetitionParticularityCollector::LABEL_ADJOURNMENT_LETTER,
+                PetitionParticularityCollector::LABEL_APPEAL_NOT_TIMELY,
                 PetitionParticularityCollector::LABEL_NOTICE_OF_DEFAULT,
                 PetitionParticularityCollector::LABEL_SUSPENSION,
             ])

@@ -36,6 +36,13 @@
                 <dt>{{ __('decision.reviewbatch') }}</dt>
                 <dd>{{ $decision->reviewbatch ? $decision->reviewbatch : '-' }}</dd>
             </div>
+            @if (! empty($decision->url))
+                <div class="description-list--item">
+                    <dt>{{ __('decision.url') }}</dt>
+                    <dd><a href="{{ $decision->url }}">{{ $decision->url }}</a></dd>
+                </div>
+            @endif
+
             @if ($decision->team)
                 <div class="description-list--item">
                     <dt>{{ __('team.model_singular') }}</dt>

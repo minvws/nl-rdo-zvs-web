@@ -9,6 +9,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Override;
 use stdClass;
@@ -22,6 +23,14 @@ use function version_compare;
 
 class MigrateCommand extends IlluminateMigrateCommand
 {
+    /**
+     * Postgres roles are cluster-global, so parallel test workers recreating their own databases can
+     * write the same "cts"/"cts_dba" catalog rows at once and fail with "tuple concurrently updated".
+     * That conflict is transient, so retry the affected migration file a few times.
+     */
+    private const int MAX_CONCURRENCY_RETRIES = 10;
+    private const string CONCURRENCY_CONFLICT_MESSAGE = 'tuple concurrently updated';
+
     /**
      * @throws ValueError|Throwable
      */
@@ -55,8 +64,10 @@ class MigrateCommand extends IlluminateMigrateCommand
                 $query = $fileSystem->get($migration);
                 Assert::string($query);
 
-                DB::transaction(static function () use ($query): void {
-                    DB::unprepared($query);
+                $this->executeWithConcurrencyRetries(static function () use ($query): void {
+                    DB::transaction(static function () use ($query): void {
+                        DB::unprepared($query);
+                    });
                 });
                 DB::table($table)->insert([
                     'migration' => $migration,
@@ -70,6 +81,36 @@ class MigrateCommand extends IlluminateMigrateCommand
         $this->output->success('Migrations done');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @param callable(): void $operation
+     *
+     * @throws Throwable
+     */
+    protected function executeWithConcurrencyRetries(callable $operation): void
+    {
+        $attempt = 1;
+
+        while (true) {
+            try {
+                $operation();
+
+                return;
+            } catch (QueryException $exception) {
+                if ($attempt >= self::MAX_CONCURRENCY_RETRIES || !$this->isConcurrencyConflict($exception)) {
+                    throw $exception;
+                }
+
+                Sleep::usleep($attempt * 20_000);
+                $attempt++;
+            }
+        }
+    }
+
+    private function isConcurrencyConflict(QueryException $exception): bool
+    {
+        return Str::contains($exception->getMessage(), self::CONCURRENCY_CONFLICT_MESSAGE);
     }
 
     /**

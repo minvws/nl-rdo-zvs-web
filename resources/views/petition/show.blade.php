@@ -117,7 +117,20 @@
                                             <span class="visually-hidden">{{ __('general.no') }}</span>
                                         @endif
                                     </td>
-
+                                    <td>
+                                        @if (! empty($decision->url))
+                                            <a
+                                                class="icon-only"
+                                                href="{{ $decision->url }}">
+                                                <span class="visually-hidden">
+                                                    {{ __('general.view') }} {{ $decision->url }}
+                                                </span>
+                                                <x-tabler-external-link
+                                                    aria-hidden="true"
+                                                    focusable="false" />
+                                            </a>
+                                        @endif
+                                    </td>
                                     <td>
                                         <a
                                             class="icon-only"

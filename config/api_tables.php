@@ -466,6 +466,7 @@ return [
                 'penalties',
                 'suspension_type',
                 'result_type',
+                'reasoning',
                 'created_at',
                 'updated_at',
             ],

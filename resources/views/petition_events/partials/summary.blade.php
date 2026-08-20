@@ -15,6 +15,7 @@
                         <th>{{ __('term.date') }}</th>
                         <th>{{ __('term.term') }}</th>
                         <th>{{ __('term.penalty') }}</th>
+                        <th>{{ __('term.reasoning') }}</th>
                         <th>{{ __('term.actions') }}</th>
                     </tr>
                 </thead>
@@ -43,6 +44,20 @@
                                             @endif
                                         @endforeach
                                     </div>
+                                @endif
+                            </td>
+                            <td>
+                                @if (! empty($event->reasoning))
+                                    @if ($event->type->reasoningSelectEnumClass() !== null)
+                                        @php
+                                            $enumClass = $event->type->reasoningSelectEnumClass();
+                                            $enum = $enumClass::from($event->reasoning);
+                                        @endphp
+
+                                        {{ $enum->label() }}
+                                    @else
+                                        {{ $event->reasoning }}
+                                    @endif
                                 @endif
                             </td>
                             <td>

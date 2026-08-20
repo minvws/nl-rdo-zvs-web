@@ -11,6 +11,7 @@ use App\Models\Department;
 use App\Models\DepartmentTermTypeSetting;
 use App\Models\PetitionEvent;
 use App\Models\PetitionStatus;
+use App\Models\PetitionStatusHistory;
 use App\Models\PetitionTerm;
 use App\Models\PetitionType;
 use App\Models\User;
@@ -58,9 +59,13 @@ class PetitionCreateActionTest extends FeatureTestCase
             'number' => 'TEST-2024-002',
         ]);
 
-        $this->assertTrue(
-            PetitionEvent::query()->where('petition_id', $petition->id)->exists(),
-        );
+        $this->assertDatabaseHas(PetitionEvent::class, [
+            'petition_id' => $petition->id,
+        ]);
+        $this->assertDatabaseHas(PetitionStatusHistory::class, [
+            'petition_id' => $petition->id,
+            'date' => '2024-01-01',
+        ]);
     }
 
     public function testCreatesPetitionTermWhenTermEngineV2IsDisabled(): void

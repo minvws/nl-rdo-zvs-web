@@ -37,6 +37,7 @@ class DecisionUpdateRequest extends FormRequest
             ],
             'date' => ['nullable', new CalendarDateRule()],
             'reviewbatch' => ['nullable', 'string', 'max:128'],
+            'url' => ['nullable', 'string', 'url', 'max:1024'],
             'team_id' => [
                 'nullable',
                 'uuid',

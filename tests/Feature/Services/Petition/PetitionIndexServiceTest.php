@@ -30,6 +30,6 @@ class PetitionIndexServiceTest extends FeatureTestCase
             ->getUsedPetitionParticularities($department)
             ->all();
 
-        $this->assertSame(['Aanh', 'Alpha', 'IGS', 'Opsch', 'Zulu'], $particularities);
+        $this->assertSame(['Aanhouding', 'Alpha', 'BNT', 'IGS', 'Opschorting', 'Verdaging', 'Zulu'], $particularities);
     }
 }

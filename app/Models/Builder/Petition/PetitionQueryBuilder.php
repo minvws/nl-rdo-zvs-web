@@ -52,7 +52,7 @@ readonly class PetitionQueryBuilder
                 'petitionCategory:id,name',
                 'team:id,name',
                 'petitionTerms',
-                'petitionEvents:id,type',
+                'petitionEvents:id,petition_id,type,date,duration,suspension_type',
                 'relatedPetitions.petitionType:id,particularity_label',
             ]);
 

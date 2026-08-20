@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\QueryBuilders;
 
 use App\Enums\PetitionEventType;
+use App\Enums\SuspensionType;
 use App\Enums\TermType;
 use App\Models\Department;
 use App\Models\Petition;
@@ -13,6 +14,8 @@ use App\ValueObjects\CalendarDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
+
+use function array_map;
 
 /**
  * @method static PetitionQueryBuilder query()
@@ -74,10 +77,14 @@ class PetitionQueryBuilder extends Builder
 
     private function particularityLabelsQuery(): QueryBuilder
     {
+        $today = CalendarDate::today()->toDateString();
+
         return $this->relatedPetitionParticularityLabelsQuery()
             ->unionAll($this->noticeOfDefaultParticularityLabelQuery())
-            ->unionAll($this->suspensionParticularityLabelQuery())
-            ->unionAll($this->adjournmentParticularityLabelQuery());
+            ->unionAll($this->suspensionParticularityLabelQuery($today))
+            ->unionAll($this->adjournmentParticularityLabelQuery($today))
+            ->unionAll($this->appealNotTimelyParticularityLabelQuery($today))
+            ->unionAll($this->adjournmentLetterParticularityLabelQuery());
     }
 
     private function relatedPetitionParticularityLabelsQuery(): QueryBuilder
@@ -137,16 +144,59 @@ class PetitionQueryBuilder extends Builder
             );
     }
 
-    private function suspensionParticularityLabelQuery(): QueryBuilder
+    private function suspensionParticularityLabelQuery(string $today): QueryBuilder
     {
-        $today = CalendarDate::today()->toDateString();
-
         return DB::query()
             ->selectRaw('? as label', [PetitionParticularityCollector::LABEL_SUSPENSION])
-            ->whereExists($this->suspensionTermQuery($today));
+            ->where(static function (QueryBuilder $query) use ($today): void {
+                $query->whereExists(
+                    self::activeSuspensionLetterEventQuery(PetitionParticularityCollector::SUSPENSION_TYPES, $today),
+                )
+                    ->orWhere(static function (QueryBuilder $query) use ($today): void {
+                        $query->whereNotExists(self::anyPetitionEventQuery())
+                            ->whereExists(self::suspensionTermQuery($today));
+                    });
+            });
     }
 
-    private function suspensionTermQuery(string $today): QueryBuilder
+    /**
+     * A suspension runs from the day after the letter was sent until either the day before the
+     * registered end, or the last day of the duration stated in the letter.
+     *
+     * @param array<SuspensionType> $suspensionTypes
+     */
+    private static function activeSuspensionLetterEventQuery(array $suspensionTypes, string $today): QueryBuilder
+    {
+        return DB::query()
+            ->from('petition_events as suspension_start')
+            ->selectRaw('1')
+            ->whereColumn('suspension_start.petition_id', 'petitions.id')
+            ->where('suspension_start.type', PetitionEventType::LETTER_OF_SUSPENSION_SENT->value)
+            ->whereIn(
+                'suspension_start.suspension_type',
+                array_map(static fn(SuspensionType $type): string => $type->value, $suspensionTypes),
+            )
+            ->whereRaw('suspension_start."date" + 1 <= ?::date', [$today])
+            ->whereRaw(
+                <<<'SQL'
+                ?::date <= coalesce(
+                    (
+                        select suspension_end."date" - 1
+                        from petition_events as suspension_end
+                        where suspension_end.petition_id = suspension_start.petition_id
+                          and suspension_end.type = ?
+                          and suspension_end."date" >= suspension_start."date" + 1
+                        order by suspension_end."date"
+                        limit 1
+                    ),
+                    suspension_start."date" + coalesce(suspension_start.duration, 0)
+                )
+                SQL,
+                [$today, PetitionEventType::SUSPENSION_END->value],
+            );
+    }
+
+    private static function suspensionTermQuery(string $today): QueryBuilder
     {
         return DB::query()
             ->from('petition_terms')
@@ -157,16 +207,54 @@ class PetitionQueryBuilder extends Builder
             ->whereDate('end_date', '>=', $today);
     }
 
-    private function adjournmentParticularityLabelQuery(): QueryBuilder
+    private function adjournmentParticularityLabelQuery(string $today): QueryBuilder
     {
-        $today = CalendarDate::today()->toDateString();
-
         return DB::query()
             ->selectRaw('? as label', [PetitionParticularityCollector::LABEL_ADJOURNMENT])
             ->where(static function (QueryBuilder $query) use ($today): void {
-                $query->whereExists(self::adjournmentTermQuery($today))
+                $query->whereExists(
+                    self::activeSuspensionLetterEventQuery([SuspensionType::SPECIFIED_ADJOURNMENT], $today),
+                )
+                    ->orWhere(static function (QueryBuilder $query): void {
+                        $query->whereExists(
+                            self::petitionEventOfTypeQuery(PetitionEventType::UNSPECIFIED_ADJOURNMENT),
+                        )->whereNotExists(
+                            self::petitionEventOfTypeQuery(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END),
+                        );
+                    })
+                    ->orWhere(static function (QueryBuilder $query) use ($today): void {
+                        $query->whereNotExists(self::anyPetitionEventQuery())
+                            ->whereExists(self::adjournmentTermQuery($today));
+                    })
                     ->orWhereExists(self::adjournmentDraftTermQuery($today));
             });
+    }
+
+    private function appealNotTimelyParticularityLabelQuery(string $today): QueryBuilder
+    {
+        return DB::query()
+            ->selectRaw('? as label', [PetitionParticularityCollector::LABEL_APPEAL_NOT_TIMELY])
+            ->whereExists($this->runningAppealNotTimelyTermQuery($today));
+    }
+
+    private function adjournmentLetterParticularityLabelQuery(): QueryBuilder
+    {
+        return DB::query()
+            ->selectRaw('? as label', [PetitionParticularityCollector::LABEL_ADJOURNMENT_LETTER])
+            ->whereExists(self::petitionEventOfTypeQuery(PetitionEventType::ADJOURNMENT));
+    }
+
+    private function runningAppealNotTimelyTermQuery(string $today): QueryBuilder
+    {
+        return self::petitionEventOfTypeQuery(PetitionEventType::APPEAL_DECISION_NOT_TIMELY)
+            ->where('petition_events.duration', '>', 0)
+            ->whereRaw('petition_events."date" <= ?::date', [$today])
+            ->whereRaw('?::date <= petition_events."date" + petition_events.duration', [$today]);
+    }
+
+    private static function petitionEventOfTypeQuery(PetitionEventType $type): QueryBuilder
+    {
+        return self::anyPetitionEventQuery()->where('petition_events.type', $type->value);
     }
 
     private static function adjournmentTermQuery(string $today): QueryBuilder

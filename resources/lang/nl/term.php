@@ -11,6 +11,7 @@ return [
     'deadline' => 'Deadline',
     'total_days_of_suspensions' => 'Dagen opgeschort',
     'penalty' => 'Dwangsom',
+    'reasoning' => 'Toelichting',
     'penalties' => 'Dwangsommen',
     'sum_of_penalties_per_date' => 'Dwangsom per dag',
     'days_in_progress' => 'Dagen in behandeling',

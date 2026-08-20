@@ -296,8 +296,10 @@ class PetitionEventTypeTest extends TestCase
     public function testHasReasoningReturnsTrueForConfiguredEventTypes(): void
     {
         $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasReasoning());
-        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoning());
-        $this->assertFalse(PetitionEventType::UNSPECIFIED_ADJOURNMENT->hasReasoning());
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoning());
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoning(ResultType::FINAL_DECISION));
+        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoning(ResultType::OTHER));
+        $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT->hasReasoning());
         $this->assertFalse(PetitionEventType::HEARING_DATE->hasReasoning());
     }
 
@@ -314,7 +316,9 @@ class PetitionEventTypeTest extends TestCase
         $this->assertFalse(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasReasoningTextarea());
 
         $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoningSelect());
-        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoningTextarea());
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoningTextarea());
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoningTextarea(ResultType::FINAL_DECISION));
+        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoningTextarea(ResultType::OTHER));
     }
 
     #[Test]

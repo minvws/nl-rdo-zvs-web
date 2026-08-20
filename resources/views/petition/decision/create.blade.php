@@ -69,6 +69,21 @@
         </div>
         <div class="form-group">
             <x-input-label
+                for="url"
+                :content="__('decision.url')" />
+            <x-input-error
+                id="url-error"
+                :messages="$errors->get('url')" />
+            <x-text-input
+                id="url"
+                class="form-control"
+                :hasError="$errors->has('url')"
+                name="url"
+                maxlength="1024"
+                aria-describedby="url-error" />
+        </div>
+        <div class="form-group">
+            <x-input-label
                 for="type"
                 required
                 :content="__('decision.type.label')" />
