@@ -11,6 +11,7 @@ use App\Exports\PetitionBeroepExcelExport;
 use App\Exports\PetitionBezwaarExcelExport;
 use App\Exports\PetitionExportInterface;
 use App\Exports\PetitionInternalExcelExport;
+use App\Exports\PetitionKlachtExcelExport;
 use App\Exports\PetitionWooVerzoekExcelExport;
 
 use function __;
@@ -26,6 +27,10 @@ class PetitionExportFactory
                 $criteria,
             ),
             $criteria->petitionType->type === PetitionVariant::BEZWAAR => new PetitionBezwaarExcelExport(
+                $this->getTabNameTranslation($criteria->petitionType->type),
+                $criteria,
+            ),
+            $criteria->petitionType->type === PetitionVariant::KLACHT => new PetitionKlachtExcelExport(
                 $this->getTabNameTranslation($criteria->petitionType->type),
                 $criteria,
             ),

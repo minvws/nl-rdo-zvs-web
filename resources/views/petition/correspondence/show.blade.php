@@ -29,24 +29,35 @@
             </a>
         @endcan
 
-        @if ($petition->message !== null && $petition->date_of_message !== null)
+        @if ($petition->message !== null || $petition->date_of_message !== null || $petition->decision_reference !== null || $petition->decision_date !== null)
             <dl class="description-list">
-                <div class="description-list__item">
-                    <dt>{{ __('petition_correspondence.message') }}</dt>
-                    <dd>{{ $petition->message }}</dd>
-                </div>
-                <div class="description-list__item">
-                    <dt>{{ __('petition_correspondence.date_of_message') }}</dt>
-                    <dd>{{ DisplayDate::date($petition->date_of_message) }}</dd>
-                </div>
-                <div class="description-list__item">
-                    <dt>{{ __('petition_correspondence.decision_reference') }}</dt>
-                    <dd>{{ $petition->decision_reference ?? '-' }}</dd>
-                </div>
-                <div class="description-list__item">
-                    <dt>{{ __('petition_correspondence.decision_date') }}</dt>
-                    <dd>{{ $petition->decision_date ? DisplayDate::date($petition->decision_date) : '-' }}</dd>
-                </div>
+                @if ($petition->message !== null)
+                    <div class="description-list__item">
+                        <dt>{{ __('petition_correspondence.message') }}</dt>
+                        <dd>{{ $petition->message }}</dd>
+                    </div>
+                @endif
+
+                @if ($petition->date_of_message !== null)
+                    <div class="description-list__item">
+                        <dt>{{ __('petition_correspondence.date_of_message') }}</dt>
+                        <dd>{{ DisplayDate::date($petition->date_of_message) }}</dd>
+                    </div>
+                @endif
+
+                @if ($petition->decision_reference !== null)
+                    <div class="description-list__item">
+                        <dt>{{ __('petition_correspondence.decision_reference') }}</dt>
+                        <dd>{{ $petition->decision_reference }}</dd>
+                    </div>
+                @endif
+
+                @if ($petition->decision_date !== null)
+                    <div class="description-list__item">
+                        <dt>{{ __('petition_correspondence.decision_date') }}</dt>
+                        <dd>{{ DisplayDate::date($petition->decision_date) }}</dd>
+                    </div>
+                @endif
             </dl>
         @else
             <p>{{ '-' }}</p>

@@ -10,11 +10,11 @@ use App\ValueObjects\CalendarDate;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\QueryBuilder\Sorts\Sort;
 
+/**
+ * @implements Sort<Decision>
+ */
 class DeadlineSort implements Sort
 {
-    /**
-     * @param Builder<Decision> $query
-     */
     public function __invoke(Builder $query, bool $descending, string $property): void
     {
         $today = CalendarDate::today()->toDateString();

@@ -13,6 +13,7 @@ readonly class TermCreationStrategyResolver
         private BeroepTermCreationStrategy $beroepStrategy,
         private BezwaarTermCreationStrategy $bezwaarStrategy,
         private WooVerzoekTermCreationStrategy $wooVerzoekStrategy,
+        private KlachtTermCreationStrategy $klachtStrategy,
     ) {
     }
 
@@ -22,6 +23,7 @@ readonly class TermCreationStrategyResolver
             PetitionVariant::BEROEP => $this->beroepStrategy,
             PetitionVariant::BEZWAAR => $this->bezwaarStrategy,
             PetitionVariant::WOO_VERZOEK => $this->wooVerzoekStrategy,
+            PetitionVariant::KLACHT => $this->klachtStrategy,
         };
     }
 }

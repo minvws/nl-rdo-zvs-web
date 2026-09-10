@@ -18,4 +18,8 @@ return [
         ExternalUrlType::PUBLICATION_PAGE->value,
         ExternalUrlType::DECISION_PAGE->value,
     ],
+    PetitionVariant::KLACHT->value => [
+        ExternalUrlType::PUBLICATION_PAGE->value,
+        ExternalUrlType::DECISION_PAGE->value,
+    ],
 ];

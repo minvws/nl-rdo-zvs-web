@@ -26,15 +26,11 @@ class BladeServiceProvider extends ServiceProvider
 
     private function buildIfHtmx(HtmxHelper $htmxHelper, Request $request): Closure
     {
-        return static function () use ($htmxHelper, $request): bool {
-            return $htmxHelper->isHtmxRequest($request);
-        };
+        return static fn(): bool => $htmxHelper->isHtmxRequest($request);
     }
 
     private function buildIfNotHtmx(HtmxHelper $htmxHelper, Request $request): Closure
     {
-        return static function () use ($htmxHelper, $request): bool {
-            return !$htmxHelper->isHtmxRequest($request);
-        };
+        return static fn(): bool => !$htmxHelper->isHtmxRequest($request);
     }
 }

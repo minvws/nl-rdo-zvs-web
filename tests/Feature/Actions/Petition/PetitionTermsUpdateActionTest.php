@@ -78,6 +78,25 @@ class PetitionTermsUpdateActionTest extends FeatureTestCase
         $this->assertNull($petition->deadline_at);
     }
 
+    public function testRecalculationLeavesTheDeadlineOverrideAlone(): void
+    {
+        $dateOfEntry = CalendarDate::create('01-01-2026');
+        $override = CalendarDate::create('30-06-2026');
+
+        $petition = Petition::factory()->create([
+            'date_of_entry' => $dateOfEntry,
+            'deadline_at' => $this->faker->calendarDate(),
+            'deadline_override_at' => $override,
+            'deadline_override_reason' => 'Afspraak met verzoeker',
+        ]);
+
+        $this->getPetitionTermsUpdateAction()->execute($petition);
+
+        $this->assertTrue($petition->deadline_at->equals($dateOfEntry));
+        $this->assertTrue($petition->deadline_override_at->equals($override));
+        $this->assertSame('Afspraak met verzoeker', $petition->deadline_override_reason);
+    }
+
     private function getPetitionTermsUpdateAction(): PetitionTermsUpdateAction
     {
         return $this->app->get(PetitionTermsUpdateAction::class);

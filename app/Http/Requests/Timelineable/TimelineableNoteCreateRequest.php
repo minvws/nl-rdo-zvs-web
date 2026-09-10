@@ -93,7 +93,7 @@ class TimelineableNoteCreateRequest extends FormRequest
         $fileExtension = $value->getClientOriginalExtension();
 
         $expectedExtensions = array_intersect(
-            (new MimeTypes())->getExtensions($mimeType),
+            new MimeTypes()->getExtensions($mimeType),
             Config::arrayAllString('filesystems.disks.uploads.allowed_extensions'),
         );
 

@@ -21,9 +21,9 @@ readonly class UserRoleService
         /** @var array<string, array<DepartmentRole>> $departmentRoles */
         $departmentRoles = DepartmentUser::query()->where('user_id', $id)
             ->get()
-            ->mapToGroups(static function (object $departmentRole): array {
-                return [$departmentRole->department_id->toString() => $departmentRole->role];
-            })->toArray();
+            ->mapToGroups(
+                static fn(object $departmentRole): array => [$departmentRole->department_id->toString() => $departmentRole->role],
+            )->toArray();
 
         return $departmentRoles;
     }

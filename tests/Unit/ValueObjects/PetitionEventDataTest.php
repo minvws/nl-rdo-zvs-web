@@ -391,4 +391,44 @@ class PetitionEventDataTest extends TestCase
             $this->assertSame($resultType->value, $array['result_type']);
         }
     }
+
+    #[Test]
+    public function itKeepsTheWithdrawalDurationOnAnUnspecifiedAdjournment(): void
+    {
+        $event = new PetitionEventData(
+            type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+            duration: 42,
+            withdrawalDuration: 21,
+        );
+
+        $this->assertSame(21, $event->withdrawalDuration);
+        $this->assertSame(21, $event->toArray()['withdrawal_duration']);
+    }
+
+    #[Test]
+    public function itOmitsTheWithdrawalDurationFromTheArrayWhenItIsNotSet(): void
+    {
+        $event = new PetitionEventData(
+            type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+        );
+
+        $this->assertArrayNotHasKey('withdrawal_duration', $event->toArray());
+    }
+
+    #[Test]
+    public function itRejectsAWithdrawalDurationOnAnyOtherEventType(): void
+    {
+        $this->expectException(InvalidPetitionEventData::class);
+
+        new PetitionEventData(
+            type: PetitionEventType::PRIMARY_DECISION,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+            withdrawalDuration: 21,
+        );
+    }
 }

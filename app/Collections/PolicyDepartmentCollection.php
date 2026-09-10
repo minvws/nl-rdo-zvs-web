@@ -14,8 +14,6 @@ class PolicyDepartmentCollection extends Collection
 {
     public function toString(): string
     {
-        return $this->map(static function (PolicyDepartment $policyDepartment): string {
-            return $policyDepartment->name;
-        })->join(', ');
+        return $this->map(static fn(PolicyDepartment $policyDepartment): string => $policyDepartment->name)->join(', ');
     }
 }

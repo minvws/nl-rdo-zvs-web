@@ -91,9 +91,9 @@ final readonly class DecisionController
         if ($timelineFilterGroup && $timelineFilterGroup !== 'no_selection') {
             Assert::string($timelineFilterGroup);
             $allowedTypes = $this->repository->array(sprintf('timeline_filters.groups.%s', $timelineFilterGroup));
-            $decisionTimelineItems = $decisionTimelineItems->filter(static function ($item) use ($allowedTypes): bool {
-                return in_array($item->type->value, $allowedTypes, true);
-            });
+            $decisionTimelineItems = $decisionTimelineItems->filter(
+                static fn($item): bool => in_array($item->type->value, $allowedTypes, true),
+            );
         }
 
         return $this->view->make('decision.show', [

@@ -23,6 +23,9 @@ return [
     'contact_pivot_updated' => [
         'body' => 'Gegevens van :contact zijn gewijzigd',
     ],
+    'contact_first_phone_contact' => [
+        'body' => 'Eerste telefonisch contact met :contact was op :date',
+    ],
     'policy_department_changed' => 'Beleidsdirecties zijn gewijzigd naar :policyDepartments',
 
     'filter_groups' => [

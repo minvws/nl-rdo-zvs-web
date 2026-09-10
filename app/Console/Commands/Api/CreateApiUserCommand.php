@@ -36,7 +36,7 @@ class CreateApiUserCommand extends Command
                 'api_secret' => $hasher->make($apiSecret),
             ]);
 
-            $logService->log((new UserCreatedLogEvent())
+            $logService->log(new UserCreatedLogEvent()
                 ->asCreate()
                 ->withData(['name' => $apiUser->name, 'api_key' => $apiKey, 'command' => 'create-api-user']));
 

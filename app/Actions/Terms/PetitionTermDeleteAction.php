@@ -41,9 +41,7 @@ readonly class PetitionTermDeleteAction
         ]);
 
         $petition->petitionTerms
-            ->filter(static function ($item) use ($petitionTerm) {
-                return $petitionTerm->id->equals($item->parent_id);
-            })
+            ->filter(static fn($item) => $petitionTerm->id->equals($item->parent_id))
             ->each(function (PetitionTerm $child) use ($petition, $user): void {
                 $this->deleteTermAndDescendants($petition, $child, $user);
             });

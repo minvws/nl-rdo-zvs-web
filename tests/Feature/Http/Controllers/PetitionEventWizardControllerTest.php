@@ -187,6 +187,152 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     }
 
     #[Test]
+    public function testStartShowsCommitteeHearingDeterminedInsteadOfMeetingScheduledForWjz(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(['slug' => 'wjz-bb']);
+
+        $availableTypes = $this->availableTypesAfterObjectionReceipt($department, $petition);
+
+        $this->assertContains(PetitionEventType::COMMITTEE_HEARING_DETERMINED, $availableTypes);
+        $this->assertNotContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
+    }
+
+    #[Test]
+    public function testStartKeepsMeetingScheduledForOtherDepartments(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(['slug' => 'team-c']);
+
+        $availableTypes = $this->availableTypesAfterObjectionReceipt($department, $petition);
+
+        $this->assertContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
+        $this->assertNotContains(PetitionEventType::COMMITTEE_HEARING_DETERMINED, $availableTypes);
+    }
+
+    #[Test]
+    public function testCreateShowsCommitteeHearingDeterminedAsDayCountFormForWjz(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(['slug' => 'wjz-bb']);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
+                'department' => $department,
+                'petition' => $petition,
+                'type' => PetitionEventType::COMMITTEE_HEARING_DETERMINED->value,
+            ]));
+
+        $response->assertOk();
+        $response->assertSee(__('petition_event.bezwaar.label.committee_hearing_determined'));
+        $response->assertSee(__('petition_event.default.label.committee_hearing_determined'));
+        $response->assertSee(__('petition_event.duration.committee_hearing_determined'));
+        // Een getalveld met 42 als standaard, geen tweede datumveld zoals bij meeting_scheduled.
+        $response->assertSee('type="number"', false);
+        $response->assertSee('value="42"', false);
+        $response->assertDontSee('name="term_deadline"', false);
+    }
+
+    #[Test]
+    public function testCreateRejectsEventTypeThatIsNotAvailableForTheDepartment(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(['slug' => 'team-c']);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
+                'department' => $department,
+                'petition' => $petition,
+                'type' => PetitionEventType::COMMITTEE_HEARING_DETERMINED->value,
+            ]));
+
+        $response->assertForbidden();
+    }
+
+    #[Test]
+    public function testAddRejectsEventTypeThatIsNotAvailableForTheDepartment(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(['slug' => 'team-c']);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        Session::put(
+            sprintf('wizard.petition.%s.events', $petition->id),
+            $this->objectionReceiptEvents(),
+        );
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::COMMITTEE_HEARING_DETERMINED->value,
+                'date' => now()->toDateString(),
+                'duration' => 42,
+            ]);
+
+        $response->assertSessionHasErrors('type');
+        $this->assertDatabaseMissing(PetitionEvent::class, [
+            'petition_id' => $petition->id,
+            'type' => PetitionEventType::COMMITTEE_HEARING_DETERMINED->value,
+        ]);
+    }
+
+    /**
+     * @return array<PetitionEventType>
+     */
+    private function availableTypesAfterObjectionReceipt(Department $department, Petition $petition): array
+    {
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        Session::put(
+            sprintf('wizard.petition.%s.events', $petition->id),
+            $this->objectionReceiptEvents(),
+        );
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_STEP, [
+                'department' => $department,
+                'petition' => $petition,
+            ]));
+
+        $response->assertOk();
+        $availableTypes = $response->viewData('availableTypes');
+        $this->assertIsArray($availableTypes);
+
+        return $availableTypes;
+    }
+
+    private function objectionReceiptEvents(): WizardEventCollection
+    {
+        return WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create(now()->subDays(60)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create(now()->subDays(30)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ));
+    }
+
+    #[Test]
     public function testCreateShowsBeslissingOpBezwaarLabelForWjz(): void
     {
         $department = Department::factory()->create(['slug' => 'wjz-bb']);
@@ -1137,7 +1283,8 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     #[Test]
     public function testAddCommitteeHearingScheduledEvent(): void
     {
-        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+        // "Commissiezitting bepaald" is alleen beschikbaar voor de teams in petition_events.department_availability
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(['slug' => 'team-c']);
 
         $user = User::factory()
             ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
@@ -1576,11 +1723,13 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     }
 
     /**
+     * @param array<string, mixed> $departmentAttributes
+     *
      * @return array{department: Department, petitionType: PetitionType, petition: Petition}
      */
-    private function createPetitionSetup(): array
+    private function createPetitionSetup(array $departmentAttributes = []): array
     {
-        $department = Department::factory()->create();
+        $department = Department::factory()->create($departmentAttributes);
         $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
         $petitionStatus = PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->create([
@@ -1642,5 +1791,194 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
         $this->assertEquals($user->id, $createdItem->user_id);
         $this->assertCount(2, $createdItem->data['event_types']);
         $this->assertEquals(2, $createdItem->data['count']);
+    }
+
+    #[Test]
+    public function testCreateAsksForBothAdjournmentTermsOnAContinuingTeam(): void
+    {
+        $department = Department::factory()->create(['slug' => 'team-c']);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
+                'department' => $department,
+                'petition' => $petition,
+                'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->value,
+            ]));
+
+        $response->assertOk();
+        $response->assertViewHas('collectsAdjournmentTerms', true);
+        $response->assertSee(__('petition_event.duration.unspecified_adjournment'));
+        $response->assertSee(__('petition_event.withdrawal_duration.unspecified_adjournment'));
+    }
+
+    #[Test]
+    public function testCreateDoesNotAskForAdjournmentTermsOnAFreezingTeam(): void
+    {
+        $department = Department::factory()->create(['slug' => 'team-a']);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
+                'department' => $department,
+                'petition' => $petition,
+                'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->value,
+            ]));
+
+        $response->assertOk();
+        $response->assertViewHas('collectsAdjournmentTerms', false);
+        $response->assertDontSee(__('petition_event.withdrawal_duration.unspecified_adjournment'));
+    }
+
+    #[Test]
+    public function testAddRequiresBothAdjournmentTermsOnAContinuingTeam(): void
+    {
+        $department = Department::factory()->create(['slug' => 'team-c']);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->value,
+                'date' => CalendarDate::today()->toDateString(),
+            ]);
+
+        $response->assertSessionHasErrors(['duration', 'withdrawal_duration']);
+    }
+
+    #[Test]
+    public function testAddDoesNotRequireAdjournmentTermsOnAFreezingTeam(): void
+    {
+        $department = Department::factory()->create(['slug' => 'team-a']);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->value,
+                'date' => CalendarDate::today()->toDateString(),
+            ]);
+
+        $response->assertSessionDoesntHaveErrors(['duration', 'withdrawal_duration']);
+    }
+
+    #[Test]
+    public function testAddStoresBothAdjournmentTermsOnAContinuingTeam(): void
+    {
+        $department = Department::factory()->create(['slug' => 'team-c']);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        Session::put(sprintf('wizard.petition.%s.events', $petition->id), WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::instance(now()->subDays(10)),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::instance(now()->subDays(5)),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->value,
+                'date' => CalendarDate::today()->toDateString(),
+                'duration' => 42,
+                'withdrawal_duration' => 21,
+            ]);
+
+        $response->assertRedirect();
+
+        $events = Session::get(sprintf('wizard.petition.%s.events', $petition->id))->toArray();
+
+        $this->assertSame(PetitionEventType::UNSPECIFIED_ADJOURNMENT->value, $events[2]['type']);
+        $this->assertSame(42, $events[2]['duration']);
+        $this->assertSame(21, $events[2]['withdrawal_duration']);
+    }
+
+    #[Test]
+    public function testAddRejectsAnAdjournmentDatedInTheFuture(): void
+    {
+        $department = Department::factory()->create(['slug' => 'team-c']);
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        Session::put(sprintf('wizard.petition.%s.events', $petition->id), WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::instance(now()->subDays(10)),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::instance(now()->subDays(5)),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->value,
+                'date' => CalendarDate::today()->addDay()->toDateString(),
+                'duration' => 42,
+                'withdrawal_duration' => 21,
+            ]);
+
+        $response->assertSessionHasErrors('date');
     }
 }

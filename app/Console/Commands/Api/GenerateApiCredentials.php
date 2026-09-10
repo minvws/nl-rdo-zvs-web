@@ -40,7 +40,7 @@ class GenerateApiCredentials extends Command
             $apiUser->api_secret = $hasher->make($apiSecret);
             $apiUser->save();
 
-            $logService->log((new ResetCredentialsLogEvent())
+            $logService->log(new ResetCredentialsLogEvent()
                 ->asUpdate()
                 ->withData(['name' => $apiUser->name, 'api_key' => $apiKey, 'command' => 'generate-api-credentials']));
 

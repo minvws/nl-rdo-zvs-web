@@ -18,16 +18,12 @@ class PetitionTermCollection extends Collection
 {
     public function penalties(): PetitionTermCollection
     {
-        return $this->filter(static function (PetitionTerm $item): bool {
-            return $item->type === TermType::PENALTY;
-        });
+        return $this->filter(static fn(PetitionTerm $item): bool => $item->type === TermType::PENALTY);
     }
 
     public function suspendables(): PetitionTermCollection
     {
-        return $this->filter(static function (PetitionTerm $item) {
-            return $item->type->isSuspendable();
-        });
+        return $this->filter(static fn(PetitionTerm $item) => $item->type->isSuspendable());
     }
 
     public function getLegalDateApplicableTerm(): ?PetitionTerm
@@ -49,18 +45,14 @@ class PetitionTermCollection extends Collection
 
     public function suspensions(): PetitionTermCollection
     {
-        return $this->filter(static function (PetitionTerm $item): bool {
-            return $item->type === TermType::SUSPENSION
-                || $item->type === TermType::SPECIFIED_ADJOURNMENT;
-        });
+        return $this->filter(static fn(PetitionTerm $item): bool => $item->type === TermType::SUSPENSION
+            || $item->type === TermType::SPECIFIED_ADJOURNMENT);
     }
 
     public function deadline(): ?CalendarDate
     {
         $deadline = $this
-            ->filter(static function (PetitionTerm $item) {
-                return $item->type->isDeadlineable();
-            })
+            ->filter(static fn(PetitionTerm $item) => $item->type->isDeadlineable())
             ->max('end_date');
 
         Assert::nullOrIsInstanceOf($deadline, CalendarDate::class);
@@ -71,18 +63,14 @@ class PetitionTermCollection extends Collection
     public function totalPenalty(): int
     {
         return $this->penalties()
-            ->sum(static function (PetitionTerm $item): int {
-                return $item->duration_in_days * $item->penalty_amount_in_euros;
-            });
+            ->sum(static fn(PetitionTerm $item): int => $item->duration_in_days * $item->penalty_amount_in_euros);
     }
 
     public function penaltyToDate(CalendarDate $date): int
     {
         return $this
             ->penalties()
-            ->filter(static function (PetitionTerm $item) use ($date): bool {
-                return $item->start_date <= $date;
-            })
+            ->filter(static fn(PetitionTerm $item): bool => $item->start_date <= $date)
             ->sum(static function (PetitionTerm $item) use ($date): int {
                 if ($item->start_date->diffInDays($date) > $item->duration_in_days) {
                     return $item->duration_in_days * $item->penalty_amount_in_euros;
@@ -154,9 +142,7 @@ class PetitionTermCollection extends Collection
 
     public function currentTerms(CalendarDate $date): PetitionTermCollection
     {
-        return $this->filter(static function (PetitionTerm $item) use ($date): bool {
-            return $item->start_date <= $date && $item->end_date >= $date;
-        });
+        return $this->filter(static fn(PetitionTerm $item): bool => $item->start_date <= $date && $item->end_date >= $date);
     }
 
     public function latestEndDate(): ?CalendarDate
@@ -174,18 +160,14 @@ class PetitionTermCollection extends Collection
     public function totalDaysOfSuspensions(): int
     {
         return $this->suspensions()
-            ->sum(static function (PetitionTerm $item): int {
-                return $item->duration_in_days;
-            });
+            ->sum(static fn(PetitionTerm $item): int => $item->duration_in_days);
     }
 
     public function sumOfPenaltiesPerDate(CalendarDate $date): int
     {
         return $this->currentTerms($date)
             ->penalties()
-            ->sum(static function (PetitionTerm $item): int {
-                return $item->penalty_amount_in_euros;
-            });
+            ->sum(static fn(PetitionTerm $item): int => $item->penalty_amount_in_euros);
     }
 
     public function hasPredecessor(PetitionTerm $term): bool
@@ -207,9 +189,7 @@ class PetitionTermCollection extends Collection
         }
 
         if ($term->parent_id !== null) {
-            return $this->contains(static function (PetitionTerm $item) use ($term): bool {
-                return $item->id === $term->parent_id;
-            });
+            return $this->contains(static fn(PetitionTerm $item): bool => $item->id === $term->parent_id);
         }
 
         return false;

@@ -69,4 +69,13 @@ class ApiTableConfigurationServiceTest extends TestCase
 
         $this->assertEquals(['updated_at_after' => '2024-01-15'], $filters);
     }
+
+    public function testPetitionsExposesTheDeadlineOverrideFields(): void
+    {
+        $config = $this->service->getTableConfig('petitions');
+
+        $this->assertContains('deadline_at', $config['fields']);
+        $this->assertContains('deadline_override_at', $config['fields']);
+        $this->assertContains('deadline_override_reason', $config['fields']);
+    }
 }

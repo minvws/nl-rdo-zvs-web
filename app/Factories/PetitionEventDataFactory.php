@@ -16,12 +16,10 @@ final class PetitionEventDataFactory
     {
         /** @var array<int, PenaltyData> $penalties */
         $penalties = array_map(
-            static function (array $penalty): PenaltyData {
-                return new PenaltyData(
-                    amount: (int) $penalty['amount'],
-                    duration: (int) $penalty['duration'],
-                );
-            },
+            static fn(array $penalty): PenaltyData => new PenaltyData(
+                amount: (int) $penalty['amount'],
+                duration: (int) $penalty['duration'],
+            ),
             $event->penalties ?? [],
         );
 
@@ -35,6 +33,7 @@ final class PetitionEventDataFactory
             resultType: $event->result_type,
             hearingForm: $event->hearing_form,
             reasoning: $event->reasoning,
+            withdrawalDuration: $event->withdrawal_duration,
         );
     }
 }

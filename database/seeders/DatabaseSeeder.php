@@ -293,23 +293,29 @@ class DatabaseSeeder extends Seeder
 
     public function createPetitionTypes(Department $department): PetitionTypeCollection
     {
+        $petitionTypes = [
+            [
+                'name' => 'Beroep',
+                'type' => PetitionVariant::BEROEP->value,
+            ],
+            [
+                'name' => 'Bezwaar',
+                'type' => PetitionVariant::BEZWAAR->value,
+            ],
+            [
+                'name' => 'Klacht',
+                'type' => PetitionVariant::KLACHT->value,
+            ],
+            [
+                'name' => 'Woo verzoek',
+                'type' => PetitionVariant::WOO_VERZOEK->value,
+            ],
+        ];
+
         $types = PetitionType::factory()
-            ->count(3)
+            ->count(count($petitionTypes))
             ->recycle($department)
-            ->state(new Sequence(
-                [
-                    'name' => 'Beroep',
-                    'type' => PetitionVariant::BEROEP->value,
-                ],
-                [
-                    'name' => 'Bezwaar',
-                    'type' => PetitionVariant::BEZWAAR->value,
-                ],
-                [
-                    'name' => 'Woo verzoek',
-                    'type' => PetitionVariant::WOO_VERZOEK->value,
-                ],
-            ))
+            ->state(new Sequence(...$petitionTypes))
             ->create();
 
         return new PetitionTypeCollection($types);

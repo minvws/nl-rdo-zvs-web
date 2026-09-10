@@ -8,6 +8,7 @@ enum TimelineType: string
 {
     case ASSIGNMENT_OCCURRENCE = 'assignment_occurrence';
     case CONTACT_ATTACHED = 'contact_attached';
+    case CONTACT_FIRST_PHONE_CONTACT = 'contact_first_phone_contact';
     case CONTACT_PIVOT_UPDATED = 'contact_pivot_updated';
     case DEADLINE_ADJUSTMENT_OCCURRENCE = 'deadline_adjustment_occurrence';
     case NOTE = 'note';
@@ -40,6 +41,7 @@ enum TimelineType: string
     case PETITION_ARCHIVED = 'petition_archived';
     case DECISION_ARCHIVED = 'decision_archived';
     case DECISION_UNARCHIVED = 'decision_unarchived';
+    case PETITION_UNARCHIVED = 'petition_unarchived';
     case PETITION_EVENTS_CREATED = 'petition_events_created';
     case FINAL_DECISION_SET = 'final_decision_set';
 }

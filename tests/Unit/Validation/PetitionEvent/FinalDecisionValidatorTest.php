@@ -42,7 +42,9 @@ class FinalDecisionValidatorTest extends TestCase
         $this->assertSame(
             __('term.validation.common.event_requires_dependency_any', [
                 'event' => PetitionEventType::FINAL_RESULT->label(),
-                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label() . ' of ' . PetitionEventType::PETITION_RECEIVED->label(),
+                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label()
+                    . ' of ' . PetitionEventType::PETITION_RECEIVED->label()
+                    . ' of ' . PetitionEventType::RECEIPT_OF_COMPLAINT->label(),
             ]),
             $result->getErrors()['general'],
         );

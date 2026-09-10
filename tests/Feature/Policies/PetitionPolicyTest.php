@@ -41,4 +41,32 @@ class PetitionPolicyTest extends FeatureTestCase
 
         $this->assertFalse($user->can('update', $petition));
     }
+
+    #[Test]
+    public function testCannotUnarchiveNonArchivedPetition(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create([
+            'archived_at' => null,
+        ]);
+
+        $user = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($user, true, $department);
+
+        $this->assertFalse($user->can('unarchive', $petition));
+    }
+
+    #[Test]
+    public function testCanUnarchiveArchivedPetition(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create([
+            'archived_at' => Carbon::now(),
+        ]);
+
+        $user = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($user, true, $department);
+
+        $this->assertTrue($user->can('unarchive', $petition));
+    }
 }

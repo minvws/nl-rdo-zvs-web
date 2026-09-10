@@ -12,6 +12,8 @@ enum PetitionCriteria: string
     case CATEGORY = 'category';
     case CUSTOM_PROPERTY = 'custom_property';
     case DEADLINE_AT = 'deadline_at';
+    case DEADLINE_FROM = 'deadline_from';
+    case DEADLINE_TO = 'deadline_to';
     case DEADLINE_DECISION_PERIOD = 'deadline_decision_period';
     case DEADLINE_NOTICE_OF_DEFAULT = 'deadline_notice_of_default';
     case DEADLINE_APPEAL_NOT_TIMELY = 'deadline_appeal_not_timely';

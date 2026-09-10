@@ -7,6 +7,7 @@ namespace Tests\Feature\Factories;
 use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
 use App\Factories\PetitionEventDataFactory;
+use App\Models\Petition;
 use App\Models\PetitionEvent;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -63,5 +64,24 @@ class PetitionEventDataFactoryTest extends FeatureTestCase
 
         $this->assertSame([], $arr['penalties'] ?? []);
         $this->assertInstanceOf(CarbonImmutable::class, $arr['created_at']);
+    }
+
+    #[Test]
+    public function itRoundTripsTheWithdrawalDurationThroughTheDatabase(): void
+    {
+        $petition = Petition::factory()->create();
+
+        $stored = PetitionEvent::query()->create([
+            'petition_id' => $petition->id,
+            'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->value,
+            'date' => CarbonImmutable::now()->toDateString(),
+            'duration' => 42,
+            'withdrawal_duration' => 21,
+        ]);
+
+        $data = PetitionEventDataFactory::fromModel($stored->refresh());
+
+        $this->assertSame(42, $data->duration);
+        $this->assertSame(21, $data->withdrawalDuration);
     }
 }

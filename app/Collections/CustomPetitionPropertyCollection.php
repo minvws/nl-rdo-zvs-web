@@ -14,8 +14,8 @@ class CustomPetitionPropertyCollection extends Collection
 {
     public function toString(): string
     {
-        return $this->map(static function (CustomPetitionProperty $customPetitionProperty): string {
-            return $customPetitionProperty->name;
-        })->implode(', ');
+        return $this->map(static fn(CustomPetitionProperty $customPetitionProperty): string => $customPetitionProperty->name)->implode(
+            ', ',
+        );
     }
 }

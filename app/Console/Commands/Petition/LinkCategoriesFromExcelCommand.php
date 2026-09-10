@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Petition;
 
+use App\Imports\RawSheetImport;
 use App\Models\Petition;
 use App\Models\PetitionCategory;
 use Illuminate\Console\Attributes\Description;
@@ -12,7 +13,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use stdClass;
 use Throwable;
 
 use function assert;
@@ -54,7 +54,7 @@ class LinkCategoriesFromExcelCommand extends Command
 
         try {
             /** @var Collection<int, mixed|Collection<int, mixed|Collection<int, mixed>>> $rawData */
-            $rawData = Excel::toCollection(new stdClass(), $filePath);
+            $rawData = Excel::toCollection(new RawSheetImport(), $filePath);
         } catch (Throwable $e) {
             $this->error(sprintf('Error reading Excel file: %s', $e->getMessage()));
 
@@ -217,11 +217,7 @@ class LinkCategoriesFromExcelCommand extends Command
     {
         $normalized = strtolower(trim($excelColumn));
 
-        if (isset($this->columnMapping[$normalized])) {
-            return $this->columnMapping[$normalized];
-        }
-
-        return strtolower(str_replace([' ', '.'], '_', $excelColumn));
+        return $this->columnMapping[$normalized] ?? strtolower(str_replace([' ', '.'], '_', $excelColumn));
     }
 
     /**

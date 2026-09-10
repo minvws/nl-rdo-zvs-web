@@ -17,12 +17,8 @@ class PenaltyCalculator
     public function calculateTotalPenaltyAmount(Collection $collection): int
     {
         return $collection
-            ->filter(static function ($item): bool {
-                return $item->type === TermType::PENALTY;
-            })
-            ->sum(static function ($item): int {
-                return $item->duration_in_days * $item->penalty_amount_in_euros;
-            });
+            ->filter(static fn($item): bool => $item->type === TermType::PENALTY)
+            ->sum(static fn($item): int => $item->duration_in_days * $item->penalty_amount_in_euros);
     }
 
     /**
@@ -32,14 +28,10 @@ class PenaltyCalculator
     {
         return $collection
             ->sortBy('start_date')
-            ->filter(static function ($item): bool {
-                return $item->type === TermType::PENALTY;
-            })
-            ->filter(static function ($item) use ($date): bool {
-                return $item->start_date <= $date;
-            })
-            ->sum(static function ($item) use ($date): int {
-                return TermDateCalculator::calculateDuration($item->start_date, $date) * $item->penalty_amount_in_euros;
-            });
+            ->filter(static fn($item): bool => $item->type === TermType::PENALTY)
+            ->filter(static fn($item): bool => $item->start_date <= $date)
+            ->sum(
+                static fn($item): int => TermDateCalculator::calculateDuration($item->start_date, $date) * $item->penalty_amount_in_euros,
+            );
     }
 }

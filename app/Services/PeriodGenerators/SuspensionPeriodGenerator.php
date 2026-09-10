@@ -34,9 +34,7 @@ class SuspensionPeriodGenerator implements PeriodGeneratorInterface
         $starts->each(static function (PetitionEventData $start) use ($ends, $calendar): void {
             $firstDay = $start->date->addDay();
 
-            $matchingEnd = $ends->first(static function (PetitionEventData $end) use ($firstDay): bool {
-                return $end->date->greaterThanOrEqualTo($firstDay);
-            });
+            $matchingEnd = $ends->first(static fn(PetitionEventData $end): bool => $end->date->greaterThanOrEqualTo($firstDay));
 
             $lastDay = $matchingEnd
                 ? $matchingEnd->date->subDay()

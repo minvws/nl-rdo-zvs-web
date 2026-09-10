@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\PetitionEvent;
 
+use App\Config\DepartmentConfigurationService;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
 use App\Enums\SuspensionType;
+use App\Enums\UnspecifiedAdjournmentMode;
 use App\Http\Requests\FormRequest;
+use App\Models\Department;
 use App\Models\Petition;
 use App\Rules\CalendarDateRule;
 use App\Services\DerivedState;
@@ -25,11 +28,14 @@ use Override;
 use Throwable;
 use Webmozart\Assert\Assert;
 
+use function __;
+
 class AddPetitionEventRequest extends FormRequest
 {
     public function __construct(
         private readonly DerivedState $derivedState,
         private readonly PetitionEventsStorage $storage,
+        private readonly DepartmentConfigurationService $departmentConfiguration,
     ) {
         parent::__construct();
     }
@@ -42,7 +48,20 @@ class AddPetitionEventRequest extends FormRequest
         return [
             'type' => ['required', Rule::enum(PetitionEventType::class)],
             'date' => ['required', new CalendarDateRule()],
-            'duration' => ['nullable', 'integer', 'min:1', 'max:730'],
+            'duration' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:730',
+                Rule::requiredIf(fn(): bool => $this->collectsAdjournmentTerms()),
+            ],
+            'withdrawal_duration' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:730',
+                Rule::requiredIf(fn(): bool => $this->collectsAdjournmentTerms()),
+            ],
             'term_deadline' => [
                 'nullable',
                 new CalendarDateRule(),
@@ -55,23 +74,17 @@ class AddPetitionEventRequest extends FormRequest
             'suspension_type' => [
                 'nullable',
                 Rule::enum(SuspensionType::class),
-                Rule::requiredIf(function (): bool {
-                    return $this->input('type') === PetitionEventType::LETTER_OF_SUSPENSION_SENT->value;
-                }),
+                Rule::requiredIf(fn(): bool => $this->input('type') === PetitionEventType::LETTER_OF_SUSPENSION_SENT->value),
             ],
             'result_type' => [
                 'nullable',
                 Rule::enum(ResultType::class),
-                Rule::requiredIf(function (): bool {
-                    return $this->input('type') === PetitionEventType::FINAL_RESULT->value;
-                }),
+                Rule::requiredIf(fn(): bool => $this->input('type') === PetitionEventType::FINAL_RESULT->value),
             ],
             'hearing_form' => [
                 'nullable',
                 Rule::enum(HearingForm::class),
-                Rule::requiredIf(function (): bool {
-                    return $this->input('type') === PetitionEventType::HEARING_DATE->value;
-                }),
+                Rule::requiredIf(fn(): bool => $this->input('type') === PetitionEventType::HEARING_DATE->value),
             ],
             'reasoning' => [
                 'nullable',
@@ -148,6 +161,10 @@ class AddPetitionEventRequest extends FormRequest
 
         $durationInput = $this->resolveDuration($type, $eventDate);
 
+        $withdrawalDuration = $type->hasWithdrawalDuration() && $this->filled('withdrawal_duration')
+            ? $this->integer('withdrawal_duration')
+            : null;
+
         return new PetitionEventData(
             type: $type,
             date: $eventDate,
@@ -158,6 +175,7 @@ class AddPetitionEventRequest extends FormRequest
             resultType: $resultType,
             hearingForm: $hearingForm,
             reasoning: $reasoning,
+            withdrawalDuration: $withdrawalDuration,
         );
     }
 
@@ -177,9 +195,17 @@ class AddPetitionEventRequest extends FormRequest
                 return; // @codeCoverageIgnore
             } // @codeCoverageIgnore
 
+            if (!$this->isTypeAvailableForDepartment($type)) {
+                $validator->errors()->add('type', __('petition_event.validation.not_available_for_department'));
+
+                return;
+            }
+
             $wizardEvents = $this->storage->getWizardEvents($petition) ?? WizardEventCollection::make();
 
-            $this->derivedState->addEvents($wizardEvents->all());
+            $this->derivedState
+                ->withUnspecifiedAdjournmentMode($this->unspecifiedAdjournmentMode())
+                ->addEvents($wizardEvents->all());
 
             $eventValidator = $type->rule();
 
@@ -216,6 +242,7 @@ class AddPetitionEventRequest extends FormRequest
             'type' => 'event type',
             'date' => 'event date',
             'duration' => 'duration',
+            'withdrawal_duration' => 'withdrawal duration',
             'term_deadline' => 'term deadline',
             'suspension_type' => 'suspension type',
             'result_type' => 'result type',
@@ -224,6 +251,40 @@ class AddPetitionEventRequest extends FormRequest
             'penalties.*.amount' => 'penalty amount',
             'penalties.*.duration' => 'penalty duration',
         ];
+    }
+
+    /**
+     * Sluit gebeurtenistypes uit die dit team niet mag invoeren, ook als het formulier wordt omzeild.
+     */
+    private function isTypeAvailableForDepartment(PetitionEventType $type): bool
+    {
+        $department = $this->route('department');
+        Assert::isInstanceOf($department, Department::class);
+
+        return $this->departmentConfiguration->isEventTypeAvailable($department, $type);
+    }
+
+    /**
+     * Departments that keep the running terms alive during an "ongespecificeerde aanhouding"
+     * register both follow-up decision terms up front, so both day counts are mandatory there.
+     */
+    private function collectsAdjournmentTerms(): bool
+    {
+        $type = $this->enum('type', PetitionEventType::class);
+
+        if (!$type instanceof PetitionEventType || !$type->hasWithdrawalDuration()) {
+            return false;
+        }
+
+        return $this->unspecifiedAdjournmentMode() === UnspecifiedAdjournmentMode::CONTINUES_TERMS;
+    }
+
+    private function unspecifiedAdjournmentMode(): UnspecifiedAdjournmentMode
+    {
+        $department = $this->route('department');
+        Assert::isInstanceOf($department, Department::class);
+
+        return $this->departmentConfiguration->unspecifiedAdjournmentMode($department);
     }
 
     private function resolveDuration(PetitionEventType $type, CalendarDate $eventDate): ?int

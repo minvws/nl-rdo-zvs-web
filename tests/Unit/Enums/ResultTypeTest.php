@@ -112,6 +112,17 @@ class ResultTypeTest extends TestCase
     }
 
     #[Test]
+    public function testGetForPetitionTypeKlacht(): void
+    {
+        $types = ResultType::getForPetitionType(PetitionVariant::KLACHT);
+
+        $this->assertCount(3, $types);
+        $this->assertContains(ResultType::FINAL_DECISION, $types);
+        $this->assertContains(ResultType::WITHDRAWN, $types);
+        $this->assertContains(ResultType::OTHER, $types);
+    }
+
+    #[Test]
     public function testGetForPetitionTypeWooVerzoek(): void
     {
         $types = ResultType::getForPetitionType(PetitionVariant::WOO_VERZOEK);
@@ -167,6 +178,20 @@ class ResultTypeTest extends TestCase
         $this->assertCount(1, $grouped['with']);
         $this->assertContains(ResultType::WITHDRAWN, $grouped['without']);
         $this->assertContains(ResultType::FORWARDED, $grouped['without']);
+        $this->assertCount(2, $grouped['without']);
+    }
+
+    #[Test]
+    public function testGetGroupedForPetitionTypeKlacht(): void
+    {
+        $grouped = ResultType::getGroupedForPetitionType(PetitionVariant::KLACHT);
+
+        $this->assertArrayHasKey('with', $grouped);
+        $this->assertArrayHasKey('without', $grouped);
+        $this->assertContains(ResultType::FINAL_DECISION, $grouped['with']);
+        $this->assertCount(1, $grouped['with']);
+        $this->assertContains(ResultType::WITHDRAWN, $grouped['without']);
+        $this->assertContains(ResultType::OTHER, $grouped['without']);
         $this->assertCount(2, $grouped['without']);
     }
 

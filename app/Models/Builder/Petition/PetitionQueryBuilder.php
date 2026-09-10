@@ -10,6 +10,7 @@ use App\Models\Builder\Petition\Filters\ApplicantFilter;
 use App\Models\Builder\Petition\Filters\AssignedUserFilter;
 use App\Models\Builder\Petition\Filters\CategoryFilter;
 use App\Models\Builder\Petition\Filters\CustomPropertyFilter;
+use App\Models\Builder\Petition\Filters\DeadlineFilter;
 use App\Models\Builder\Petition\Filters\ParticularityFilter;
 use App\Models\Builder\Petition\Filters\PetitionStatusFilter;
 use App\Models\Builder\Petition\Filters\PetitionStatusGroupFilter;
@@ -20,6 +21,7 @@ use App\Models\Builder\Petition\Filters\TeamFilter;
 use App\Models\Builder\Petition\Sorts\ApplicantSort;
 use App\Models\Builder\Petition\Sorts\AssignedUserSort;
 use App\Models\Builder\Petition\Sorts\CategorySort;
+use App\Models\Builder\Petition\Sorts\DeadlineSort;
 use App\Models\Builder\Petition\Sorts\ParticularitySort;
 use App\Models\Builder\Petition\Sorts\PenaltyToDateSort;
 use App\Models\Builder\Petition\Sorts\PetitionTypeSort;
@@ -72,6 +74,8 @@ readonly class PetitionQueryBuilder
             AllowedFilter::custom(PetitionCriteria::ASSIGNED_USER->value, new AssignedUserFilter()),
             AllowedFilter::custom(PetitionCriteria::CATEGORY->value, new CategoryFilter()),
             AllowedFilter::custom(PetitionCriteria::CUSTOM_PROPERTY->value, new CustomPropertyFilter()),
+            AllowedFilter::custom(PetitionCriteria::DEADLINE_FROM->value, new DeadlineFilter('>=')),
+            AllowedFilter::custom(PetitionCriteria::DEADLINE_TO->value, new DeadlineFilter('<=')),
             AllowedFilter::custom(PetitionCriteria::PETITION_TYPE->value, new PetitionTypeFilter()),
             AllowedFilter::custom(PetitionCriteria::POLICY_DEPARTMENT->value, new PolicyDepartmentFilter()),
             AllowedFilter::custom(PetitionCriteria::PARTICULARITIES->value, new ParticularityFilter()),
@@ -90,7 +94,7 @@ readonly class PetitionQueryBuilder
         return [
             PetitionCriteria::NUMBER->value,
             PetitionCriteria::NAME->value,
-            PetitionCriteria::DEADLINE_AT->value,
+            AllowedSort::custom(PetitionCriteria::DEADLINE_AT->value, new DeadlineSort()),
             PetitionCriteria::DEADLINE_DECISION_PERIOD->value,
             PetitionCriteria::DEADLINE_NOTICE_OF_DEFAULT->value,
             PetitionCriteria::DEADLINE_APPEAL_NOT_TIMELY->value,

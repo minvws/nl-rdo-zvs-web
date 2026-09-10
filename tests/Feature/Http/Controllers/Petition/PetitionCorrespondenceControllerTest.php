@@ -224,17 +224,44 @@ class PetitionCorrespondenceControllerTest extends FeatureTestCase
                 ],
                 [
                     'petition_id' => $petition->id->toString(),
-                    'message' => '',
+                    'message' => str_repeat('x', 65), // Over max length of 64
                     'date_of_message' => $this->faker->word(),
                     'decision_reference' => str_repeat('x', 65), // Over max length of 64
                     'decision_date' => $this->faker->word(),
                 ],
             )
             ->assertSessionHasErrors([
-                'message' => __('validation.custom.message.string'),
+                'message' => __('validation.max.string', ['attribute' => 'decision reference', 'max' => 64]),
                 'date_of_message' => __('validation.calendar_date'),
                 'decision_reference' => __('validation.max.string', ['attribute' => 'decision reference', 'max' => 64]),
                 'decision_date' => __('validation.calendar_date'),
+            ]);
+    }
+
+    public function testUpdateWithAllFieldsBlank(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($authUser, true, $department)
+            ->postByRoute(
+                RouteName::DEPARTMENTS_PETITIONS_CORRESPONDENCE_UPDATE,
+                [
+                    'department' => $department,
+                    'petition' => $petition,
+                ],
+                [
+                    'message' => '',
+                    'date_of_message' => '',
+                    'decision_reference' => '',
+                    'decision_date' => '',
+                ],
+            )
+            ->assertSessionHasNoErrors()
+            ->assertRedirectToRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition,
             ]);
     }
 

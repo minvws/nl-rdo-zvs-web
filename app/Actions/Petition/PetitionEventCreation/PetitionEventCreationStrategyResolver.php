@@ -13,6 +13,7 @@ readonly class PetitionEventCreationStrategyResolver
         private BeroepPetitionEventsCreationStrategy $beroepStrategy,
         private ObjectionPetitionEventsCreationStrategy $bezwaarStrategy,
         private WooVerzoekPetitionEventsCreationStrategy $wooVerzoekStrategy,
+        private KlachtPetitionEventsCreationStrategy $klachtStrategy,
     ) {
     }
 
@@ -22,6 +23,7 @@ readonly class PetitionEventCreationStrategyResolver
             PetitionVariant::BEROEP => $this->beroepStrategy,
             PetitionVariant::BEZWAAR => $this->bezwaarStrategy,
             PetitionVariant::WOO_VERZOEK => $this->wooVerzoekStrategy,
+            PetitionVariant::KLACHT => $this->klachtStrategy,
         };
     }
 }

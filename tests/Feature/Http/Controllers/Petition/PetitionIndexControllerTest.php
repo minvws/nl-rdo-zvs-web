@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\FeatureTestCase;
 
+use function __;
+
 class PetitionIndexControllerTest extends FeatureTestCase
 {
     public function testIndexShowsOnlyDepartmentPetitions(): void
@@ -153,5 +155,45 @@ class PetitionIndexControllerTest extends FeatureTestCase
             ->assertOk()
             ->assertSee('-DEPT2')
             ->assertDontSee('-DEPT1');
+    }
+
+    public function testIndexShowsTheDeadlineOverrideInTheDeadlineColumn(): void
+    {
+        $department = Department::factory()->create();
+        Petition::factory()->recycle($department)->create([
+            'deadline_at' => '2026-03-01',
+            'deadline_override_at' => '2026-06-30',
+            'deadline_override_reason' => 'Afspraak met verzoeker',
+        ]);
+
+        $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_INDEX, [
+                'department' => $department->slug,
+            ])
+            ->assertOk()
+            ->assertSee('30-06-2026')
+            ->assertSee(__('petition.deadline_override_legend'))
+            ->assertDontSee('Afspraak met verzoeker')
+            ->assertDontSee('01-03-2026');
+    }
+
+    public function testIndexShowsTheCalculatedDeadlineWithoutAnOverride(): void
+    {
+        $department = Department::factory()->create();
+        Petition::factory()->recycle($department)->create([
+            'deadline_at' => '2026-03-01',
+            'deadline_override_at' => null,
+            'deadline_override_reason' => null,
+        ]);
+
+        $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_INDEX, [
+                'department' => $department->slug,
+            ])
+            ->assertOk()
+            ->assertSee('01-03-2026')
+            ->assertDontSee(__('petition.deadline_override_legend'));
     }
 }

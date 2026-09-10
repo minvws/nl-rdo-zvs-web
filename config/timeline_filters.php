@@ -8,6 +8,7 @@ use App\Enums\TimelineType;
 return [
     'groups' => [
         TimelineFilterGroup::UPDATES->value => [
+            TimelineType::CONTACT_FIRST_PHONE_CONTACT->value,
             TimelineType::CORRESPONDENCE_UPDATED->value,
             TimelineType::CUSTOM_COST_UPDATED->value,
             TimelineType::EXTERNAL_URL_UPDATED->value,

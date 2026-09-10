@@ -136,4 +136,41 @@ class PetitionTest extends FeatureTestCase
 
         $this->assertTrue($petition->isTermEngineConverted());
     }
+
+    #[Test]
+    public function testEffectiveDeadlineAtFallsBackToTheCalculatedDeadline(): void
+    {
+        $petition = Petition::factory()->create([
+            'deadline_at' => CalendarDate::create('01-03-2026'),
+            'deadline_override_at' => null,
+            'deadline_override_reason' => null,
+        ]);
+
+        $this->assertFalse($petition->hasDeadlineOverride());
+        $this->assertSame('01-03-2026', $petition->effective_deadline_at->format('d-m-Y'));
+    }
+
+    #[Test]
+    public function testEffectiveDeadlineAtUsesTheOverrideWhenItIsSet(): void
+    {
+        $petition = Petition::factory()->create([
+            'deadline_at' => CalendarDate::create('01-03-2026'),
+            'deadline_override_at' => CalendarDate::create('15-04-2026'),
+            'deadline_override_reason' => 'Afspraak met verzoeker',
+        ]);
+
+        $this->assertTrue($petition->hasDeadlineOverride());
+        $this->assertSame('15-04-2026', $petition->effective_deadline_at->format('d-m-Y'));
+    }
+
+    #[Test]
+    public function testEffectiveDeadlineAtIsNullWhenNeitherDateIsSet(): void
+    {
+        $petition = Petition::factory()->create([
+            'deadline_at' => null,
+            'deadline_override_at' => null,
+        ]);
+
+        $this->assertNull($petition->effective_deadline_at);
+    }
 }

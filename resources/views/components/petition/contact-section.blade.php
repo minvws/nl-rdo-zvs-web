@@ -1,3 +1,5 @@
+@use(App\Facades\DisplayDate)
+
 @props([
     'contacts',
     'title',
@@ -30,6 +32,13 @@
                                 @elseif ($contact->pivot->reference)
                                     {{ $contact->pivot->reference }}
                                 @endif
+                            </p>
+                        @endif
+
+                        @if ($contact->pivot->date_first_phone_contact)
+                            <p>
+                                {{ __('contact.date_first_phone_contact') . ':' }}
+                                {{ DisplayDate::date($contact->pivot->date_first_phone_contact) }}
                             </p>
                         @endif
                     </dd>

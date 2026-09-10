@@ -36,9 +36,7 @@ class PetitionCustomPetitionPropertiesViewFactory
     {
         $petitionCustomPetitionPropertiesView = new Collection();
         $petitionCustomPetitionPropertyIds = $petitionCustomPetitionPropertyIds
-            ->map(static function (UuidInterface $id): string {
-                return $id->toString();
-            })
+            ->map(static fn(UuidInterface $id): string => $id->toString())
             ->all();
 
         // append null-item to make sure all items exist when using the sliding()-method
@@ -67,9 +65,7 @@ class PetitionCustomPetitionPropertiesViewFactory
                     }
 
                     // since the current item is NOT an option, enable the addOption for this "group" of options
-                    if ($addNoSelectedOptionsType === null) {
-                        $addNoSelectedOptionsType = true;
-                    }
+                    $addNoSelectedOptionsType ??= true;
 
                     // if one of the items is "checked", disable the addOption for this "group" op options
                     if ($current->id !== null && in_array($current->id->toString(), $petitionCustomPetitionPropertyIds, true)) {

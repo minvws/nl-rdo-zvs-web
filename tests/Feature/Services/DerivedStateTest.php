@@ -13,6 +13,7 @@ use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PenaltyData;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 
@@ -647,5 +648,85 @@ class DerivedStateTest extends FeatureTestCase
         $derivedState = new DerivedState()->addEvents($events)->buildCalendar();
 
         $this->assertEquals('2025-02-19', $derivedState->deadlineDate()->toDateString());
+    }
+
+    public function testSuspensionEndAfterAnAdjournmentShortensTheSuspension(): void
+    {
+        $derivedState = new DerivedState()
+            ->addEvents($this->suspensionWithAdjournment())
+            ->buildCalendar();
+
+        $this->assertSame(30, $derivedState->getCalendar()->totalDaysSuspended);
+        $this->assertEquals('2025-06-06', $derivedState->deadlineDate()->toDateString());
+
+        $derivedState = new DerivedState()
+            ->addEvents($this->suspensionWithAdjournment()->push(
+                new PetitionEventData(
+                    type: PetitionEventType::SUSPENSION_END,
+                    date: CalendarDate::create('2025-03-10'),
+                    createdAt: CarbonImmutable::now(),
+                ),
+            ))
+            ->buildCalendar();
+
+        $this->assertSame(17, $derivedState->getCalendar()->totalDaysSuspended);
+        $this->assertEquals('2025-05-26', $derivedState->deadlineDate()->toDateString());
+    }
+
+    public function testDecisionPeriodResumesOnTheEnteredSuspensionEnd(): void
+    {
+        $calendar = new DerivedState()
+            ->addEvents($this->suspensionWithAdjournment()->push(
+                new PetitionEventData(
+                    type: PetitionEventType::SUSPENSION_END,
+                    date: CalendarDate::create('2025-03-10'),
+                    createdAt: CarbonImmutable::now(),
+                ),
+            ))
+            ->buildCalendar()
+            ->getCalendar();
+
+        $lastSuspendedDay = $calendar->findDay(CalendarDate::create('2025-03-09'));
+        $this->assertNotNull($lastSuspendedDay->suspensionType);
+        $this->assertFalse($lastSuspendedDay->isBudgetDay);
+
+        $firstDayBack = $calendar->findDay(CalendarDate::create('2025-03-10'));
+        $this->assertNull($firstDayBack->suspensionType);
+        $this->assertTrue($firstDayBack->isBudgetDay);
+        $this->assertSame(TermType::DECISION_PERIOD->value, $firstDayBack->applicableTerm);
+    }
+
+    /**
+     * @return Collection<int, PetitionEventData>
+     */
+    private function suspensionWithAdjournment(): Collection
+    {
+        return collect([
+            new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-01-10'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
+                date: CalendarDate::create('2025-02-20'),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+                suspensionType: SuspensionType::SPECIFIED_ADJOURNMENT,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::ADJOURNMENT,
+                date: CalendarDate::create('2025-03-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+        ]);
     }
 }

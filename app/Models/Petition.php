@@ -48,6 +48,8 @@ use Ramsey\Uuid\UuidInterface;
  * @property CalendarDate $date_of_entry
  * @property ?CalendarDate $date_appealed_decision
  * @property ?CalendarDate $deadline_at
+ * @property ?CalendarDate $deadline_override_at
+ * @property ?string $deadline_override_reason
  * @property ?CalendarDate $deadline_decision_period
  * @property ?CalendarDate $deadline_notice_of_default
  * @property ?CalendarDate $deadline_appeal_not_timely
@@ -202,7 +204,7 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
             'contact_petition',
             'petition_id',
             'contact_id',
-        )->using(ContactPetition::class)->withPivot('role', 'reference', 'correspondence_preference');
+        )->using(ContactPetition::class)->withPivot('role', 'reference', 'correspondence_preference', 'date_first_phone_contact');
     }
 
     /**
@@ -213,7 +215,7 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
         return $this->belongsToMany(Contact::class, 'contact_petition', 'petition_id', 'contact_id')
             ->using(ContactPetition::class)
             ->wherePivot('role', ContactRole::APPLICANT)
-            ->withPivot('role', 'reference', 'correspondence_preference');
+            ->withPivot('role', 'reference', 'correspondence_preference', 'date_first_phone_contact');
     }
 
     /**
@@ -224,7 +226,7 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
         return $this->belongsToMany(Contact::class, 'contact_petition', 'petition_id', 'contact_id')
             ->using(ContactPetition::class)
             ->wherePivot('role', ContactRole::REPRESENTATIVE)
-            ->withPivot('role', 'reference', 'correspondence_preference');
+            ->withPivot('role', 'reference', 'correspondence_preference', 'date_first_phone_contact');
     }
 
     /**
@@ -235,7 +237,7 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
         return $this->belongsToMany(Contact::class, 'contact_petition', 'petition_id', 'contact_id')
             ->using(ContactPetition::class)
             ->wherePivot('role', ContactRole::INSTITUTION)
-            ->withPivot('role', 'reference', 'correspondence_preference');
+            ->withPivot('role', 'reference', 'correspondence_preference', 'date_first_phone_contact');
     }
 
     /**
@@ -246,7 +248,7 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
         return $this->belongsToMany(Contact::class, 'contact_petition', 'petition_id', 'contact_id')
             ->using(ContactPetition::class)
             ->wherePivot('role', ContactRole::STAKEHOLDER)
-            ->withPivot('role', 'reference', 'correspondence_preference');
+            ->withPivot('role', 'reference', 'correspondence_preference', 'date_first_phone_contact');
     }
 
     /**
@@ -382,6 +384,11 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
         return (bool) Config::get('app.features.term_engine_v2', false);
     }
 
+    public function hasDeadlineOverride(): bool
+    {
+        return $this->deadline_override_at !== null;
+    }
+
     #[Override]
     protected function casts(): array
     {
@@ -393,6 +400,7 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
             'department_id' => UuidCast::class,
             'date_of_entry' => CalendarDateCast::class,
             'deadline_at' => CalendarDateCast::class,
+            'deadline_override_at' => CalendarDateCast::class,
             'deadline_decision_period' => CalendarDateCast::class,
             'deadline_notice_of_default' => CalendarDateCast::class,
             'deadline_appeal_not_timely' => CalendarDateCast::class,
@@ -424,5 +432,13 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
 
             return $this->date_of_entry->diffInDays($this->date_of_close);
         });
+    }
+
+    /**
+     * @return Attribute<?CalendarDate, $this>
+     */
+    protected function effectiveDeadlineAt(): Attribute
+    {
+        return Attribute::make(get: fn(): ?CalendarDate => $this->deadline_override_at ?? $this->deadline_at);
     }
 }

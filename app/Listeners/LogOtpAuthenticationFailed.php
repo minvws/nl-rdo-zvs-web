@@ -16,7 +16,7 @@ class LogOtpAuthenticationFailed
 
     public function __invoke(OtpAuthenticationFailedEvent $event): void
     {
-        $this->logService->log((new UserLoginTwoFactorFailedEvent())
+        $this->logService->log(new UserLoginTwoFactorFailedEvent()
             ->asExecute()
             ->withActor($event->user)
             ->withData($event->data));

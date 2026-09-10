@@ -18,6 +18,7 @@ class StripTagsMiddleware extends TrimStrings
      *
      * @var array<int, string>
      */
+    #[Override]
     protected $except = [
         'api_key',
         'api_secret',

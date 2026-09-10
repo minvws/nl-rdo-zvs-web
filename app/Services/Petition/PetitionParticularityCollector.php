@@ -26,16 +26,16 @@ class PetitionParticularityCollector
     public const string LABEL_APPEAL_NOT_TIMELY = 'BNT';
     public const string LABEL_ADJOURNMENT_LETTER = 'Verdaging';
 
-    private const array ADJOURNMENT_TERM_TYPES = [
-        TermType::SPECIFIED_ADJOURNMENT,
-        TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_EVENT,
-        TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_WITHDRAWAL,
-    ];
-
     public const array SUSPENSION_TYPES = [
         SuspensionType::SUSPENSION,
         SuspensionType::SPECIFICATION,
         SuspensionType::CONSULTATION,
+    ];
+
+    private const array ADJOURNMENT_TERM_TYPES = [
+        TermType::SPECIFIED_ADJOURNMENT,
+        TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_EVENT,
+        TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_WITHDRAWAL,
     ];
 
     /**

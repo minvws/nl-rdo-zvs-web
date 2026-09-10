@@ -16,7 +16,7 @@ class LogOtpEnabled
 
     public function __invoke(OtpEnabledEvent $event): void
     {
-        $this->logService->log((new AccountChangeLogEvent())
+        $this->logService->log(new AccountChangeLogEvent()
             ->asUpdate()
             ->withActor($event->user)
             ->withTarget($event->user)

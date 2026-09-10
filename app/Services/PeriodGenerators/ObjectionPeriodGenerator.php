@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Services\PeriodGenerators;
 
 use App\Enums\PetitionEventType;
+use App\Enums\SuspensionType;
 use App\Enums\TermType;
+use App\Enums\UnspecifiedAdjournmentMode;
 use App\Facades\LegalTermDeadlineCalculator;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\EventCalendar;
@@ -17,6 +19,11 @@ class ObjectionPeriodGenerator implements PeriodGeneratorInterface
 {
     private int $daysAdded = 0;
     private bool $firstDaySet = false;
+
+    public function __construct(
+        private readonly UnspecifiedAdjournmentMode $unspecifiedAdjournmentMode = UnspecifiedAdjournmentMode::FREEZES_TERMS,
+    ) {
+    }
 
     /**
      * @param Collection<int, PetitionEventData> $events
@@ -56,6 +63,12 @@ class ObjectionPeriodGenerator implements PeriodGeneratorInterface
 
     private function processDayForBudget(EventCalendar $calendar, CalendarDate $currentDate, int $budget): void
     {
+        // A suspension inside the bezwaartermijn costs suspension days but never pauses it, so
+        // the day is counted and then spends objection-period budget like any other day.
+        if ($this->countsSuspendedDays() && $this->isDaySuspended($calendar, $currentDate)) {
+            $calendar->totalDaysSuspended++;
+        }
+
         // A day frozen by an unspecified adjournment does not spend objection-period budget,
         // shifting the term (and its deadline) forward, but stays part of the objection period.
         if ($this->isDayFrozen($calendar, $currentDate)) {
@@ -103,6 +116,18 @@ class ObjectionPeriodGenerator implements PeriodGeneratorInterface
         $existingDay = $calendar->findDay($date);
 
         return $existingDay instanceof EventCalendarDay && $existingDay->isUnspecifiedAdjournment;
+    }
+
+    private function countsSuspendedDays(): bool
+    {
+        return $this->unspecifiedAdjournmentMode === UnspecifiedAdjournmentMode::CONTINUES_TERMS;
+    }
+
+    private function isDaySuspended(EventCalendar $calendar, CalendarDate $date): bool
+    {
+        $existingDay = $calendar->findDay($date);
+
+        return $existingDay instanceof EventCalendarDay && $existingDay->suspensionType instanceof SuspensionType;
     }
 
     private function addAtwDaysIfDeadlineMoved(

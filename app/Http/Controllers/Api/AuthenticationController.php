@@ -30,7 +30,7 @@ final readonly class AuthenticationController
             ->where('api_key', $apiKey)->firstOrFail();
 
         if (!$this->hasher->check($apiSecret, $apiUser->api_secret)) {
-            $this->logService->log((new UserLoginLogEvent())
+            $this->logService->log(new UserLoginLogEvent()
                 ->asExecute()
                 ->withData(['api_key' => $apiKey, 'api_user_name' => $apiUser->name]));
 
@@ -39,7 +39,7 @@ final readonly class AuthenticationController
             ], 401);
         }
 
-        $this->logService->log((new UserLoginLogEvent())
+        $this->logService->log(new UserLoginLogEvent()
             ->asExecute()
             ->withData(['api_key' => $apiKey, 'api_user_name' => $apiUser->name, 'success' => true]));
 

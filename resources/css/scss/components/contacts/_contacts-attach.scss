@@ -3,7 +3,12 @@ table.connected-contacts-table {
 
   tr {
     display: grid;
-    grid-template-columns: 1fr 1fr 500px 150px;
+    grid-template-columns: 1fr 1fr 420px 120px 150px;
+    column-gap: 0.75rem;
+  }
+
+  &.connected-contacts-table--with-phone-contact tr {
+    grid-template-columns: 1fr 1fr 420px 200px 120px 150px;
   }
 
   th, td {
@@ -19,6 +24,15 @@ table.connected-contacts-table {
       button {
         margin-top: 0;
       }
+    }
+
+    input[type='date'] {
+      width: 100%;
+    }
+
+    > button {
+      margin-top: 0;
+      width: 100%;
     }
   }
 }

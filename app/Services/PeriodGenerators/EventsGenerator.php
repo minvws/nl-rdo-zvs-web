@@ -27,9 +27,7 @@ class EventsGenerator implements PeriodGeneratorInterface
 
             usort(
                 $existingEvents,
-                static function (PetitionEventData $eventA, PetitionEventData $eventB): int {
-                    return $eventA->createdAt <=> $eventB->createdAt;
-                },
+                static fn(PetitionEventData $eventA, PetitionEventData $eventB): int => $eventA->createdAt <=> $eventB->createdAt,
             );
 
             $calendar->upsertDay($eventDate, [

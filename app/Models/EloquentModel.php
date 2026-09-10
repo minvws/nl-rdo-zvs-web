@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Override;
 
 /**
  * @method static Builder|static newModelQuery()
@@ -13,5 +14,6 @@ use Illuminate\Database\Eloquent\Model;
  */
 abstract class EloquentModel extends Model
 {
+    #[Override]
     protected $keyType = 'string';
 }

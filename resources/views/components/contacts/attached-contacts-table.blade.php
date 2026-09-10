@@ -1,3 +1,4 @@
+@use(App\Enums\ContactRole)
 @use(App\Enums\RouteName)
 @use(App\Enums\CorrespondencePreference)
 
@@ -9,15 +10,27 @@
     'emptyMessage',
 ])
 
+@php
+    $showFirstPhoneContact = $contactRole === ContactRole::APPLICANT;
+@endphp
+
 <section class="mt-5">
     <div class="visually-grouped">
         <h2>{{ $title }}</h2>
-        <table class="connected-contacts-table">
+        <table
+            class="connected-contacts-table @if ($showFirstPhoneContact) connected-contacts-table--with-phone-contact @endif">
             <thead>
                 <tr>
                     <th scope="col">{{ __('contact.last_name') }}</th>
                     <th scope="col">{{ __('contact.organisation_name') }}</th>
                     <th scope="col">{{ __('contact.correspondence') }}</th>
+                    @if ($showFirstPhoneContact)
+                        <th scope="col">{{ __('contact.date_first_phone_contact_short') }}</th>
+                    @endif
+
+                    <th scope="col">
+                        <span class="visually-hidden">{{ __('general.save') }}</span>
+                    </th>
                     <th scope="col">
                         <span class="visually-hidden">{{ __('general.actions') }}</span>
                     </th>
@@ -41,6 +54,7 @@
                             </td>
                             <td>
                                 <form
+                                    id="contact-pivot-form-{{ $contact->id }}"
                                     class=".contact-preferences-form flex"
                                     action="{{
                                         route(RouteName::DEPARTMENTS_PETITIONS_CONTACTS_UPDATE_PIVOT, [
@@ -68,11 +82,31 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <x-primary-button>
-                                        {{ __('general.save') }}
-                                    </x-primary-button>
                                 </form>
                             </td>
+                            @if ($showFirstPhoneContact)
+                                <td>
+                                    <label
+                                        class="visually-hidden"
+                                        for="date-first-phone-contact-{{ $contact->id }}">
+                                        {{ __('contact.date_first_phone_contact') }}
+                                    </label>
+                                    <input
+                                        class="form-control @error('date_first_phone_contact') input-error @enderror"
+                                        type="date"
+                                        id="date-first-phone-contact-{{ $contact->id }}"
+                                        form="contact-pivot-form-{{ $contact->id }}"
+                                        name="date_first_phone_contact"
+                                        value="{{ old('date_first_phone_contact', $contact->pivot->date_first_phone_contact) }}" />
+                                </td>
+                            @endif
+
+                            <td>
+                                <x-primary-button form="contact-pivot-form-{{ $contact->id }}">
+                                    {{ __('general.save') }}
+                                </x-primary-button>
+                            </td>
+
                             <td>
                                 <form
                                     action="{{
@@ -97,7 +131,7 @@
                     @endforeach
                 @else
                     <tr>
-                        <td colspan="5">{{ $emptyMessage }}</td>
+                        <td colspan="{{ $showFirstPhoneContact ? 6 : 5 }}">{{ $emptyMessage }}</td>
                     </tr>
                 @endif
             </tbody>

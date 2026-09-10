@@ -17,11 +17,9 @@ class AuthenticationServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        Password::defaults(static function () {
-            return Password::min(Config::integer('auth.passwords.minimum_length'))
-                ->max(Config::integer('auth.passwords.maximum_length'))
-                ->uncompromised();
-        });
+        Password::defaults(static fn() => Password::min(Config::integer('auth.passwords.minimum_length'))
+            ->max(Config::integer('auth.passwords.maximum_length'))
+            ->uncompromised());
     }
 
     #[Override]

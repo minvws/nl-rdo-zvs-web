@@ -12,6 +12,7 @@ use App\Validation\Rules\DateMustBeInSuspensionRule;
 use App\Validation\Rules\DateMustBeInTermRule;
 use App\Validation\Rules\DateMustBeLatestEventRule;
 use App\Validation\Rules\DateMustNotBeInSuspensionRule;
+use App\Validation\Rules\DateMustNotBeInTheFutureRule;
 use App\Validation\Rules\LastEventMustBeOneOfRule;
 use App\Validation\Rules\NextDayMustBeInTermRule;
 use App\Validation\Rules\RequiresDependencyRule;
@@ -36,6 +37,7 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->registerPrimaryDecisionValidator();
         $this->registerReceiptOfObjectionValidator();
+        $this->registerReceiptOfComplaintValidator();
         $this->registerNoticeOfDefaultReceivedValidator();
         $this->registerNoticeOfDefaultWithdrawnValidator();
         $this->registerReceiptAppealNotTimelyValidator();
@@ -45,6 +47,7 @@ class ValidationServiceProvider extends ServiceProvider
         $this->registerSuspensionEndValidator();
         $this->registerCommitteeHearingScheduledValidator();
         $this->registerAdjournmentValidator();
+        $this->registerCommitteeHearingDeterminedValidator();
         $this->registerHearingDateValidator();
         $this->registerUnspecifiedAdjournmentValidator();
         $this->registerUnspecifiedAdjournmentEndValidator();
@@ -59,11 +62,9 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::PRIMARY_DECISION->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(UniquenessRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(UniquenessRule::class),
+            ]),
         );
     }
 
@@ -71,11 +72,19 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::RECEIPT_OF_OBJECTION->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    new RequiresDependencyRule(PetitionEventType::PRIMARY_DECISION),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                new RequiresDependencyRule(PetitionEventType::PRIMARY_DECISION),
+            ]),
+        );
+    }
+
+    private function registerReceiptOfComplaintValidator(): void
+    {
+        $this->app->bind(
+            'validation.rule.' . PetitionEventType::RECEIPT_OF_COMPLAINT->value,
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(UniquenessRule::class),
+            ]),
         );
     }
 
@@ -83,15 +92,13 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    new RequiresDependencyRule([
-                        PetitionEventType::RECEIPT_OF_OBJECTION,
-                        PetitionEventType::PETITION_RECEIVED,
-                    ]),
-                    $app->make(DateMustBeLatestEventRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                new RequiresDependencyRule([
+                    PetitionEventType::RECEIPT_OF_OBJECTION,
+                    PetitionEventType::PETITION_RECEIVED,
+                ]),
+                $app->make(DateMustBeLatestEventRule::class),
+            ]),
         );
     }
 
@@ -99,12 +106,10 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    new LastEventMustBeOneOfRule([PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED]),
-                    $app->make(DateMustBeLatestEventRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                new LastEventMustBeOneOfRule([PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED]),
+                $app->make(DateMustBeLatestEventRule::class),
+            ]),
         );
     }
 
@@ -112,15 +117,13 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    new RequiresDependencyRule([
-                        PetitionEventType::RECEIPT_OF_OBJECTION,
-                        PetitionEventType::PETITION_RECEIVED,
-                    ]),
-                    $app->make(DateMustBeLatestEventRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                new RequiresDependencyRule([
+                    PetitionEventType::RECEIPT_OF_OBJECTION,
+                    PetitionEventType::PETITION_RECEIVED,
+                ]),
+                $app->make(DateMustBeLatestEventRule::class),
+            ]),
         );
     }
 
@@ -128,13 +131,11 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::APPEAL_DECISION_NOT_TIMELY->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    new RequiresDependencyRule(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY),
-                    new RequiresOpenAppealNotTimelyReceiptRule(),
-                    $app->make(DateMustBeLatestEventRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                new RequiresDependencyRule(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY),
+                new RequiresOpenAppealNotTimelyReceiptRule(),
+                $app->make(DateMustBeLatestEventRule::class),
+            ]),
         );
     }
 
@@ -142,16 +143,15 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::FINAL_RESULT->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(DateMustBeLatestEventRule::class),
-                    new RequiresDependencyRule([
-                        PetitionEventType::RECEIPT_OF_OBJECTION,
-                        PetitionEventType::PETITION_RECEIVED,
-                    ]),
-                    $app->make(UniquenessRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(DateMustBeLatestEventRule::class),
+                new RequiresDependencyRule([
+                    PetitionEventType::RECEIPT_OF_OBJECTION,
+                    PetitionEventType::PETITION_RECEIVED,
+                    PetitionEventType::RECEIPT_OF_COMPLAINT,
+                ]),
+                $app->make(UniquenessRule::class),
+            ]),
         );
     }
 
@@ -159,17 +159,15 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::LETTER_OF_SUSPENSION_SENT->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    new RequiresDependencyRule([
-                        PetitionEventType::RECEIPT_OF_OBJECTION,
-                        PetitionEventType::PETITION_RECEIVED,
-                    ]),
-                    $app->make(DateMustBeLatestEventRule::class),
-                    new DateMustNotBeInSuspensionRule(),
-                    new NextDayMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                new RequiresDependencyRule([
+                    PetitionEventType::RECEIPT_OF_OBJECTION,
+                    PetitionEventType::PETITION_RECEIVED,
+                ]),
+                $app->make(DateMustBeLatestEventRule::class),
+                new DateMustNotBeInSuspensionRule(),
+                new NextDayMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
+            ]),
         );
     }
 
@@ -177,16 +175,15 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::SUSPENSION_END->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(DateMustBeLatestEventRule::class),
-                    new LastEventMustBeOneOfRule([
-                        PetitionEventType::LETTER_OF_SUSPENSION_SENT,
-                        PetitionEventType::MEETING_SCHEDULED,
-                    ]),
-                    new DateMustBeInSuspensionRule(),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(DateMustBeLatestEventRule::class),
+                new LastEventMustBeOneOfRule([
+                    PetitionEventType::LETTER_OF_SUSPENSION_SENT,
+                    PetitionEventType::MEETING_SCHEDULED,
+                    PetitionEventType::ADJOURNMENT,
+                ]),
+                new DateMustBeInSuspensionRule(),
+            ]),
         );
     }
 
@@ -194,13 +191,11 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::MEETING_SCHEDULED->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(DateMustBeLatestEventRule::class),
-                    $app->make(UniquenessRule::class),
-                    new DateMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(DateMustBeLatestEventRule::class),
+                $app->make(UniquenessRule::class),
+                new DateMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
+            ]),
         );
     }
 
@@ -208,13 +203,23 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::ADJOURNMENT->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(DateMustBeLatestEventRule::class),
-                    $app->make(UniquenessRule::class),
-                    new DateMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(DateMustBeLatestEventRule::class),
+                $app->make(UniquenessRule::class),
+                new DateMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
+            ]),
+        );
+    }
+
+    private function registerCommitteeHearingDeterminedValidator(): void
+    {
+        $this->app->bind(
+            'validation.rule.' . PetitionEventType::COMMITTEE_HEARING_DETERMINED->value,
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(DateMustBeLatestEventRule::class),
+                $app->make(UniquenessRule::class),
+                new DateMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
+            ]),
         );
     }
 
@@ -222,15 +227,13 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::HEARING_DATE->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(DateMustBeLatestEventRule::class),
-                    new RequiresDependencyRule([
-                        PetitionEventType::RECEIPT_OF_OBJECTION,
-                        PetitionEventType::PETITION_RECEIVED,
-                    ]),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(DateMustBeLatestEventRule::class),
+                new RequiresDependencyRule([
+                    PetitionEventType::RECEIPT_OF_OBJECTION,
+                    PetitionEventType::PETITION_RECEIVED,
+                ]),
+            ]),
         );
     }
 
@@ -238,17 +241,16 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::UNSPECIFIED_ADJOURNMENT->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    new RequiresDependencyRule([
-                        PetitionEventType::RECEIPT_OF_OBJECTION,
-                        PetitionEventType::PETITION_RECEIVED,
-                    ]),
-                    $app->make(DateMustBeLatestEventRule::class),
-                    new DateMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
-                    new DateMustNotBeInSuspensionRule(),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                new RequiresDependencyRule([
+                    PetitionEventType::RECEIPT_OF_OBJECTION,
+                    PetitionEventType::PETITION_RECEIVED,
+                ]),
+                $app->make(DateMustBeLatestEventRule::class),
+                new DateMustBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]),
+                new DateMustNotBeInSuspensionRule(),
+                new DateMustNotBeInTheFutureRule(),
+            ]),
         );
     }
 
@@ -256,13 +258,12 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    new RequiresDependencyRule(PetitionEventType::UNSPECIFIED_ADJOURNMENT),
-                    new DateMustBeAfterDependencyRule(PetitionEventType::UNSPECIFIED_ADJOURNMENT),
-                    $app->make(DateMustBeLatestEventRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                new RequiresDependencyRule(PetitionEventType::UNSPECIFIED_ADJOURNMENT),
+                new DateMustBeAfterDependencyRule(PetitionEventType::UNSPECIFIED_ADJOURNMENT),
+                $app->make(DateMustBeLatestEventRule::class),
+                new DateMustNotBeInTheFutureRule(),
+            ]),
         );
     }
 
@@ -270,11 +271,9 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::PETITION_RECEIVED->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(UniquenessRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(UniquenessRule::class),
+            ]),
         );
     }
 
@@ -282,11 +281,9 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::ACTUAL_DISCLOSURE->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(DateMustBeLatestEventRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(DateMustBeLatestEventRule::class),
+            ]),
         );
     }
 
@@ -294,11 +291,9 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::PUBLICATION_DATE->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(DateMustBeLatestEventRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(DateMustBeLatestEventRule::class),
+            ]),
         );
     }
 
@@ -306,11 +301,9 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::OPINION_OUTSIDE_TERM->value,
-            static function (Application $app): ComposableValidator {
-                return new ComposableValidator([
-                    $app->make(DateMustBeLatestEventRule::class),
-                ]);
-            },
+            static fn(Application $app): ComposableValidator => new ComposableValidator([
+                $app->make(DateMustBeLatestEventRule::class),
+            ]),
         );
     }
 
@@ -318,9 +311,7 @@ class ValidationServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'validation.rule.' . PetitionEventType::SENT_PARTIAL_DECISION->value,
-            static function (): ComposableValidator {
-                return new ComposableValidator([]);
-            },
+            static fn(): ComposableValidator => new ComposableValidator([]),
         );
     }
 }

@@ -16,7 +16,7 @@ class LogOtpAuthenticationSuccess
 
     public function __invoke(OtpAuthenticationSuccessEvent $event): void
     {
-        $this->logService->log((new UserLoginLogEvent())
+        $this->logService->log(new UserLoginLogEvent()
             ->asExecute()
             ->withActor($event->user)
             ->withData($event->data));

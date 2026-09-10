@@ -16,7 +16,7 @@ class LogOtpDisabled
 
     public function __invoke(OtpDisabledEvent $event): void
     {
-        $this->logService->log((new VerificationCodeDisabledLogEvent())
+        $this->logService->log(new VerificationCodeDisabledLogEvent()
             ->asExecute()
             ->withActor($event->user)
             ->withTarget($event->user)

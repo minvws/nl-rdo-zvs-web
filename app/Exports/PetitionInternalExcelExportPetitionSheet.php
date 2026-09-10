@@ -51,7 +51,7 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
             $row->team->name ?? '-',
             DisplayDate::date($row->date_of_entry),
             $row->date_appealed_decision ? DisplayDate::date($row->date_appealed_decision) : '-',
-            $row->deadline_at ? DisplayDate::date($row->deadline_at) : '-',
+            $row->effective_deadline_at ? DisplayDate::date($row->effective_deadline_at) : '-',
             DisplayDate::datetime($row->created_at),
             $row->petitionTerms->penaltyToDate(CalendarDate::today()),
             $row->petitionTerms->totalPenalty(),

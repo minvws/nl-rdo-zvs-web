@@ -64,4 +64,13 @@ class PetitionPolicy
 
         return $this->userPermissionService->hasPermission(Permission::PETITION_WRITE, $user, $petition->department);
     }
+
+    public function unarchive(User $user, Petition $petition): bool
+    {
+        if ($petition->archived_at === null) {
+            return false;
+        }
+
+        return $this->userPermissionService->hasPermission(Permission::PETITION_WRITE, $user, $petition->department);
+    }
 }

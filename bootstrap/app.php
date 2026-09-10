@@ -12,7 +12,7 @@ use App\Services\Authentication\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Middleware\ValidatePostSize;
 use Illuminate\Http\RedirectResponse;
 use Spatie\Csp\AddCspHeaders;
@@ -30,9 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return $response;
         });
-        $exceptions->render(static function (AuthenticationException $authenticationException): RedirectResponse {
-            return response()->redirectToRoute(RouteName::LOGIN);
-        });
+        $exceptions->render(
+            static fn(AuthenticationException $authenticationException): RedirectResponse => response()->redirectToRoute(RouteName::LOGIN),
+        );
     })
     ->withEvents([
         sprintf('%s/../app/Listeners', __DIR__),
@@ -53,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->priority([
             ValidatePostSize::class,
-            ValidateCsrfToken::class,
+            PreventRequestForgery::class,
         ]);
         $middleware->alias([
             'email-address-verified' => EmailAddressVerified::class,

@@ -159,6 +159,32 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
         ];
     }
 
+    public function testMapUsesTheDeadlineOverrideWhenItIsSet(): void
+    {
+        $petition = Petition::factory()->create([
+            'deadline_at' => CalendarDate::create('01-03-2026'),
+            'deadline_override_at' => CalendarDate::create('30-06-2026'),
+            'deadline_override_reason' => 'Afspraak met verzoeker',
+        ]);
+
+        $row = $this->makePetitionBeroepExcelExport()->map($petition);
+
+        $this->assertContains('30-06-2026', $row);
+    }
+
+    public function testMapUsesTheCalculatedDeadlineWithoutAnOverride(): void
+    {
+        $petition = Petition::factory()->create([
+            'deadline_at' => CalendarDate::create('01-03-2026'),
+            'deadline_override_at' => null,
+            'deadline_override_reason' => null,
+        ]);
+
+        $row = $this->makePetitionBeroepExcelExport()->map($petition);
+
+        $this->assertContains('01-03-2026', $row);
+    }
+
     public function makePetitionBeroepExcelExport(): PetitionInternalExcelExportPetitionSheet
     {
         $startDate = $this->faker()->calendarDate();

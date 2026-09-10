@@ -59,8 +59,6 @@ class EventCalendar extends Collection
 
     public function sortByDate(): void
     {
-        uasort($this->items, static function (EventCalendarDay $a, EventCalendarDay $b): int {
-            return $a->date <=> $b->date;
-        });
+        uasort($this->items, static fn(EventCalendarDay $a, EventCalendarDay $b): int => $a->date <=> $b->date);
     }
 }

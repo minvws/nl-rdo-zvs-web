@@ -6,8 +6,10 @@ namespace App\Services;
 
 use App\Enums\PetitionEventType;
 use App\Enums\TermType;
+use App\Enums\UnspecifiedAdjournmentMode;
 use App\Services\PeriodGenerators\BeslisPeriodGenerator;
 use App\Services\PeriodGenerators\BNTPeriodGenerator;
+use App\Services\PeriodGenerators\ContinuingUnspecifiedAdjournmentPeriodGenerator;
 use App\Services\PeriodGenerators\EventsGenerator;
 use App\Services\PeriodGenerators\FinalDecisionDateGenerator;
 use App\Services\PeriodGenerators\IGSPeriodGenerator;
@@ -22,12 +24,21 @@ use App\ValueObjects\PetitionEventData;
 use Illuminate\Support\Collection;
 
 use function collect;
+use function in_array;
 
 class DerivedState
 {
     /** @var Collection<int, PetitionEventData> */
     private Collection $events;
     private EventCalendar $calendar;
+    private UnspecifiedAdjournmentMode $unspecifiedAdjournmentMode = UnspecifiedAdjournmentMode::FREEZES_TERMS;
+
+    public function withUnspecifiedAdjournmentMode(UnspecifiedAdjournmentMode $mode): self
+    {
+        $this->unspecifiedAdjournmentMode = $mode;
+
+        return $this;
+    }
 
     /**
      * @param Collection<int, PetitionEventData> $events
@@ -92,10 +103,15 @@ class DerivedState
     public function dateOfEntry(): ?CalendarDate
     {
         $receiptEvent = $this->events->first(
-            static function (PetitionEventData $event): bool {
-                return $event->type === PetitionEventType::RECEIPT_OF_OBJECTION
-                    || $event->type === PetitionEventType::PETITION_RECEIVED;
-            },
+            static fn(PetitionEventData $event): bool => in_array(
+                $event->type,
+                [
+                    PetitionEventType::RECEIPT_OF_OBJECTION,
+                    PetitionEventType::PETITION_RECEIVED,
+                    PetitionEventType::RECEIPT_OF_COMPLAINT,
+                ],
+                true,
+            ),
         );
 
         return $receiptEvent?->date;
@@ -114,8 +130,11 @@ class DerivedState
         // While an unspecified adjournment is still open its end date is "today", so the running
         // term has no fixed last day yet. The petition deadline is therefore today (and keeps
         // moving forward daily), decoupled from the projected last-day marker in the calendar.
+        // Departments that keep their terms running have no deadline at all until it ends.
         if ($this->hasOpenUnspecifiedAdjournment()) {
-            return CalendarDate::today();
+            return $this->unspecifiedAdjournmentMode === UnspecifiedAdjournmentMode::FREEZES_TERMS
+                ? CalendarDate::today()
+                : null;
         }
 
         $lastDeadlineDay = $this->calendar
@@ -134,16 +153,6 @@ class DerivedState
         }
 
         return $deadline;
-    }
-
-    private function hasOpenUnspecifiedAdjournment(): bool
-    {
-        $countOfType = fn(PetitionEventType $type): int => $this->events
-            ->filter(static fn(PetitionEventData $event): bool => $event->type === $type)
-            ->count();
-
-        return $countOfType(PetitionEventType::UNSPECIFIED_ADJOURNMENT)
-            > $countOfType(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END);
     }
 
     public function deadlineDateForTerm(TermType $term): ?CalendarDate
@@ -186,10 +195,8 @@ class DerivedState
     public function forfeitedForTerm(CalendarDate $date, TermType $term): int
     {
         return $this->calendar
-            ->filter(static function (EventCalendarDay $day) use ($date, $term): bool {
-                return $day->date->lessThanOrEqualTo($date)
-                    && $day->penaltySourceTerm === $term->value;
-            })
+            ->filter(static fn(EventCalendarDay $day): bool => $day->date->lessThanOrEqualTo($date)
+                && $day->penaltySourceTerm === $term->value)
             ->sum(static fn(EventCalendarDay $day): int => $day->penaltyTodayInEuros);
     }
 
@@ -204,12 +211,18 @@ class DerivedState
         }
 
         return $eventsOfType
-            ->sum(static function (PetitionEventData $event): int {
-                return collect($event->penalties)
-                    ->sum(static function ($penalty): int {
-                        return $penalty->amount * $penalty->duration;
-                    });
-            });
+            ->sum(static fn(PetitionEventData $event): int => collect($event->penalties)
+                ->sum(static fn($penalty): int => $penalty->amount * $penalty->duration));
+    }
+
+    private function hasOpenUnspecifiedAdjournment(): bool
+    {
+        $countOfType = fn(PetitionEventType $type): int => $this->events
+            ->filter(static fn(PetitionEventData $event): bool => $event->type === $type)
+            ->count();
+
+        return $countOfType(PetitionEventType::UNSPECIFIED_ADJOURNMENT)
+            > $countOfType(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END);
     }
 
     /**
@@ -234,10 +247,25 @@ class DerivedState
     {
         // I think we should provide the generators from the outside
         // maybe resolve them from config
+        if ($this->unspecifiedAdjournmentMode === UnspecifiedAdjournmentMode::CONTINUES_TERMS) {
+            // The adjournment must not eat into the objection and decision budgets, so it runs
+            // after both of them and only rewrites the decision period deadline afterwards.
+            return [
+                new SuspensionPeriodGenerator(),
+                new ObjectionPeriodGenerator($this->unspecifiedAdjournmentMode),
+                new BeslisPeriodGenerator(),
+                new IGSPeriodGenerator(),
+                new BNTPeriodGenerator(),
+                new FinalDecisionDateGenerator(),
+                new ContinuingUnspecifiedAdjournmentPeriodGenerator(),
+                new EventsGenerator(),
+            ];
+        }
+
         return [
             new SuspensionPeriodGenerator(),
             new UnspecifiedAdjournmentPeriodGenerator(),
-            new ObjectionPeriodGenerator(),
+            new ObjectionPeriodGenerator($this->unspecifiedAdjournmentMode),
             new BeslisPeriodGenerator(),
             new IGSPeriodGenerator(),
             new BNTPeriodGenerator(),

@@ -63,6 +63,7 @@ class SuspensionEndValidatorTest extends TestCase
                 'events' => implode(', ', [
                     PetitionEventType::LETTER_OF_SUSPENSION_SENT->label(),
                     PetitionEventType::MEETING_SCHEDULED->label(),
+                    PetitionEventType::ADJOURNMENT->label(),
                 ]),
             ]),
             $result->getErrors()['general'],
@@ -193,6 +194,116 @@ class SuspensionEndValidatorTest extends TestCase
 
         $this->assertTrue($result->isValid());
         $this->assertEmpty($result->getErrors());
+    }
+
+    #[Test]
+    public function testItPassesWhenAdjournmentIsTheLastEvent(): void
+    {
+        $validator = PetitionEventType::SUSPENSION_END->rule();
+        $state = new DerivedState();
+        $state->addEvents(collect([
+            new PetitionEventData(
+                type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
+                date: CalendarDate::create('2025-01-10'),
+                createdAt: CarbonImmutable::now(),
+                duration: 20,
+                suspensionType: SuspensionType::SPECIFIED_ADJOURNMENT,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::ADJOURNMENT,
+                date: CalendarDate::create('2025-01-15'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+        ]));
+
+        $result = $validator->validate(new PetitionEventData(
+            type: PetitionEventType::SUSPENSION_END,
+            date: CalendarDate::create('2025-01-20'),
+            createdAt: CarbonImmutable::now(),
+        ), $state);
+
+        $this->assertTrue($result->isValid());
+        $this->assertEmpty($result->getErrors());
+    }
+
+    #[Test]
+    public function testItPassesOnTheLastDayOfTheSuspensionWindowAfterAnAdjournment(): void
+    {
+        $validator = PetitionEventType::SUSPENSION_END->rule();
+        $state = new DerivedState();
+        $state->addEvents(collect($this->suspensionFollowedByAdjournment()));
+
+        $result = $validator->validate(new PetitionEventData(
+            type: PetitionEventType::SUSPENSION_END,
+            date: CalendarDate::create('2025-01-30'),
+            createdAt: CarbonImmutable::now(),
+        ), $state);
+
+        $this->assertTrue($result->isValid());
+        $this->assertEmpty($result->getErrors());
+    }
+
+    #[Test]
+    public function testItFailsOnTheDayAfterTheSuspensionWindowAfterAnAdjournment(): void
+    {
+        $validator = PetitionEventType::SUSPENSION_END->rule();
+        $state = new DerivedState();
+        $state->addEvents(collect($this->suspensionFollowedByAdjournment()));
+
+        $result = $validator->validate(new PetitionEventData(
+            type: PetitionEventType::SUSPENSION_END,
+            date: CalendarDate::create('2025-01-31'),
+            createdAt: CarbonImmutable::now(),
+        ), $state);
+
+        $this->assertFalse($result->isValid());
+        $this->assertStringContainsString(
+            __('term.validation.common.date_must_be_in_suspension'),
+            $result->getErrors()['date'],
+        );
+    }
+
+    #[Test]
+    public function testItFailsWhenTheEndDatePrecedesTheAdjournment(): void
+    {
+        $validator = PetitionEventType::SUSPENSION_END->rule();
+        $state = new DerivedState();
+        $state->addEvents(collect($this->suspensionFollowedByAdjournment()));
+
+        $result = $validator->validate(new PetitionEventData(
+            type: PetitionEventType::SUSPENSION_END,
+            date: CalendarDate::create('2025-01-14'),
+            createdAt: CarbonImmutable::now(),
+        ), $state);
+
+        $this->assertFalse($result->isValid());
+        $this->assertStringContainsString(
+            __('term.validation.common.date_must_be_latest_event', ['event' => PetitionEventType::SUSPENSION_END->label()]),
+            $result->getErrors()['date'],
+        );
+    }
+
+    /**
+     * @return array<int, PetitionEventData>
+     */
+    private function suspensionFollowedByAdjournment(): array
+    {
+        return [
+            new PetitionEventData(
+                type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
+                date: CalendarDate::create('2025-01-10'),
+                createdAt: CarbonImmutable::now(),
+                duration: 20,
+                suspensionType: SuspensionType::SPECIFIED_ADJOURNMENT,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::ADJOURNMENT,
+                date: CalendarDate::create('2025-01-15'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+        ];
     }
 
     #[Test]

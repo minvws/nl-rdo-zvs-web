@@ -499,6 +499,19 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $this->assertContains(PetitionEventType::SUSPENSION_END, $availableTypes);
     }
 
+    public function testSuspensionEndAvailableWhenAdjournmentIsLastEvent(): void
+    {
+        $currentEvents = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::PRIMARY_DECISION, '2025-01-01', 30))
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_OBJECTION, '2025-01-15', 45))
+            ->add($this->createEvent(PetitionEventType::LETTER_OF_SUSPENSION_SENT, '2025-02-01', 14))
+            ->add($this->createEvent(PetitionEventType::ADJOURNMENT, '2025-02-05', 42));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $currentEvents);
+
+        $this->assertContains(PetitionEventType::SUSPENSION_END, $availableTypes);
+    }
+
     public function testPrimaryDecisionVisibleWhenNoEventsExistForBezwaar(): void
     {
         $availableTypes = $this->service->getAvailableEventTypes(
@@ -1323,6 +1336,63 @@ class PetitionEventAvailabilityServiceTest extends TestCase
                 sprintf('PUBLICATION_DATE should not be available for %s', $resultType->value),
             );
         }
+    }
+
+    public function testAllOtherEventsAvailableForKlachtAfterReceiptOfComplaint(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_COMPLAINT));
+
+        $this->assertEquals(
+            [
+                PetitionEventType::MEETING_SCHEDULED,
+                PetitionEventType::ADJOURNMENT,
+                PetitionEventType::FINAL_RESULT,
+            ],
+            $this->service->getAvailableEventTypes(PetitionVariant::KLACHT, $events),
+        );
+    }
+
+    public function testOnlyFinalResultAvailableForKlachtAfterMeetingScheduled(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_COMPLAINT))
+            ->add($this->createEvent(PetitionEventType::MEETING_SCHEDULED));
+
+        $this->assertEquals(
+            [
+                PetitionEventType::FINAL_RESULT,
+            ],
+            $this->service->getAvailableEventTypes(PetitionVariant::KLACHT, $events),
+        );
+    }
+
+    public function testMeetingScheduledAndFinalResultAvailableForKlachtAfterAdjournment(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_COMPLAINT))
+            ->add($this->createEvent(PetitionEventType::ADJOURNMENT));
+
+        $this->assertEquals(
+            [
+                PetitionEventType::MEETING_SCHEDULED,
+                PetitionEventType::FINAL_RESULT,
+            ],
+            $this->service->getAvailableEventTypes(PetitionVariant::KLACHT, $events),
+        );
+    }
+
+    public function testNoEventsAvailableForKlachtAfterFinalResult(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add($this->createEvent(PetitionEventType::RECEIPT_OF_COMPLAINT))
+            ->add($this->createEvent(PetitionEventType::ADJOURNMENT))
+            ->add($this->createEvent(PetitionEventType::FINAL_RESULT));
+
+        $this->assertEquals(
+            [],
+            $this->service->getAvailableEventTypes(PetitionVariant::KLACHT, $events),
+        );
     }
 
     private function createEvent(PetitionEventType $type, string $date = '2025-01-01', ?int $duration = null, ?ResultType $resultType = null): PetitionEventData

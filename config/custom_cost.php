@@ -20,4 +20,10 @@ return [
         CustomCostType::SUBSIDY_REPAYMENT->value,
         CustomCostType::OTHER->value,
     ],
+    PetitionVariant::KLACHT->value => [
+        CustomCostType::LEGAL_COSTS->value,
+        CustomCostType::STATUTORY_INTEREST->value,
+        CustomCostType::SUBSIDY_REPAYMENT->value,
+        CustomCostType::OTHER->value,
+    ],
 ];

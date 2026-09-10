@@ -330,6 +330,38 @@
                     </select>
                 </div>
 
+                <div
+                    class="form-filter-group"
+                    data-filter-group="deadline_from">
+                    <x-input-label
+                        class="form-label"
+                        for="filter_deadline_from"
+                        :content="__('petition.filter.deadline_from')" />
+                    <input
+                        id="filter_deadline_from"
+                        class="form-control"
+                        type="date"
+                        step="1"
+                        name="filter[{{ PetitionCriteria::DEADLINE_FROM->value }}]"
+                        value="{{ request(sprintf("filter.%s", PetitionCriteria::DEADLINE_FROM->value)) }}" />
+                </div>
+
+                <div
+                    class="form-filter-group"
+                    data-filter-group="deadline_to">
+                    <x-input-label
+                        class="form-label"
+                        for="filter_deadline_to"
+                        :content="__('petition.filter.deadline_to')" />
+                    <input
+                        id="filter_deadline_to"
+                        class="form-control"
+                        type="date"
+                        step="1"
+                        name="filter[{{ PetitionCriteria::DEADLINE_TO->value }}]"
+                        value="{{ request(sprintf("filter.%s", PetitionCriteria::DEADLINE_TO->value)) }}" />
+                </div>
+
                 <button
                     class="form-filter-submit"
                     formaction="{{ route(RouteName::DEPARTMENTS_PETITIONS_INDEX_FILTER, ["department" => $department]) }}"
@@ -645,7 +677,10 @@
                                         <x-petition.particularity_labels :petition="$petition" />
                                     </td>
                                     <td data-hide-table-column-content="{{ strtolower(__("petition.deadline_at")) }}">
-                                        {{ $petition->deadline_at !== null ? DisplayDate::date($petition->deadline_at) : "-" }}
+                                        {{ $petition->effective_deadline_at !== null ? DisplayDate::date($petition->effective_deadline_at) : "-" }}
+                                        @if ($petition->hasDeadlineOverride())
+                                            *
+                                        @endif
                                     </td>
                                     <td
                                         data-hide-table-column-content="{{ strtolower(__("petition.deadline_decision_period")) }}">
@@ -701,6 +736,10 @@
                     </table>
                 </div>
             </div>
+            @if ($petitions->contains->hasDeadlineOverride())
+                <p class="table-legend">{{ __("petition.deadline_override_legend") }}</p>
+            @endif
+
             {{ $paginator->links() }}
         </div>
     </section>

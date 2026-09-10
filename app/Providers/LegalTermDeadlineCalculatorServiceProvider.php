@@ -13,8 +13,9 @@ class LegalTermDeadlineCalculatorServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        $this->app->singleton('legal-term-deadline-calculator', static function ($app): LegalTermDeadlineCalculator {
-            return new LegalTermDeadlineCalculator();
-        });
+        $this->app->singleton(
+            'legal-term-deadline-calculator',
+            static fn($app): LegalTermDeadlineCalculator => new LegalTermDeadlineCalculator(),
+        );
     }
 }

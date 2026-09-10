@@ -16,7 +16,7 @@ class LogOtpEnrollmentConfirmed
 
     public function __invoke(OtpEnrollmentConfirmedEvent $event): void
     {
-        $this->logService->log((new AccountChangeLogEvent())
+        $this->logService->log(new AccountChangeLogEvent()
             ->asUpdate()
             ->withActor($event->user)
             ->withTarget($event->user)

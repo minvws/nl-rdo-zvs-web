@@ -125,4 +125,22 @@
             </a>
         </div>
     @endcan
+
+    @can(Ability::UNARCHIVE, $petition)
+        @if ($petition->archived_at !== null)
+            <div class="petition-edit">
+                <a
+                    href="{{
+                        confirmRoute(
+                            route(RouteName::DEPARTMENTS_PETITIONS_UNARCHIVE_STORE, ['department' => $petition->department, 'petition' => $petition]),
+                            route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $petition->department, 'petition' => $petition]),
+                            __('petition.unarchive_confirmation_text', ['number' => $petition->number]),
+                        )
+                    }}"
+                    class="button mt-5">
+                    {{ __('petition.unarchive') }}
+                </a>
+            </div>
+        @endif
+    @endcan
 </div>

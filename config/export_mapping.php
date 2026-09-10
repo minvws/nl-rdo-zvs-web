@@ -28,6 +28,21 @@ return [
             'Kennelijk niet-ontvankelijk' => 'Niet ontvankelijk',
         ],
     ],
+    PetitionVariant::KLACHT->value => [
+        'term_options' => [
+            'Binnen wettelijke termijn' => 'Binnen wettelijke termijn',
+            'Binnen afgesproken termijn' => 'Binnen afgesproken termijn',
+            'Buiten wettelijke/afgesproken termijn' => 'Buiten wettelijke/afgesproken termijn',
+        ],
+        'decision_options' => [
+            'Gegrond' => 'Deels gegrond',
+            'Kennelijk gegrond' => 'Deels gegrond',
+            'Ongegrond' => 'Niet gegrond',
+            'Kennelijk ongegrond' => 'Niet gegrond',
+            'Niet-ontvankelijk' => 'Niet ontvankelijk',
+            'Kennelijk niet-ontvankelijk' => 'Niet ontvankelijk',
+        ],
+    ],
     PetitionVariant::WOO_VERZOEK->value => [
         'reason_options' => [
             'Verzoek ingetrokken' => 'Verzoek ingetrokken',

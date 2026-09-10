@@ -13,8 +13,10 @@ use App\Models\Casts\UuidCast;
 use App\ValueObjects\CalendarDate;
 use Carbon\CarbonImmutable;
 use Database\Factories\PetitionEventFactory;
+use Illuminate\Database\Eloquent\Attributes\DateFormat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 /**
  * @property string $id
@@ -22,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property PetitionEventType $type
  * @property CalendarDate $date
  * @property ?int $duration
+ * @property ?int $withdrawal_duration
  * @property ?SuspensionType $suspension_type
  * @property ?ResultType $result_type
  * @property ?HearingForm $hearing_form
@@ -29,22 +32,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array<array{amount: int, duration: int}> $penalties
  * @property CarbonImmutable $created_at
  */
+#[DateFormat('Y-m-d H:i:s.u')]
 class PetitionEvent extends EloquentModel
 {
     /** @use HasFactory<PetitionEventFactory> */
     use HasFactory;
-
-    protected $dateFormat = 'Y-m-d H:i:s.u';
-
-    protected $casts = [
-        'petition_id' => UuidCast::class,
-        'type' => PetitionEventType::class,
-        'date' => CalendarDateCast::class,
-        'penalties' => 'array',
-        'suspension_type' => SuspensionType::class,
-        'result_type' => ResultType::class,
-        'hearing_form' => HearingForm::class,
-    ];
 
     /**
      * @return BelongsTo<Petition, $this>
@@ -52,5 +44,19 @@ class PetitionEvent extends EloquentModel
     public function petition(): BelongsTo
     {
         return $this->belongsTo(Petition::class, 'petition_id', 'id', 'petition');
+    }
+
+    #[Override]
+    protected function casts(): array
+    {
+        return [
+            'petition_id' => UuidCast::class,
+            'type' => PetitionEventType::class,
+            'date' => CalendarDateCast::class,
+            'penalties' => 'array',
+            'suspension_type' => SuspensionType::class,
+            'result_type' => ResultType::class,
+            'hearing_form' => HearingForm::class,
+        ];
     }
 }

@@ -20,7 +20,7 @@ class LogUserLogin
     {
         Assert::isInstanceOf($event->user, User::class);
         $this->logService->log(
-            (new UserLoginLogEvent())
+            new UserLoginLogEvent()
                 ->asExecute()
                 ->withData(['email' => $event->user->email]),
         );

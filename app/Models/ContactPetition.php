@@ -6,7 +6,9 @@ namespace App\Models;
 
 use App\Enums\ContactRole;
 use App\Enums\CorrespondencePreference;
+use App\Models\Casts\CalendarDateCast;
 use App\Models\Casts\UuidCast;
+use App\ValueObjects\CalendarDate;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Override;
@@ -17,11 +19,13 @@ use Ramsey\Uuid\UuidInterface;
  * @property UuidInterface $contact_id
  * @property UuidInterface $petition_id
  * @property ?CorrespondencePreference $correspondence_preference
+ * @property ?CalendarDate $date_first_phone_contact
  */
 #[Table('contact_petition', key: 'id', timestamps: false)]
 class ContactPetition extends Pivot
 {
     /** @var bool The contact_petition table has a bigserial primary key */
+    #[Override]
     public $incrementing = true;
 
     #[Override]
@@ -32,6 +36,7 @@ class ContactPetition extends Pivot
             'petition_id' => UuidCast::class,
             'role' => ContactRole::class,
             'correspondence_preference' => CorrespondencePreference::class,
+            'date_first_phone_contact' => CalendarDateCast::class,
         ];
     }
 }

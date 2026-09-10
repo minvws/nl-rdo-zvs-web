@@ -14,8 +14,6 @@ class PetitionCollection extends Collection
 {
     public function toString(): string
     {
-        return $this->map(static function (Petition $petition): string {
-            return $petition->number;
-        })->join(', ');
+        return $this->map(static fn(Petition $petition): string => $petition->number)->join(', ');
     }
 }

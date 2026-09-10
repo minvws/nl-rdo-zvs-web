@@ -8,6 +8,7 @@ use App\Enums\DecisionType;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
+use App\Enums\UnspecifiedAdjournmentMode;
 use App\Models\Department;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Collection;
@@ -15,7 +16,9 @@ use Illuminate\Support\Facades\Lang;
 use Webmozart\Assert\Assert;
 
 use function __;
+use function in_array;
 use function is_array;
+use function is_string;
 use function sprintf;
 
 readonly class DepartmentConfigurationService
@@ -35,6 +38,19 @@ readonly class DepartmentConfigurationService
             ),
             false,
         );
+    }
+
+    public function unspecifiedAdjournmentMode(Department $department): UnspecifiedAdjournmentMode
+    {
+        $mode = $this->configRepository->get(
+            sprintf('department.unspecified-adjournment.%s', $department->slug),
+        );
+
+        if (!is_string($mode)) {
+            return UnspecifiedAdjournmentMode::CONTINUES_TERMS;
+        }
+
+        return UnspecifiedAdjournmentMode::tryFrom($mode) ?? UnspecifiedAdjournmentMode::CONTINUES_TERMS;
     }
 
     /**
@@ -69,6 +85,28 @@ readonly class DepartmentConfigurationService
         Assert::string($label);
 
         return $label;
+    }
+
+    /**
+     * Bepaalt of een gebeurtenistype beschikbaar is voor een team
+     *
+     * Zie config/petition_events.php (department_availability).
+     * Een gebeurtenistype dat daar niet in staat is voor elk team beschikbaar,
+     * staat het er wel in, dan mogen alleen de genoemde teams het invoeren.
+     */
+    public function isEventTypeAvailable(Department $department, PetitionEventType $eventType): bool
+    {
+        $allowed = $this->configRepository->get(
+            sprintf('petition_events.department_availability.%s', $eventType->value),
+        );
+
+        if (!is_array($allowed)) {
+            return true;
+        }
+
+        Assert::allString($allowed);
+
+        return in_array($department->slug, $allowed, true);
     }
 
     /**

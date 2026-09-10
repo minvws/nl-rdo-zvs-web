@@ -100,6 +100,7 @@ enum RouteName: string
 
     // departments.petitions.archive
     case DEPARTMENTS_PETITIONS_ARCHIVE_STORE = 'departments.petitions.archive.store';
+    case DEPARTMENTS_PETITIONS_UNARCHIVE_STORE = 'departments.petitions.unarchive.store';
 
     // departments.petitions.petition-events
     case PETITION_EVENTS_WIZARD_RESET = 'petition-events.wizard.reset';

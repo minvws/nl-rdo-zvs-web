@@ -32,6 +32,9 @@ return [
     'upload_too_big' => 'Het bestand mag maximaal 20Mb groot zijn.',
 
     'custom' => [
+        'deadline_override_reason' => [
+            'required_with' => 'Vul een reden in voor de afwijkende deadline',
+        ],
         'user_id' => [
             'required' => 'Kies een behandelaar',
         ],
@@ -111,7 +114,7 @@ return [
         ],
         'note_required' => 'Een notitie mag niet leeg zijn',
         'petition_type_id' => [
-            'required' => 'Kies een Zaaksoort',
+            'required' => 'Kies een zaaksoort',
         ],
         'date_from' => [
             'required' => 'Kies een startdatum',

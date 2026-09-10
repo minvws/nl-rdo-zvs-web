@@ -8,13 +8,13 @@ use App\Models\Concerns\HasId;
 use App\Models\Concerns\HasTimestamps;
 use Carbon\CarbonImmutable;
 use Database\Factories\DepartmentFactory;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Override;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -30,6 +30,7 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read ?DepartmentUser $pivot
  * @property-read Collection<int, UserDepartmentFilter> $departmentFilters
  */
+#[RouteKey('slug')]
 #[Table('departments')]
 #[UseFactory(DepartmentFactory::class)]
 class Department extends EloquentModel
@@ -38,12 +39,6 @@ class Department extends EloquentModel
     use HasFactory;
     use HasId;
     use HasTimestamps;
-
-    #[Override]
-    public function getRouteKeyName(): string
-    {
-        return 'slug';
-    }
 
     /**
      * @return BelongsToMany<User, $this, DepartmentUser>

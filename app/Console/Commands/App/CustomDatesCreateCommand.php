@@ -91,9 +91,9 @@ class CustomDatesCreateCommand extends Command
             ->get();
 
         /** @var array<string, string> $choices */
-        $choices = $departments->mapWithKeys(static function (Department $department): array {
-            return [$department->id->toString() => $department->name];
-        })->all();
+        $choices = $departments->mapWithKeys(
+            static fn(Department $department): array => [$department->id->toString() => $department->name],
+        )->all();
 
         $selectedDepartment = select('Select a Team (Department)', $choices);
 
@@ -111,9 +111,9 @@ class CustomDatesCreateCommand extends Command
             ->get();
 
         /** @var array<string, string> $choices */
-        $choices = $petitionTypes->mapWithKeys(static function (PetitionType $type): array {
-            return [$type->id->toString() => sprintf('%s (%s)', $type->name, $type->type->value)];
-        })->all();
+        $choices = $petitionTypes->mapWithKeys(
+            static fn(PetitionType $type): array => [$type->id->toString() => sprintf('%s (%s)', $type->name, $type->type->value)],
+        )->all();
 
         $selectedPetitionType = select('Select a Petition Type', $choices);
 
@@ -128,9 +128,7 @@ class CustomDatesCreateCommand extends Command
         $allLabels = CustomDateLabel::cases();
         $inUseLabels = $petitionType->customDateLabels->pluck('date_label')->all();
 
-        $availableLabels = collect($allLabels)->filter(static function (CustomDateLabel $label) use ($inUseLabels): bool {
-            return !in_array($label, $inUseLabels, true);
-        });
+        $availableLabels = collect($allLabels)->filter(static fn(CustomDateLabel $label): bool => !in_array($label, $inUseLabels, true));
 
         if ($availableLabels->isEmpty()) {
             $this->error('Er zijn geen beschikbare datumlabels meer voor deze zaaksoort.');

@@ -17,7 +17,7 @@ class LogForgotPassword
     public function __invoke(ForgotPasswordEvent $event): void
     {
         $this->logService->log(
-            (new ResetCredentialsLogEvent())
+            new ResetCredentialsLogEvent()
                 ->asExecute()
                 ->withData([
                     'reason' => 'forgot_password',

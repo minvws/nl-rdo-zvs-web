@@ -45,4 +45,11 @@ class InvalidPetitionEventData extends DomainException
             sprintf('Event type "%s" does not support reasoning', $type->value),
         );
     }
+
+    public static function withdrawalDurationNotAllowed(PetitionEventType $type): self
+    {
+        return new self(
+            sprintf('Event type "%s" does not support a withdrawal duration', $type->value),
+        );
+    }
 }

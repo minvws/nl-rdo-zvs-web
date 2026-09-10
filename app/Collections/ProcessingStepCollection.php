@@ -17,20 +17,14 @@ class ProcessingStepCollection extends Collection
     public function deadline(): ?CalendarDate
     {
         return $this
-            ->filter(static function (ProcessingStep $step): bool {
-                return $step->deadline_at >= CalendarDate::today();
-            })
-            ->sortBy(static function (ProcessingStep $step): ?CalendarDate {
-                return $step->deadline_at;
-            })
+            ->filter(static fn(ProcessingStep $step): bool => $step->deadline_at >= CalendarDate::today())
+            ->sortBy(static fn(ProcessingStep $step): ?CalendarDate => $step->deadline_at)
             ->first()?->deadline_at;
     }
 
     public function countCompleted(): int
     {
-        return $this->filter(static function (ProcessingStep $step): bool {
-            return $step->status === ProcessingStepStatus::CLOSED;
-        })->count();
+        return $this->filter(static fn(ProcessingStep $step): bool => $step->status === ProcessingStepStatus::CLOSED)->count();
     }
 
     public function countTotal(): int
@@ -44,15 +38,9 @@ class ProcessingStepCollection extends Collection
     public function getInProgressNames(): array
     {
         return $this
-            ->filter(static function (ProcessingStep $step): bool {
-                return $step->status === ProcessingStepStatus::PENDING;
-            })
-            ->sortBy(static function (ProcessingStep $step): int {
-                return $step->ordering;
-            })
-            ->map(static function (ProcessingStep $step): string {
-                return $step->name;
-            })
+            ->filter(static fn(ProcessingStep $step): bool => $step->status === ProcessingStepStatus::PENDING)
+            ->sortBy(static fn(ProcessingStep $step): int => $step->ordering)
+            ->map(static fn(ProcessingStep $step): string => $step->name)
             ->values()
             ->all();
     }

@@ -17,7 +17,7 @@ class LogUserLoginFailed
     public function __invoke(Failed $event): void
     {
         $this->logService->log(
-            (new UserLoginLogEvent())
+            new UserLoginLogEvent()
                 ->asExecute()
                 ->withFailed(true)
                 ->withData(['email' => $event->credentials['email']]),

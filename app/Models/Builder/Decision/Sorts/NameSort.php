@@ -8,11 +8,11 @@ use App\Models\Decision;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\QueryBuilder\Sorts\Sort;
 
+/**
+ * @implements Sort<Decision>
+ */
 class NameSort implements Sort
 {
-    /**
-     * @param Builder<Decision> $query
-     */
     public function __invoke(Builder $query, bool $descending, string $property): void
     {
         $query->orderBy('name', $descending ? 'desc' : 'asc');

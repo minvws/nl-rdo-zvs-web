@@ -28,12 +28,13 @@ readonly class PetitionEventData
         public ?ResultType $resultType = null,
         public ?HearingForm $hearingForm = null,
         public ?string $reasoning = null,
+        public ?int $withdrawalDuration = null,
     ) {
         $this->validateDomainRules();
     }
 
     /**
-     * @return array{type: string, date: string, duration: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, hearing_form?: string|null, reasoning?: string|null, created_at: CarbonImmutable}
+     * @return array{type: string, date: string, duration: int|null, penalties?: array<int, array{amount: int, duration: int}>, suspension_type?: string|null, result_type?: string|null, hearing_form?: string|null, reasoning?: string|null, withdrawal_duration?: int|null, created_at: CarbonImmutable}
      */
     public function toArray(): array
     {
@@ -66,6 +67,10 @@ readonly class PetitionEventData
             $data['reasoning'] = $this->reasoning;
         }
 
+        if ($this->withdrawalDuration !== null) {
+            $data['withdrawal_duration'] = $this->withdrawalDuration;
+        }
+
         $data['created_at'] = $this->createdAt;
 
         return $data;
@@ -91,6 +96,10 @@ readonly class PetitionEventData
 
         if ($this->type->requiresReasoning($this->resultType) && $this->reasoning === null) {
             throw InvalidPetitionEventData::reasoningRequired($this->type);
+        }
+
+        if ($this->withdrawalDuration !== null && !$this->type->hasWithdrawalDuration()) {
+            throw InvalidPetitionEventData::withdrawalDurationNotAllowed($this->type);
         }
     }
 }

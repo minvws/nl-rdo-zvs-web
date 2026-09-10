@@ -14,6 +14,8 @@ use App\ValueObjects\EventCalendarDay;
 use App\ValueObjects\PetitionEventData;
 use Illuminate\Support\Collection;
 
+use function in_array;
+
 class BeslisPeriodGenerator implements PeriodGeneratorInterface
 {
     private int $daysAdded = 0;
@@ -25,11 +27,15 @@ class BeslisPeriodGenerator implements PeriodGeneratorInterface
     public function generate(Collection $events, EventCalendar $calendar): void
     {
         $receipt = $events->first(
-            static function (PetitionEventData $petitionEventData): bool {
-                return
-                    $petitionEventData->type === PetitionEventType::RECEIPT_OF_OBJECTION ||
-                    $petitionEventData->type === PetitionEventType::PETITION_RECEIVED;
-            },
+            static fn(PetitionEventData $petitionEventData): bool => in_array(
+                $petitionEventData->type,
+                [
+                    PetitionEventType::RECEIPT_OF_OBJECTION,
+                    PetitionEventType::PETITION_RECEIVED,
+                    PetitionEventType::RECEIPT_OF_COMPLAINT,
+                ],
+                true,
+            ),
         );
 
         if (!$receipt || !$this->hasSufficientBudget($receipt)) {
@@ -52,21 +58,19 @@ class BeslisPeriodGenerator implements PeriodGeneratorInterface
      */
     private function calculateTotalBudget(Collection $events, int $initialBudget): int
     {
-        $hearingDateEvents = $events->filter(
-            static function (PetitionEventData $petitionEventData): bool {
-                return $petitionEventData->type === PetitionEventType::MEETING_SCHEDULED;
-            },
+        $extendingEvents = $events->filter(
+            static fn(PetitionEventData $petitionEventData): bool => in_array(
+                $petitionEventData->type,
+                [
+                    PetitionEventType::MEETING_SCHEDULED,
+                    PetitionEventType::ADJOURNMENT,
+                    PetitionEventType::COMMITTEE_HEARING_DETERMINED,
+                ],
+                true,
+            ),
         );
 
-        $adjournmentDateEvents = $events->filter(
-            static function (PetitionEventData $petitionEventData): bool {
-                return $petitionEventData->type === PetitionEventType::ADJOURNMENT;
-            },
-        );
-
-        $additionalBudget
-            = $hearingDateEvents->sum(static fn(PetitionEventData $event): int => $event->duration ?? 0)
-            + $adjournmentDateEvents->sum(static fn(PetitionEventData $event): int => $event->duration ?? 0);
+        $additionalBudget = $extendingEvents->sum(static fn(PetitionEventData $event): int => $event->duration ?? 0);
 
         return $initialBudget + $additionalBudget;
     }

@@ -34,11 +34,12 @@ class PetitionMessageUpdateRequest extends FormRequest
     {
         return [
             'message' => [
+                'nullable',
                 'string',
                 'max:64',
             ],
             'date_of_message' => [
-                'required',
+                'nullable',
                 new CalendarDateRule(),
             ],
             'decision_reference' => [

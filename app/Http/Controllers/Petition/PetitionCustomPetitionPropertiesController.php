@@ -47,9 +47,7 @@ final readonly class PetitionCustomPetitionPropertiesController
             ->get();
 
         $petitionCustomPetitionPropertyIds = $petitionCustomPetitionProperties
-            ->map(static function (object $customPetitionProperty): string {
-                return $customPetitionProperty->id->toString();
-            })
+            ->map(static fn(object $customPetitionProperty): string => $customPetitionProperty->id->toString())
             ->all();
 
         return $this->htmxHelper->makeFormViewResponse($request, 'petition.custom_petition_property.edit', [

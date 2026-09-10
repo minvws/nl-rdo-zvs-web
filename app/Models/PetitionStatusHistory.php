@@ -12,6 +12,7 @@ use Carbon\CarbonImmutable;
 use Database\Factories\PetitionStatusHistoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Override;
@@ -30,6 +31,7 @@ use Ramsey\Uuid\UuidInterface;
  */
 #[Table('petition_statuses_history_entries')]
 #[UseFactory(PetitionStatusHistoryFactory::class)]
+#[WithoutIncrementing]
 class PetitionStatusHistory extends EloquentModel
 {
     use HasCreatedAt;
@@ -38,8 +40,6 @@ class PetitionStatusHistory extends EloquentModel
     use HasId;
 
     public const UPDATED_AT = null;
-
-    public $incrementing = false;
 
     /**
      * @return BelongsTo<Petition, $this>

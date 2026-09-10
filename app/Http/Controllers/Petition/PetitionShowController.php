@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Petition;
 
 use App\Config\Config;
+use App\Config\DepartmentConfigurationService;
 use App\Enums\Ability;
 use App\Enums\TermType;
 use App\Enums\TimelineFilterGroup;
@@ -34,6 +35,7 @@ final readonly class PetitionShowController
         private TimelineFilterService $timelineFilterService,
         private WizardEventCollectionFactory $eventCollectionFactory,
         private DerivedState $derivedState,
+        private DepartmentConfigurationService $departmentConfiguration,
     ) {
     }
 
@@ -54,7 +56,12 @@ final readonly class PetitionShowController
         $deadlineAppealNotTimelyPenaltyPeriodEnd = null;
 
         if ($petition->isTermEngineConverted()) {
-            $this->derivedState->addEvents($events->all())->buildCalendar();
+            $this->derivedState
+                ->withUnspecifiedAdjournmentMode(
+                    $this->departmentConfiguration->unspecifiedAdjournmentMode($department),
+                )
+                ->addEvents($events->all())
+                ->buildCalendar();
             $deadlineNoticeOfDefaultPenaltyPeriodEnd = $this->derivedState->penaltyPeriodEndDateForTerm(TermType::NOTICE_OF_DEFAULT);
             $deadlineAppealNotTimelyPenaltyPeriodEnd = $this->derivedState->penaltyPeriodEndDateForTerm(TermType::APPEAL_NOT_TIMELY);
         }

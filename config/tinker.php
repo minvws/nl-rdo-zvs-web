@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Carbon\Carbon;
+
 return [
 
     /*
@@ -31,7 +33,7 @@ return [
     */
 
     'alias' => [
-        'Carbon\Carbon' => 'Carbon',
+        Carbon::class => 'Carbon',
     ],
 
     /*

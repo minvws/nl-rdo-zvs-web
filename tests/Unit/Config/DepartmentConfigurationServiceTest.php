@@ -9,6 +9,7 @@ use App\Enums\DecisionType;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
+use App\Enums\UnspecifiedAdjournmentMode;
 use App\Models\Department;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -26,6 +27,40 @@ class DepartmentConfigurationServiceTest extends TestCase
         parent::setUp();
 
         $this->service = $this->app->make(DepartmentConfigurationService::class);
+    }
+
+    public function testUnspecifiedAdjournmentModeIsFreezingForTheConfiguredTeams(): void
+    {
+        $this->assertSame(
+            UnspecifiedAdjournmentMode::FREEZES_TERMS,
+            $this->service->unspecifiedAdjournmentMode(Department::factory()->make(['slug' => 'team-a'])),
+        );
+        $this->assertSame(
+            UnspecifiedAdjournmentMode::FREEZES_TERMS,
+            $this->service->unspecifiedAdjournmentMode(Department::factory()->make(['slug' => 'team-b'])),
+        );
+    }
+
+    public function testUnspecifiedAdjournmentModeFallsBackToContinuingForEveryOtherTeam(): void
+    {
+        $this->assertSame(
+            UnspecifiedAdjournmentMode::CONTINUES_TERMS,
+            $this->service->unspecifiedAdjournmentMode(Department::factory()->make(['slug' => 'team-c'])),
+        );
+        $this->assertSame(
+            UnspecifiedAdjournmentMode::CONTINUES_TERMS,
+            $this->service->unspecifiedAdjournmentMode(Department::factory()->make(['slug' => 'wjz-bb'])),
+        );
+    }
+
+    public function testUnspecifiedAdjournmentModeFallsBackToContinuingOnAnUnknownConfigValue(): void
+    {
+        Config::set('department.unspecified-adjournment.team-z', 'nonsense');
+
+        $this->assertSame(
+            UnspecifiedAdjournmentMode::CONTINUES_TERMS,
+            $this->service->unspecifiedAdjournmentMode(Department::factory()->make(['slug' => 'team-z'])),
+        );
     }
 
     public function testProcessionStepOptionsReturnsCorrectOptionsForTeamA(): void
@@ -131,6 +166,48 @@ class DepartmentConfigurationServiceTest extends TestCase
         $this->assertSame(
             ResultType::WITHDRAWN->label(),
             $this->service->resultTypeLabel($department, ResultType::WITHDRAWN),
+        );
+    }
+
+    public function testIsEventTypeAvailableExcludesMeetingScheduledForWjz(): void
+    {
+        $department = Department::factory()->make(['slug' => 'wjz-bb']);
+
+        $this->assertFalse(
+            $this->service->isEventTypeAvailable($department, PetitionEventType::MEETING_SCHEDULED),
+        );
+        $this->assertTrue(
+            $this->service->isEventTypeAvailable($department, PetitionEventType::COMMITTEE_HEARING_DETERMINED),
+        );
+    }
+
+    public function testIsEventTypeAvailableKeepsMeetingScheduledForOtherDepartments(): void
+    {
+        $department = Department::factory()->make(['slug' => 'team-c']);
+
+        $this->assertTrue(
+            $this->service->isEventTypeAvailable($department, PetitionEventType::MEETING_SCHEDULED),
+        );
+        $this->assertFalse(
+            $this->service->isEventTypeAvailable($department, PetitionEventType::COMMITTEE_HEARING_DETERMINED),
+        );
+    }
+
+    public function testIsEventTypeAvailableReturnsTrueForUnrestrictedEventType(): void
+    {
+        $department = Department::factory()->make(['slug' => 'team-a']);
+
+        $this->assertTrue(
+            $this->service->isEventTypeAvailable($department, PetitionEventType::ADJOURNMENT),
+        );
+    }
+
+    public function testIsEventTypeAvailableIsClosedForATeamThatIsNotWhitelisted(): void
+    {
+        $department = Department::factory()->make(['slug' => 'team-x']);
+
+        $this->assertFalse(
+            $this->service->isEventTypeAvailable($department, PetitionEventType::MEETING_SCHEDULED),
         );
     }
 

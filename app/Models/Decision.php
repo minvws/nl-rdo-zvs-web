@@ -22,6 +22,7 @@ use Database\Factories\DecisionFactory;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -102,8 +103,13 @@ class Decision extends EloquentModel implements DepartmentAwareInterface, Timeli
         ];
     }
 
-    protected function setReferenceAttribute(?string $value): void
+    /**
+     * @return Attribute<?string, ?string>
+     */
+    protected function reference(): Attribute
     {
-        $this->attributes['reference'] = $value !== null ? strtolower($value) : null;
+        return Attribute::make(
+            set: static fn(?string $value): array => ['reference' => $value !== null ? strtolower($value) : null],
+        );
     }
 }

@@ -6,6 +6,7 @@ namespace App\Console\Commands\Petition;
 
 use App\Enums\AssignmentRole;
 use App\Enums\CustomDateLabel;
+use App\Imports\RawSheetImport;
 use App\Models\Contact;
 use App\Models\ContactPetition;
 use App\Models\CustomPetitionProperty;
@@ -95,11 +96,7 @@ class ImportAppealsCommand extends Command
     {
         $normalized = strtolower(trim($excelColumn));
 
-        if (isset($this->columnMapping[$normalized])) {
-            return $this->columnMapping[$normalized];
-        }
-
-        return strtolower(str_replace([' ', '.'], '_', $excelColumn));
+        return $this->columnMapping[$normalized] ?? strtolower(str_replace([' ', '.'], '_', $excelColumn));
     }
 
     protected function convertDateFormat(string|int $date): ?string
@@ -162,7 +159,7 @@ class ImportAppealsCommand extends Command
         $this->batchId = 'import_' . time();
 
         try {
-            $rawData = Excel::toArray((object) [], $filePath);
+            $rawData = Excel::toArray(new RawSheetImport(), $filePath);
             $sheetData = $rawData[0] ?? [];
 
             if (count($sheetData) === 0) {
@@ -690,7 +687,7 @@ class ImportAppealsCommand extends Command
     private function loadJuristEmailMapping(string $filePath): void
     {
         try {
-            $rawData = Excel::toArray((object) [], $filePath);
+            $rawData = Excel::toArray(new RawSheetImport(), $filePath);
             $sheetData = $rawData[0] ?? [];
 
             if (count($sheetData) === 0) {

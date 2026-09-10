@@ -17,9 +17,7 @@ class FinalDecisionDateGenerator implements PeriodGeneratorInterface
     public function generate(Collection $events, EventCalendar $calendar): void
     {
         $finalDecisionEvent = $events->first(
-            static function (PetitionEventData $petitionEventData): bool {
-                return $petitionEventData->type === PetitionEventType::FINAL_RESULT;
-            },
+            static fn(PetitionEventData $petitionEventData): bool => $petitionEventData->type === PetitionEventType::FINAL_RESULT,
         );
 
         if (!$finalDecisionEvent) {

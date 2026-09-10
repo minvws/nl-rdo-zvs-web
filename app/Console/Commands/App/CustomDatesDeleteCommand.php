@@ -96,9 +96,9 @@ class CustomDatesDeleteCommand extends Command
         }
 
         /** @var array<string, string> $choices */
-        $choices = $departments->mapWithKeys(static function (Department $department): array {
-            return [(string) $department->id => $department->name];
-        })->all();
+        $choices = $departments->mapWithKeys(
+            static fn(Department $department): array => [(string) $department->id => $department->name],
+        )->all();
 
         $selectedId = select(label: 'Select a Team (Department)', options: $choices);
 
@@ -121,9 +121,9 @@ class CustomDatesDeleteCommand extends Command
         }
 
         /** @var array<string, string> $choices */
-        $choices = $petitionTypes->mapWithKeys(static function (PetitionType $type): array {
-            return [(string) $type->id => sprintf('%s (%s)', $type->name, $type->type->value)];
-        })->all();
+        $choices = $petitionTypes->mapWithKeys(
+            static fn(PetitionType $type): array => [(string) $type->id => sprintf('%s (%s)', $type->name, $type->type->value)],
+        )->all();
 
         $selectedId = select(label: 'Select a Petition Type', options: $choices);
 

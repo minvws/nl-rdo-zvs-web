@@ -32,6 +32,7 @@ return [
         'publication_date' => 'Datum publicatie',
         'receipt_appeal_not_timely' => 'Datum ontvangst',
         'receipt_of_objection' => 'Datum ontvangst',
+        'receipt_of_complaint' => 'Datum klacht',
         'suspension_end' => 'Datum einde',
         'unspecified_adjournment_end' => 'Datum einde',
         'unspecified_adjournment' => 'Datum brief verzonden',
@@ -39,13 +40,18 @@ return [
     'duration' => [
         'adjournment' => 'Aantal dagen verlenging beslistermijn',
         'appeal_decision_not_timely' => 'Aantal dagen behandeltermijn',
+        'committee_hearing_determined' => 'Aantal dagen',
         'letter_of_suspension_sent' => 'Aantal dagen in brief',
         'notice_of_default_received' => 'Aantal dagen behandeltermijn',
         'petition_received' => 'Aantal dagen beslistermijn',
         'primary_decision' => 'Aantal dagen bezwaartermijn',
         'receipt_of_objection' => 'Aantal dagen beslistermijn',
+        'receipt_of_complaint' => 'Aantal dagen behandeltermijn',
         'meeting_scheduled' => 'Aantal dagen waarmee beslistermijn wordt verlengd',
-        'unspecified_adjournment' => 'Aantal dagen beslistermijn na gebeurtenis of intrekking zoals beschreven in brief',
+        'unspecified_adjournment' => 'Beslistermijn in dagen als gebeurtenis heeft plaatsgevonden',
+    ],
+    'withdrawal_duration' => [
+        'unspecified_adjournment' => 'Beslistermijn in dagen als de aanhouding is ingetrokken',
     ],
     'deadline' => [
         'meeting_scheduled' => 'Overeengekomen nieuwe uiterste beslisdatum',
@@ -64,6 +70,7 @@ return [
             'actual_disclosure' => 'Feitelijke verstrekking',
             'adjournment' => 'Verdagingsbrief',
             'appeal_decision_not_timely' => 'Uitspraak BNT',
+            'committee_hearing_determined' => 'Datum brief verzonden',
             'final_result' => 'Datum besluit / datum afhandeling zonder besluit',
             'hearing_date' => 'Datum hoorzitting',
             'letter_of_suspension_sent' => 'Verzenddatum opschortingsbrief',
@@ -78,6 +85,7 @@ return [
             'publication_date' => 'Publicatie',
             'receipt_appeal_not_timely' => 'Ontvangstdatum BNT',
             'receipt_of_objection' => 'Ontvangst bezwaar',
+            'receipt_of_complaint' => 'Ontvangst klacht',
             'sent_partial_decision' => 'Verzonden deelbesluit',
             'suspension_end' => 'Datum einde opschorting',
             'unspecified_adjournment_end' => 'Einde',
@@ -87,6 +95,7 @@ return [
             'actual_disclosure' => 'Dit is de datum waarop de werkelijke verstrekking heeft plaatsgevonden.',
             'adjournment' => 'Dit is de datum waarop er is verdaagd.',
             'appeal_decision_not_timely' => 'Dit is de datum waarop de uitspraak van het BNT is gedaan.',
+            'committee_hearing_determined' => 'Dit is de datum waarop gedeeld is dat er een commissiezitting gehouden zal worden.',
             'final_result' => 'Dit is de datum waarop het definitieve besluit is genomen, de zaak is ingetrokken of is doorgezonden. Alle termijnen en dwangsommen zijn hiermee beëindigd.',
             'hearing_date' => 'Dit is de datum van de hoorzitting.',
             'letter_of_suspension_sent' => 'Dit is de datum waarop de brief is verzonden.',
@@ -99,6 +108,7 @@ return [
             'publication_date' => 'Dit is de datum waarop de informatie openbaar is gemaakt.',
             'receipt_appeal_not_timely' => 'Dit is de datum waarop het BNT is ontvangen.',
             'receipt_of_objection' => 'Dit is de datum waarop het bezwaar is ontvangen. Dit kan buiten de bezwaartermijn liggen.',
+            'receipt_of_complaint' => 'Dit is de datum waarop de klacht is ontvangen.',
             'sent_partial_decision' => 'Dit is de datum waarop een deelbesluit is verzonden.',
             'suspension_end' => 'Dit is de datum waarop de aanhouding of opschorting is beëindigd en termijnen worden hersteld.',
             'unspecified_adjournment_end' => 'Dit is de datum waarop de aanhouding is beëindigd.',
@@ -108,6 +118,7 @@ return [
     'bezwaar' => [
         'label' => [
             'adjournment' => 'Verdaging',
+            'committee_hearing_determined' => 'Commissiezitting bepaald',
             'final_result' => 'Uitkomst',
             'letter_of_suspension_sent' => 'Aanhouding/Opschorting',
             'meeting_scheduled' => 'Commissiezitting bepaald',
@@ -116,11 +127,22 @@ return [
             'unspecified_adjournment' => 'Ongespecificeerde aanhouding',
         ],
         'description' => [
+            'committee_hearing_determined' => 'Dit is de datum waarop gedeeld is dat er een commissiezitting gehouden zal worden.',
             'letter_of_suspension_sent' => 'Dit is de datum waarop de aanhouding- of opschortingsbrief is verzonden. Opschortingen zijn niet van toepassing op de bezwaartermijn, wel op de beslistermijn.',
             'meeting_scheduled' => 'Dit is de datum waarop gedeeld is dat er een commissiezitting gehouden zal worden.',
             'suspension_end' => 'Dit is de datum waarop de aanhouding/opschorting is beëindigd en termijnen worden hersteld.',
             'unspecified_adjournment_end' => 'Dit is de datum waarop de ongespecificeerde aanhouding is beëindigd.',
             'unspecified_adjournment' => 'Dit is de datum waarop de ongespecificeerde aanhouding is verzonden.',
+        ],
+    ],
+    'klacht' => [
+        'label' => [
+            'adjournment' => 'Verdagingsbrief verzonden',
+            'final_result' => 'Klacht afgehandeld',
+            'meeting_scheduled' => 'Afspraak verzoeker',
+        ],
+        'description' => [
+            'meeting_scheduled' => 'Datum die in de plaats komt van de oorspronkelijke einddatum van de beslistermijn en waarmee de indiener van de klacht schriftelijk heeft ingestemd.',
         ],
     ],
 
@@ -141,6 +163,10 @@ return [
             'unspecified_adjournment_end' => 'Dit is de datum waarop de aanhouding van het verzoek is beëindigd.',
             'unspecified_adjournment' => 'Opschorting voor onbepaalde tijd in overeenstemming met de verzoeker.',
         ],
+    ],
+
+    'validation' => [
+        'not_available_for_department' => 'Deze gebeurtenis is niet beschikbaar voor dit team.',
     ],
 
     'penalties' => [

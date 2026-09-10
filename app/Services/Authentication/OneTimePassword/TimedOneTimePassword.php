@@ -49,7 +49,7 @@ class TimedOneTimePassword implements OneTimePasswordInterface
         $rendererStyle = new RendererStyle(150, 1, null, null, $fill);
         $renderer = new ImageRenderer($rendererStyle, new SvgImageBackEnd());
 
-        $svg = (new Writer($renderer))
+        $svg = new Writer($renderer)
             ->writeString($url);
 
         return trim(substr($svg, strpos($svg, "\n") + 1));

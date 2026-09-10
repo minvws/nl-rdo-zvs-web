@@ -54,9 +54,9 @@ class MigrateCommand extends IlluminateMigrateCommand
         foreach ($versionedFiles as $migrations) {
             foreach ($migrations as $migration) {
                 if (
-                    $databaseMigrations->contains(static function (stdClass $databaseMigration) use ($migration): bool {
-                        return $databaseMigration->migration === $migration;
-                    })
+                    $databaseMigrations->contains(
+                        static fn(stdClass $databaseMigration): bool => $databaseMigration->migration === $migration,
+                    )
                 ) {
                     continue;
                 }
@@ -81,6 +81,24 @@ class MigrateCommand extends IlluminateMigrateCommand
         $this->output->success('Migrations done');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @param array<string> $files
+     *
+     * @return array<string, array<int, string>>
+     *
+     * @throws ValueError
+     */
+    public function getVersionedFiles(array $files): array
+    {
+        return collect($files)
+            ->filter(static fn(string $file): bool => Str::of($file)->endsWith('.sql'))
+            ->groupBy(static fn(string $file): string => Str::of($file)->before('/')->toString())
+            // @phpstan-ignore-next-line
+            ->sortKeysUsing(version_compare(...))
+            ->map(static fn(Collection $group): array => $group->values()->all())
+            ->all();
     }
 
     /**
@@ -111,29 +129,5 @@ class MigrateCommand extends IlluminateMigrateCommand
     private function isConcurrencyConflict(QueryException $exception): bool
     {
         return Str::contains($exception->getMessage(), self::CONCURRENCY_CONFLICT_MESSAGE);
-    }
-
-    /**
-     * @param array<string> $files
-     *
-     * @return array<string, array<int, string>>
-     *
-     * @throws ValueError
-     */
-    public function getVersionedFiles(array $files): array
-    {
-        return collect($files)
-            ->filter(static function (string $file): bool {
-                return Str::of($file)->endsWith('.sql');
-            })
-            ->groupBy(static function (string $file): string {
-                return Str::of($file)->before('/')->toString();
-            })
-            // @phpstan-ignore-next-line
-            ->sortKeysUsing(version_compare(...))
-            ->map(static function (Collection $group): array {
-                return $group->values()->all();
-            })
-            ->all();
     }
 }

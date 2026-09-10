@@ -10,6 +10,7 @@ use App\Config\DepartmentConfigurationService;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
 use App\Enums\RouteName;
+use App\Enums\UnspecifiedAdjournmentMode;
 use App\Factories\WizardEventCollectionFactory;
 use App\Http\Requests\PetitionEvent\AddPetitionEventRequest;
 use App\Models\Department;
@@ -23,6 +24,9 @@ use Illuminate\Http\RedirectResponse;
 use Throwable;
 use Webmozart\Assert\Assert;
 
+use function abort_unless;
+use function array_filter;
+use function array_values;
 use function auth;
 use function to_route;
 
@@ -50,7 +54,7 @@ final readonly class PetitionEventWizardController
     {
         $events = $this->getEvents($petition);
 
-        $availableTypes = $this->availabilityService->getAvailableEventTypes($petition->petitionType->type, $events);
+        $availableTypes = $this->availableEventTypes($department, $petition, $events);
 
         $viewData = [
             'petition' => $petition,
@@ -63,7 +67,10 @@ final readonly class PetitionEventWizardController
 
     public function create(Department $department, Petition $petition, PetitionEventType $type): View
     {
+        abort_unless($this->configurationService->isEventTypeAvailable($department, $type), 403);
+
         $config = $this->configurationService->getEventConfiguration($department, $petition->petitionType->type, $type);
+        $adjournmentMode = $this->configurationService->unspecifiedAdjournmentMode($department);
 
         return $this->view->make('petition_events.create', [
             'config' => $config,
@@ -71,21 +78,9 @@ final readonly class PetitionEventWizardController
             'department' => $department,
             'petition' => $petition,
             'resultTypeLabels' => $this->resultTypeLabels($department),
+            'collectsAdjournmentTerms' => $adjournmentMode === UnspecifiedAdjournmentMode::CONTINUES_TERMS
+                && $type->hasWithdrawalDuration(),
         ]);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function resultTypeLabels(Department $department): array
-    {
-        $labels = [];
-
-        foreach (ResultType::cases() as $resultType) {
-            $labels[$resultType->value] = $this->configurationService->resultTypeLabel($department, $resultType);
-        }
-
-        return $labels;
     }
 
     public function add(
@@ -131,6 +126,46 @@ final readonly class PetitionEventWizardController
             'department' => $department,
             'petition' => $petition,
         ]);
+    }
+
+    /**
+     * De gebeurtenissen die logisch gezien mogen volgen,
+     * beperkt tot wat dit team mag invoeren
+     *
+     * @return array<PetitionEventType>
+     */
+    private function availableEventTypes(
+        Department $department,
+        Petition $petition,
+        WizardEventCollection $events,
+    ): array {
+        $availableTypes = $this->availabilityService->getAvailableEventTypes(
+            $petition->petitionType->type,
+            $events,
+            $this->configurationService->unspecifiedAdjournmentMode($department),
+        );
+
+        return array_values(array_filter(
+            $availableTypes,
+            fn(PetitionEventType $eventType): bool => $this->configurationService->isEventTypeAvailable(
+                $department,
+                $eventType,
+            ),
+        ));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function resultTypeLabels(Department $department): array
+    {
+        $labels = [];
+
+        foreach (ResultType::cases() as $resultType) {
+            $labels[$resultType->value] = $this->configurationService->resultTypeLabel($department, $resultType);
+        }
+
+        return $labels;
     }
 
     private function getEvents(Petition $petition): WizardEventCollection

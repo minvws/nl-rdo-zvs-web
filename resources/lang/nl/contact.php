@@ -16,10 +16,10 @@ return [
 
     'contacts_in' => 'Contacten in',
     'create' => 'Contact toevoegen',
-    'archive' => 'Contact archiveren',
-    'archive_confirmation' => 'Contact archiveren',
-    'archive_confirmation_text' => 'U gaat nu contact :name archiveren, weet u het zeker?',
-    'archive_button' => ':name archiveren',
+    'archive' => 'Contact naar prullenbak',
+    'archive_confirmation' => 'Contact naar prullenbak',
+    'archive_confirmation_text' => 'U gaat nu contact :name naar de prullenbak verplaatsen, weet u het zeker?',
+    'archive_button' => ':name naar prullenbak',
     'create_in' => 'Contact toevoegen in',
     'details' => 'Contactgegevens',
     'base' => 'Basisgegevens',
@@ -68,6 +68,8 @@ return [
     'zivver_legend' => 'Zivver-adressen',
     'correspondence' => 'Correspondentie',
     'reference' => 'Kenmerk contact',
+    'date_first_phone_contact' => 'Eerste telefonisch contact met verzoeker',
+    'date_first_phone_contact_short' => 'Eerste tel. contact',
     'correspondence_preference' => 'Correspondentievoorkeur',
     'correspondence_preference_enum' => [
         'none' => 'Geen voorkeur',

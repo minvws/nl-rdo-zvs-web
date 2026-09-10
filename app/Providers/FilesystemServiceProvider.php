@@ -25,8 +25,6 @@ class FilesystemServiceProvider extends ServiceProvider
     {
         $this->app->when(FilesystemWordTemplateRepository::class)
             ->needs(Filesystem::class)
-            ->give(static function (): Filesystem {
-                return Storage::disk(Config::string('word_templates.filesystem_disk'));
-            });
+            ->give(static fn(): Filesystem => Storage::disk(Config::string('word_templates.filesystem_disk')));
     }
 }

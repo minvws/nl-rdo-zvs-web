@@ -30,6 +30,15 @@
                     :
                     {{ DisplayDate::date(CalendarDate::createFromFormat('Y-m-d', $timelineItem->data['date_of_entry'])) }}
                     <br />
+                    @if (property_exists($timelineItem->data, 'deadline_override_at'))
+                        {{ __('petition.deadline_override_at') }}:
+                        {{ $timelineItem->data['deadline_override_at'] !== null ? DisplayDate::date(CalendarDate::createFromFormat('Y-m-d', $timelineItem->data['deadline_override_at'])) : '-' }}
+                        <br />
+                        {{ __('petition.deadline_override_reason') }}:
+                        {{ $timelineItem->data['deadline_override_reason'] ?? '-' }}
+                        <br />
+                    @endif
+
                     @if (property_exists($timelineItem->data, 'description'))
                             {{ __('petition.description') }}: {{ $timelineItem->data['description'] }}
                     @endif

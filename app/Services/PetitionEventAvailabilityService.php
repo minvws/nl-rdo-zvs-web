@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
+use App\Enums\UnspecifiedAdjournmentMode;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
@@ -35,8 +36,11 @@ readonly class PetitionEventAvailabilityService
     /**
      * @return array<PetitionEventType>
      */
-    public function getAvailableEventTypes(PetitionVariant $type, WizardEventCollection $currentEvents): array
-    {
+    public function getAvailableEventTypes(
+        PetitionVariant $type,
+        WizardEventCollection $currentEvents,
+        UnspecifiedAdjournmentMode $adjournmentMode = UnspecifiedAdjournmentMode::FREEZES_TERMS,
+    ): array {
         if ($type === PetitionVariant::BEROEP) {
             return [];
         }
@@ -45,7 +49,7 @@ readonly class PetitionEventAvailabilityService
             return $this->getInitialEventForType($type);
         }
 
-        return $this->filterAvailableTypes($type, $currentEvents);
+        return $this->filterAvailableTypes($type, $currentEvents, $adjournmentMode);
     }
 
     /**
@@ -55,6 +59,7 @@ readonly class PetitionEventAvailabilityService
     {
         return match ($petitionType) {
             PetitionVariant::BEZWAAR => [PetitionEventType::PRIMARY_DECISION],
+            PetitionVariant::KLACHT => [PetitionEventType::RECEIPT_OF_COMPLAINT],
             PetitionVariant::WOO_VERZOEK => [PetitionEventType::PETITION_RECEIVED],
             default => [],
         };
@@ -63,28 +68,31 @@ readonly class PetitionEventAvailabilityService
     /**
      * @return array<PetitionEventType>
      */
-    private function filterAvailableTypes(PetitionVariant $petitionType, WizardEventCollection $currentEvents): array
-    {
+    private function filterAvailableTypes(
+        PetitionVariant $petitionType,
+        WizardEventCollection $currentEvents,
+        UnspecifiedAdjournmentMode $adjournmentMode,
+    ): array {
         $usedTypes = $currentEvents->all()->map(
-            static function (PetitionEventData $event) {
-                return $event->type->value;
-            },
+            static fn(PetitionEventData $event) => $event->type->value,
         )->all();
 
         $allEventTypes = PetitionEventType::cases();
 
         $availableForType = array_filter(
             $allEventTypes,
-            static function (PetitionEventType $eventType) use ($petitionType): bool {
-                return $eventType->isAvailableFor($petitionType);
-            },
+            static fn(PetitionEventType $eventType): bool => $eventType->isAvailableFor($petitionType),
         );
 
         return array_values(array_filter(
             $availableForType,
-            function (PetitionEventType $eventType) use ($petitionType, $usedTypes, $currentEvents): bool {
-                return $this->canAddEventType($eventType, $petitionType, $usedTypes, $currentEvents);
-            },
+            fn(PetitionEventType $eventType): bool => $this->canAddEventType(
+                $eventType,
+                $petitionType,
+                $usedTypes,
+                $currentEvents,
+                $adjournmentMode,
+            ),
         ));
     }
 
@@ -96,6 +104,7 @@ readonly class PetitionEventAvailabilityService
         PetitionVariant $petitionType,
         array $usedTypes,
         WizardEventCollection $currentEvents,
+        UnspecifiedAdjournmentMode $adjournmentMode,
     ): bool {
         $conflicts = $eventType->getConflicts($petitionType);
 
@@ -107,7 +116,7 @@ readonly class PetitionEventAvailabilityService
             return false;
         }
 
-        if (!$this->passesDeadlineRules($eventType, $currentEvents)) {
+        if (!$this->passesDeadlineRules($eventType, $currentEvents, $adjournmentMode)) {
             return false;
         }
 
@@ -206,9 +215,12 @@ readonly class PetitionEventAvailabilityService
         };
     }
 
-    private function passesDeadlineRules(PetitionEventType $eventType, WizardEventCollection $currentEvents): bool
-    {
-        $hasExpiredDeadline = $this->hasExpiredDeadline($currentEvents);
+    private function passesDeadlineRules(
+        PetitionEventType $eventType,
+        WizardEventCollection $currentEvents,
+        UnspecifiedAdjournmentMode $adjournmentMode,
+    ): bool {
+        $hasExpiredDeadline = $this->hasExpiredDeadline($currentEvents, $adjournmentMode);
 
         return match ($eventType) {
             PetitionEventType::OPINION_OUTSIDE_TERM => $hasExpiredDeadline,
@@ -216,9 +228,12 @@ readonly class PetitionEventAvailabilityService
         };
     }
 
-    private function hasExpiredDeadline(WizardEventCollection $currentEvents): bool
-    {
+    private function hasExpiredDeadline(
+        WizardEventCollection $currentEvents,
+        UnspecifiedAdjournmentMode $adjournmentMode,
+    ): bool {
         $derivedState = new DerivedState()
+            ->withUnspecifiedAdjournmentMode($adjournmentMode)
             ->addEvents($currentEvents->all())
             ->buildCalendar();
 
@@ -259,9 +274,7 @@ readonly class PetitionEventAvailabilityService
             return true;
         }
 
-        return array_any($dependencies, static function ($dependency) use ($usedTypes): bool {
-            return in_array($dependency->value, $usedTypes, true);
-        });
+        return array_any($dependencies, static fn($dependency): bool => in_array($dependency->value, $usedTypes, true));
     }
 
     /**
@@ -270,8 +283,6 @@ readonly class PetitionEventAvailabilityService
      */
     private function hasConflicts(array $conflicts, array $usedTypes): bool
     {
-        return array_any($conflicts, static function (PetitionEventType $conflict) use ($usedTypes): bool {
-            return in_array($conflict->value, $usedTypes, true);
-        });
+        return array_any($conflicts, static fn(PetitionEventType $conflict): bool => in_array($conflict->value, $usedTypes, true));
     }
 }

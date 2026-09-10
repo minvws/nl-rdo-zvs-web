@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\ProcessingStep;
+use App\Enums\UnspecifiedAdjournmentMode;
 
 return [
     'processing-steps' => [
@@ -60,5 +61,14 @@ return [
                 ],
             ],
         ],
+    ],
+
+    /*
+     * Teams listed here keep the "ongespecificeerde aanhouding" that freezes the running terms.
+     * Every other team falls back to UnspecifiedAdjournmentMode::CONTINUES_TERMS.
+     */
+    'unspecified-adjournment' => [
+        'team-a' => UnspecifiedAdjournmentMode::FREEZES_TERMS->value,
+        'team-b' => UnspecifiedAdjournmentMode::FREEZES_TERMS->value,
     ],
 ];

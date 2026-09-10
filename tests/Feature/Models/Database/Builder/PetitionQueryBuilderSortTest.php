@@ -43,9 +43,27 @@ class PetitionQueryBuilderSortTest extends FeatureTestCase
     {
         $petition1 = Petition::factory()->create([
             'deadline_at' => CalendarDate::createFromFormat('d-m-Y', '1-1-2000'),
+            'deadline_override_at' => null,
         ]);
         $petition2 = Petition::factory()->create([
             'deadline_at' => CalendarDate::createFromFormat('d-m-Y', '1-1-2001'),
+            'deadline_override_at' => null,
+        ]);
+
+        $this->assertOrder(PetitionCriteria::DEADLINE_AT, $petition1, $petition2);
+    }
+
+    public function testSortByDeadlineAtUsesTheOverrideWhenItIsSet(): void
+    {
+        // Without the override this order would be reversed: petition2 has the earlier deadline_at.
+        $petition1 = Petition::factory()->create([
+            'deadline_at' => CalendarDate::createFromFormat('d-m-Y', '1-1-2001'),
+            'deadline_override_at' => CalendarDate::createFromFormat('d-m-Y', '1-1-1999'),
+            'deadline_override_reason' => 'Afspraak met verzoeker',
+        ]);
+        $petition2 = Petition::factory()->create([
+            'deadline_at' => CalendarDate::createFromFormat('d-m-Y', '1-1-2000'),
+            'deadline_override_at' => null,
         ]);
 
         $this->assertOrder(PetitionCriteria::DEADLINE_AT, $petition1, $petition2);

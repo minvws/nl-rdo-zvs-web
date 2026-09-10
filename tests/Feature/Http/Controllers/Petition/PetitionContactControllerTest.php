@@ -83,6 +83,102 @@ class PetitionContactControllerTest extends FeatureTestCase
     }
 
     #[Test]
+    public function testShowAttachFormOffersFirstPhoneContactDateForTheApplicantOnly(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $applicant = Contact::factory()->recycle($department)->create();
+        $stakeholder = Contact::factory()->recycle($department)->create();
+
+        $petition->contacts()->attach($applicant, ['role' => ContactRole::APPLICANT->value]);
+        $petition->contacts()->attach($stakeholder, ['role' => ContactRole::STAKEHOLDER->value]);
+
+        $authUser = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE, Permission::CONTACT_MANAGE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($authUser, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_CONTACTS_ATTACH_FORM, [
+                'department' => $department->slug,
+                'petition' => $petition,
+            ])
+            ->assertOk()
+            ->assertSee(__('contact.date_first_phone_contact'));
+
+        $response->assertSee('date-first-phone-contact-' . $applicant->id, false);
+        $response->assertDontSee('date-first-phone-contact-' . $stakeholder->id, false);
+    }
+
+    #[Test]
+    public function testUpdateContactPivotStoresFirstPhoneContactDate(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $contact = Contact::factory()->recycle($department)->create();
+
+        $petition->contacts()->attach($contact, ['role' => ContactRole::APPLICANT->value]);
+
+        $authUser = User::factory()
+            ->withPermissions(Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+        $this->beUser($authUser)
+            ->postByRoute(
+                RouteName::DEPARTMENTS_PETITIONS_CONTACTS_UPDATE_PIVOT,
+                [
+                    'department' => $department,
+                    'petition' => $petition,
+                    'contact' => $contact,
+                ],
+                [
+                    'date_first_phone_contact' => '2026-04-09',
+                ],
+            )
+            ->assertSessionHas('message.success', __('general.saved'));
+
+        $petition->refresh();
+        $pivot = $petition->contacts()->where('contact_id', $contact->id)->first()->pivot;
+        $this->assertSame('2026-04-09', $pivot->date_first_phone_contact?->format('Y-m-d'));
+
+        $timelineItem = $petition->timelineItems()->firstWhere('type', TimelineType::CONTACT_FIRST_PHONE_CONTACT);
+        $this->assertNotNull($timelineItem);
+        $this->assertEquals('2026-04-09', $timelineItem->data->date);
+    }
+
+    #[Test]
+    public function testUpdateContactPivotRejectsAnInvalidFirstPhoneContactDate(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $contact = Contact::factory()->recycle($department)->create();
+
+        $petition->contacts()->attach($contact, ['role' => ContactRole::APPLICANT->value]);
+
+        $authUser = User::factory()
+            ->withPermissions(Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+        $this->beUser($authUser)
+            ->postByRoute(
+                RouteName::DEPARTMENTS_PETITIONS_CONTACTS_UPDATE_PIVOT,
+                [
+                    'department' => $department,
+                    'petition' => $petition,
+                    'contact' => $contact,
+                ],
+                [
+                    'date_first_phone_contact' => '09-04-2026',
+                ],
+            )
+            ->assertSessionHasErrors('date_first_phone_contact');
+
+        $petition->refresh();
+        $pivot = $petition->contacts()->where('contact_id', $contact->id)->first()->pivot;
+        $this->assertNull($pivot->date_first_phone_contact);
+    }
+
+    #[Test]
     public function testShowAttachFormWithInvalidPetitionId(): void
     {
         $department = Department::factory()->create();

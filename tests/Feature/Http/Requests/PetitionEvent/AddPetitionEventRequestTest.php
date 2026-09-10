@@ -629,7 +629,8 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
     #[Test]
     public function testTermDeadlineRequiredForMeetingScheduled(): void
     {
-        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+        // "Commissiezitting bepaald" is alleen beschikbaar voor de teams in petition_events.department_availability
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(PetitionVariant::BEZWAAR, ['slug' => 'team-c']);
 
         $user = User::factory()
             ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
@@ -668,7 +669,8 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
     #[Test]
     public function testTermDeadlineDeriveDurationForMeetingScheduled(): void
     {
-        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup();
+        // "Commissiezitting bepaald" is alleen beschikbaar voor de teams in petition_events.department_availability
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(PetitionVariant::BEZWAAR, ['slug' => 'team-c']);
 
         $user = User::factory()
             ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
@@ -713,11 +715,15 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
     }
 
     /**
+     * @param array<string, mixed> $departmentAttributes
+     *
      * @return array{department: Department, petition: Petition}
      */
-    private function createPetitionSetup(PetitionVariant $petitionVariant = PetitionVariant::BEZWAAR): array
-    {
-        $department = Department::factory()->create();
+    private function createPetitionSetup(
+        PetitionVariant $petitionVariant = PetitionVariant::BEZWAAR,
+        array $departmentAttributes = [],
+    ): array {
+        $department = Department::factory()->create($departmentAttributes);
         $petitionType = PetitionType::factory()->recycle($department)->create(['type' => $petitionVariant]);
         $petitionStatus = PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
         $petition = Petition::factory()->recycle($department)->create([

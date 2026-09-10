@@ -47,6 +47,7 @@ class TimelineItem extends Component
                 TimelineType::ASSIGNMENT_OCCURRENCE => $this->renderAssignmentOccurrence(),
                 TimelineType::CONTACT_ATTACHED => $this->renderContactAttached(),
                 TimelineType::CONTACT_DETACHED => $this->renderContactDetached(),
+                TimelineType::CONTACT_FIRST_PHONE_CONTACT => $this->renderContactFirstPhoneContact(),
                 TimelineType::CONTACT_PIVOT_UPDATED => $this->renderContactPivotUpdated(),
                 TimelineType::NOTE => $this->renderNote(),
                 TimelineType::TIMELINEABLE_CREATED => $this->renderView('petition.timeline.timelineable_created'),
@@ -71,6 +72,7 @@ class TimelineItem extends Component
                 TimelineType::PROCESSING_STEP_UPDATED => $this->renderProcessingStepView('decision.timeline.processing_step_updated'),
                 TimelineType::PROCESSING_STEP_DELETED => $this->renderProcessingStepView('decision.timeline.processing_step_deleted'),
                 TimelineType::PETITION_ARCHIVED => $this->renderView('petition.timeline.petition_archived'),
+                TimelineType::PETITION_UNARCHIVED => $this->renderView('petition.timeline.petition_unarchived'),
                 TimelineType::DECISION_ARCHIVED => $this->renderView('decision.timeline.decision_archived'),
                 TimelineType::DECISION_UNARCHIVED => $this->renderView('decision.timeline.decision_unarchived'),
                 TimelineType::EXTERNAL_URL_UPDATED => $this->renderExternalUrlUpdated(),
@@ -153,6 +155,23 @@ class TimelineItem extends Component
             ]);
     }
 
+    private function renderContactFirstPhoneContact(): View
+    {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'contact_id');
+        Assert::string($data['contact_id']);
+        Assert::keyExists($data, 'date');
+        Assert::string($data['date']);
+
+        return $this->view
+            ->make('petition.timeline.contact_first_phone_contact')
+            ->with([
+                'timelineItem' => $this->timelineItem,
+                'contact' => Contact::query()->findSole($data['contact_id']),
+                'date' => CalendarDate::create($data['date']),
+            ]);
+    }
+
     private function renderContactPivotUpdated(): View
     {
         $data = (array) $this->timelineItem->data;
@@ -226,9 +245,7 @@ class TimelineItem extends Component
         Assert::isArray($data['custom_dates']);
 
         $customDatesCollection = new Collection($data['custom_dates']);
-        $customDatesCollection->filter(static function (mixed $item): bool {
-            return $item['date'] !== null;
-        });
+        $customDatesCollection->filter(static fn(mixed $item): bool => $item['date'] !== null);
 
         return $this->view
             ->make('petition.timeline.petition_custom_dates_changed')
@@ -291,9 +308,9 @@ class TimelineItem extends Component
     private function renderCorrespondenceUpdated(): View
     {
         $data = (array) $this->timelineItem->data;
-        Assert::keyExists($data, 'date_of_message');
-        Assert::string($data['date_of_message']);
-        $date = CalendarDate::create($data['date_of_message']);
+        $dateOfMessage = $data['date_of_message'] ?? null;
+        Assert::nullOrString($dateOfMessage);
+        $date = $dateOfMessage !== null ? CalendarDate::create($dateOfMessage) : null;
 
         return $this->view
             ->make('petition.timeline.correspondence_updated')

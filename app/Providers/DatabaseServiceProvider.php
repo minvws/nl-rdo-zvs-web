@@ -15,8 +15,11 @@ class DatabaseServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        $this->app->singleton(static function (Application $application): MigrateCommand {
-            return new MigrateCommand($application->make('migrator'), $application->make(Dispatcher::class));
-        });
+        $this->app->singleton(
+            static fn(Application $application): MigrateCommand => new MigrateCommand(
+                $application->make('migrator'),
+                $application->make(Dispatcher::class),
+            ),
+        );
     }
 }

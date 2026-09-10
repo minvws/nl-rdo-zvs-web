@@ -56,7 +56,32 @@ class PetitionUpdateRequest extends PetitionCreateRequest
                 'uuid',
                 Rule::exists('teams', 'id')->where('department_id', $this->getDepartmentId()->toString()),
             ],
+            'deadline_override_at' => [
+                'nullable',
+                new CalendarDateRule(),
+            ],
+            'deadline_override_reason' => [
+                'nullable',
+                'required_with:deadline_override_at',
+                'string',
+                'max:255',
+            ],
         ];
+    }
+
+    #[Override]
+    protected function prepareForValidation(): void
+    {
+        $overrideDate = $this->input('deadline_override_at');
+
+        if ($overrideDate !== null && $overrideDate !== '') {
+            return;
+        }
+
+        $this->merge([
+            'deadline_override_at' => null,
+            'deadline_override_reason' => null,
+        ]);
     }
 
     #[Override]

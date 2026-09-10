@@ -51,9 +51,7 @@ readonly class AuthenticationService implements AuthenticationServiceInterface
         return Cache::store('array')->remember(
             sprintf('user_%s', $authIdentifier),
             null,
-            static function () use ($authIdentifier): User {
-                return User::query()->findSole($authIdentifier);
-            },
+            static fn(): User => User::query()->findSole($authIdentifier),
         );
     }
 

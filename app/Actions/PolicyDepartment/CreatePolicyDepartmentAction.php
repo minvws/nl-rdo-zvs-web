@@ -14,9 +14,7 @@ class CreatePolicyDepartmentAction
     public function execute(array $data): PolicyDepartment
     {
         // Set default active value if not provided
-        if (!isset($data['active'])) {
-            $data['active'] = true;
-        }
+        $data['active'] ??= true;
 
         return PolicyDepartment::query()->create($data);
     }

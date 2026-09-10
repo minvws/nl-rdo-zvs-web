@@ -33,17 +33,11 @@ class RouteServiceProvider extends ServiceProvider
         Route::pattern('timelineableId', self::UUID_PATTERN);
         Route::pattern('timelineable', self::UUID_PATTERN);
 
-        Route::bind('relatedPetition', static function (string $value): Petition {
-            return Petition::query()->findSole($value);
-        });
+        Route::bind('relatedPetition', static fn(string $value): Petition => Petition::query()->findSole($value));
 
-        Route::bind('relatedDecision', static function (string $value): Decision {
-            return Decision::query()->findSole($value);
-        });
+        Route::bind('relatedDecision', static fn(string $value): Decision => Decision::query()->findSole($value));
 
-        Route::bind('department', static function (string $value): Department {
-            return Department::query()->where('slug', $value)->sole();
-        });
+        Route::bind('department', static fn(string $value): Department => Department::query()->where('slug', $value)->sole());
 
         Route::bind('timelineable', static function (string $value, RoutingRoute $route) {
             $timelineableType = $route->parameter('timelineableType');

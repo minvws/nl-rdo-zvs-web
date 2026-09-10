@@ -40,6 +40,16 @@ return [
         ],
         'petition_deliverables_enabled' => false,
     ],
+    PetitionVariant::KLACHT->value => [
+        'optional_form_fields' => [
+            'name' => OptionalFormFieldSetting::OPTIONAL,
+            'description' => OptionalFormFieldSetting::OPTIONAL,
+            'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,
+            'petition_category_id' => OptionalFormFieldSetting::REQUIRED,
+        ],
+        'petition_terms_enabled' => false,
+        'petition_deliverables_enabled' => true,
+    ],
     PetitionVariant::WOO_VERZOEK->value => [
         'optional_form_fields' => [
             'name' => OptionalFormFieldSetting::REQUIRED,

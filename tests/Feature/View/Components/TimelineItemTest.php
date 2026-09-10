@@ -27,6 +27,7 @@ use App\View\Components\TimelineItem;
 use Illuminate\Testing\TestComponent;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Feature\FeatureTestCase;
+use Webmozart\Assert\Assert;
 
 use function __;
 
@@ -96,6 +97,14 @@ class TimelineItemTest extends FeatureTestCase
             'contact_id' => Contact::factory()->create()->id,
             'reference' => $this->faker->word(),
             'correspondence_preference' => $this->faker->word(),
+        ]);
+    }
+
+    public function testRenderContactFirstPhoneContact(): void
+    {
+        $this->assertView(TimelineType::CONTACT_FIRST_PHONE_CONTACT, [
+            'contact_id' => Contact::factory()->create()->id,
+            'date' => '2026-04-09',
         ]);
     }
 
@@ -438,6 +447,55 @@ class TimelineItemTest extends FeatureTestCase
 
         $view = $this->component(TimelineItem::class, ['timelineItem' => $timelineItem]);
         $this->assertInstanceOf(TestComponent::class, $view);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function testRenderPetitionUpdatedShowsTheDeadlineOverride(): void
+    {
+        $component = $this->renderPetitionUpdated([
+            'name' => $this->faker->word(),
+            'date_of_entry' => $this->faker->calendarDate()->format('Y-m-d'),
+            'deadline_override_at' => '2026-06-30',
+            'deadline_override_reason' => 'Afspraak met verzoeker',
+        ]);
+
+        $component->assertSee('30-06-2026');
+        $component->assertSee('Afspraak met verzoeker');
+    }
+
+    public function testRenderPetitionUpdatedShowsAClearedDeadlineOverride(): void
+    {
+        $component = $this->renderPetitionUpdated([
+            'name' => $this->faker->word(),
+            'date_of_entry' => $this->faker->calendarDate()->format('Y-m-d'),
+            'deadline_override_at' => null,
+            'deadline_override_reason' => null,
+        ]);
+
+        $component->assertSee(__('petition.deadline_override_at'));
+        $component->assertSee(__('petition.deadline_override_reason'));
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderPetitionUpdated(array $data): TestComponent
+    {
+        $timelineItem = TimelineItemModel::factory()
+            ->create([
+                'timelineable_id' => Petition::factory()->create()->id,
+                'timelineable_type' => 'petition',
+                'type' => TimelineType::PETITION_UPDATED,
+                'data' => $data,
+            ])
+            ->refresh();
+
+        $component = $this->component(TimelineItem::class, ['timelineItem' => $timelineItem]);
+        Assert::isInstanceOf($component, TestComponent::class);
+
+        return $component;
     }
 
     /**

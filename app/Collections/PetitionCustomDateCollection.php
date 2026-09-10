@@ -20,9 +20,9 @@ class PetitionCustomDateCollection extends Collection
      */
     public function getMaxDateForDateOfClose(): ?CalendarDate
     {
-        $maxDate = $this->filter(static function (PetitionCustomDate $petitionCustomDate) {
-            return $petitionCustomDate->date_label->isAffectingDateOfClose();
-        })->max('date');
+        $maxDate = $this->filter(
+            static fn(PetitionCustomDate $petitionCustomDate) => $petitionCustomDate->date_label->isAffectingDateOfClose(),
+        )->max('date');
 
         Assert::nullOrIsInstanceOf($maxDate, CalendarDate::class);
 

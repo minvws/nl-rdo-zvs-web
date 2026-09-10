@@ -12,4 +12,5 @@ return [
     ],
     PetitionVariant::BEROEP->value => [],
     PetitionVariant::BEZWAAR->value => [],
+    PetitionVariant::KLACHT->value => [],
 ];

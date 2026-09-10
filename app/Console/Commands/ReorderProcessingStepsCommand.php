@@ -43,9 +43,7 @@ final class ReorderProcessingStepsCommand extends Command
 
         foreach ($decisions as $decision) {
             try {
-                $reordered = $this->databaseManager->transaction(function () use ($decision): int {
-                    return $this->reorderDecision($decision);
-                });
+                $reordered = $this->databaseManager->transaction(fn(): int => $this->reorderDecision($decision));
                 $totalReordered += $reordered;
             } catch (Throwable $e) {
                 $failedDecisions[] = [

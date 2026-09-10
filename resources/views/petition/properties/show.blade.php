@@ -76,8 +76,21 @@
             </div>
             <div class="description-list__item">
                 <dt>{{ __('petition.deadline_at') }}</dt>
-                <dd>{{ $petition->deadline_at ? DisplayDate::date($petition->deadline_at) : '-' }}</dd>
+                <dd>
+                    {{ $petition->effective_deadline_at ? DisplayDate::date($petition->effective_deadline_at) : '-' }}
+                </dd>
             </div>
+            @if ($petition->hasDeadlineOverride())
+                <div class="description-list__item">
+                    <dt>{{ __('petition.deadline_override_reason') }}</dt>
+                    <dd>{{ $petition->deadline_override_reason }}</dd>
+                </div>
+                <div class="description-list__item">
+                    <dt>{{ __('petition.deadline_calculated') }}</dt>
+                    <dd>{{ $petition->deadline_at ? DisplayDate::date($petition->deadline_at) : '-' }}</dd>
+                </div>
+            @endif
+
             @if ($petition->isTermEngineConverted())
                 <div class="description-list__item">
                     <dt>{{ __('petition.deadline_decision_period') }}</dt>

@@ -9,11 +9,11 @@ use App\Models\PetitionCategory;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\QueryBuilder\Sorts\Sort;
 
+/**
+ * @implements Sort<Petition>
+ */
 class CategorySort implements Sort
 {
-    /**
-     * @param Builder<Petition> $query
-     */
     public function __invoke(Builder $query, bool $descending, string $property): void
     {
         $query->orderBy(

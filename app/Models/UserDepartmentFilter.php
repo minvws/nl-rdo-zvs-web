@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Casts\UuidCast;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,16 +21,15 @@ use Ramsey\Uuid\UuidInterface;
  * @property string $filterable_type
  * @property array<string, mixed> $filter_data
  */
+#[Fillable([
+    'user_id',
+    'department_id',
+    'filterable_type',
+    'filter_data',
+])]
 final class UserDepartmentFilter extends Model
 {
     use HasUuids;
-
-    protected $fillable = [
-        'user_id',
-        'department_id',
-        'filterable_type',
-        'filter_data',
-    ];
 
     /**
      * @return BelongsTo<User, $this>

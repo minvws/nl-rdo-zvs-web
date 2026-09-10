@@ -27,9 +27,7 @@ class LastEventMustBeOneOfRule implements ValidationRuleInterface
     public function validate(PetitionEventData $event, DerivedState $state): ?ValidationResult
     {
         $lastEvent = $state->getEvents()->sortByDesc(
-            static function (PetitionEventData $petitionEventData): CarbonImmutable {
-                return $petitionEventData->createdAt;
-            },
+            static fn(PetitionEventData $petitionEventData): CarbonImmutable => $petitionEventData->createdAt,
         )->first();
 
         if ($lastEvent === null) {

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Exports;
 
+use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class PetitionInternalExcelExport implements WithMultipleSheets, PetitionExportInterface
+class PetitionInternalExcelExport implements Export, WithMultipleSheets, PetitionExportInterface
 {
     use Exportable;
 

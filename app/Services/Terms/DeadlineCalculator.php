@@ -17,9 +17,7 @@ class DeadlineCalculator
     public function calculateDeadline(Collection $collection): CalendarDate
     {
         $deadline = $collection
-            ->filter(static function ($item) {
-                return $item->type->isDeadlineable();
-            })
+            ->filter(static fn($item) => $item->type->isDeadlineable())
             ->max('end_date');
 
         Assert::isInstanceOf($deadline, CalendarDate::class);

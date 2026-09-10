@@ -16,7 +16,7 @@ class LogRateLimitExceeded
 
     public function __invoke(RateLimitExceededEvent $event): void
     {
-        $this->logService->log((new UserLoginLogEvent())
+        $this->logService->log(new UserLoginLogEvent()
             ->asExecute()
             ->withData([
                 'rate_limit_exceeded' => true,

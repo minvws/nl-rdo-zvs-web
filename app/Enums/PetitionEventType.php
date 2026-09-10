@@ -7,6 +7,7 @@ namespace App\Enums;
 use App\Services\EventValidatorInterface;
 use BackedEnum;
 use Illuminate\Support\Facades\Lang;
+use Webmozart\Assert\Assert;
 
 use function app;
 use function resolve;
@@ -24,6 +25,7 @@ enum PetitionEventType: string
     case SUSPENSION_END = 'suspension_end';
     case MEETING_SCHEDULED = 'meeting_scheduled'; // committee_hearing_scheduled or appointment_with_applicant_scheduled
     case ADJOURNMENT = 'adjournment';
+    case COMMITTEE_HEARING_DETERMINED = 'committee_hearing_determined';
     case UNSPECIFIED_ADJOURNMENT = 'unspecified_adjournment';
     case UNSPECIFIED_ADJOURNMENT_END = 'unspecified_adjournment_end';
     case HEARING_DATE = 'hearing_date';
@@ -36,6 +38,7 @@ enum PetitionEventType: string
     case OPINION_OUTSIDE_TERM = 'opinion_outside_term';
     case RECEIPT_APPEAL_NOT_TIMELY = 'receipt_appeal_not_timely';
     case SENT_PARTIAL_DECISION = 'sent_partial_decision';
+    case RECEIPT_OF_COMPLAINT = 'receipt_of_complaint';
 
     public function rule(): ?EventValidatorInterface
     {
@@ -47,7 +50,10 @@ enum PetitionEventType: string
         }
         // @codeCoverageIgnoreEnd
 
-        return resolve($key);
+        $rule = resolve($key);
+        Assert::nullOrIsInstanceOf($rule, EventValidatorInterface::class);
+
+        return $rule;
     }
 
     /**
@@ -74,13 +80,25 @@ enum PetitionEventType: string
         return match ($this) {
             self::PRIMARY_DECISION,
             self::RECEIPT_OF_OBJECTION,
+            self::RECEIPT_OF_COMPLAINT,
             self::LETTER_OF_SUSPENSION_SENT,
             self::ADJOURNMENT,
+            self::COMMITTEE_HEARING_DETERMINED,
             self::NOTICE_OF_DEFAULT_RECEIVED,
             self::APPEAL_DECISION_NOT_TIMELY,
             self::PETITION_RECEIVED, => true,
             default => false,
         };
+    }
+
+    /**
+     * Departments on UnspecifiedAdjournmentMode::CONTINUES_TERMS register two decision terms when
+     * an "ongespecificeerde aanhouding" starts: one that runs once the event has taken place and
+     * one that runs once the adjournment has been withdrawn.
+     */
+    public function hasWithdrawalDuration(): bool
+    {
+        return $this === self::UNSPECIFIED_ADJOURNMENT;
     }
 
     public function hasPenalties(?PetitionVariant $petitionType = null): bool
@@ -164,9 +182,12 @@ enum PetitionEventType: string
         return match ($this) {
             self::PRIMARY_DECISION,
             self::RECEIPT_OF_OBJECTION,
+            self::COMMITTEE_HEARING_DETERMINED,
             self::HEARING_DATE => $petitionType === PetitionVariant::BEZWAAR,
 
-            self::PETITION_RECEIVED, self::PUBLICATION_DATE, self::ACTUAL_DISCLOSURE,
+            self::PETITION_RECEIVED,
+            self::PUBLICATION_DATE,
+            self::ACTUAL_DISCLOSURE,
             self::OPINION_OUTSIDE_TERM,
             self::SENT_PARTIAL_DECISION => $petitionType === PetitionVariant::WOO_VERZOEK,
 
@@ -175,16 +196,22 @@ enum PetitionEventType: string
                 default => false,
             },
 
-            self::MEETING_SCHEDULED,
             self::LETTER_OF_SUSPENSION_SENT,
             self::SUSPENSION_END,
             self::NOTICE_OF_DEFAULT_RECEIVED,
             self::APPEAL_DECISION_NOT_TIMELY,
             self::RECEIPT_APPEAL_NOT_TIMELY,
-            self::FINAL_RESULT,
-            self::ADJOURNMENT,
             self::UNSPECIFIED_ADJOURNMENT,
-            self::UNSPECIFIED_ADJOURNMENT_END => true, // Available for both types
+            self::UNSPECIFIED_ADJOURNMENT_END => match ($petitionType) {
+                PetitionVariant::KLACHT => false,
+                default => true,
+            },
+
+            self::RECEIPT_OF_COMPLAINT => $petitionType === PetitionVariant::KLACHT,
+
+            self::MEETING_SCHEDULED,
+            self::FINAL_RESULT,
+            self::ADJOURNMENT => true,
         };
     }
 
@@ -206,12 +233,14 @@ enum PetitionEventType: string
             self::NOTICE_OF_DEFAULT_RECEIVED,
             self::UNSPECIFIED_ADJOURNMENT,
             self::ADJOURNMENT,
+            self::COMMITTEE_HEARING_DETERMINED,
             self::MEETING_SCHEDULED,
             self::OPINION_OUTSIDE_TERM,
             self::SENT_PARTIAL_DECISION,
             self::FINAL_RESULT => match ($petitionType) {
                 PetitionVariant::BEZWAAR => [self::RECEIPT_OF_OBJECTION],
                 PetitionVariant::WOO_VERZOEK => [self::PETITION_RECEIVED],
+                PetitionVariant::KLACHT => [self::RECEIPT_OF_COMPLAINT],
                 default => [],
             },
 
@@ -253,6 +282,7 @@ enum PetitionEventType: string
                     self::SUSPENSION_END,
                     self::MEETING_SCHEDULED,
                     self::ADJOURNMENT,
+                    self::COMMITTEE_HEARING_DETERMINED,
                     self::UNSPECIFIED_ADJOURNMENT,
                     self::UNSPECIFIED_ADJOURNMENT_END,
                     self::HEARING_DATE,
@@ -269,6 +299,7 @@ enum PetitionEventType: string
                 self::SUSPENSION_END,
                 self::MEETING_SCHEDULED,
                 self::ADJOURNMENT,
+                self::COMMITTEE_HEARING_DETERMINED,
                 self::UNSPECIFIED_ADJOURNMENT,
                 self::UNSPECIFIED_ADJOURNMENT_END,
                 self::HEARING_DATE,
@@ -300,11 +331,28 @@ enum PetitionEventType: string
                     self::APPEAL_DECISION_NOT_TIMELY,
                     self::FINAL_RESULT,
                 ],
+                PetitionVariant::KLACHT => [
+                    self::MEETING_SCHEDULED,
+                    self::FINAL_RESULT,
+                ],
                 default => [],
             },
             self::ADJOURNMENT => match ($petitionType) {
                 PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::ADJOURNMENT,
+                    self::NOTICE_OF_DEFAULT_RECEIVED,
+                    self::APPEAL_DECISION_NOT_TIMELY,
+                    self::FINAL_RESULT,
+                ],
+                PetitionVariant::KLACHT => [
+                    self::MEETING_SCHEDULED,
+                    self::FINAL_RESULT,
+                ],
+                default => [],
+            },
+            self::COMMITTEE_HEARING_DETERMINED => match ($petitionType) {
+                PetitionVariant::BEZWAAR => [
+                    self::COMMITTEE_HEARING_DETERMINED,
                     self::NOTICE_OF_DEFAULT_RECEIVED,
                     self::APPEAL_DECISION_NOT_TIMELY,
                     self::FINAL_RESULT,

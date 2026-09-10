@@ -10,6 +10,7 @@ use App\Models\Department;
 use App\Models\User;
 use App\Services\Authentication\AuthenticationException;
 use App\Services\Authentication\AuthenticationServiceInterface;
+use Deprecated;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Database\DatabaseManager;
@@ -34,17 +35,14 @@ class UserPermissionService
         return $this->cacheManager->store('array')->remember(
             'hasPermission.' . $permission->value . $user->id->toString() . ($department?->id ? '.' . $department->id : ''),
             null,
-            function () use ($permission, $user, $department): bool {
-                return in_array($permission->value, $this->permissions($user, $department), true);
-            },
+            fn(): bool => in_array($permission->value, $this->permissions($user, $department), true),
         );
     }
 
     /**
      * @throws AuthenticationException
-     *
-     * @deprecated Has to be moved elsewhere, as it is not a user permission service method.
      */
+    #[Deprecated(message: 'Has to be moved elsewhere, as it is not a user permission service method.')]
     public function hasPermissionAsCurrentUserAndActiveDepartment(Permission $permission): bool
     {
         $user = $this->authenticationService->user();

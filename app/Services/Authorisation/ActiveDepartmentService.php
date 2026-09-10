@@ -30,9 +30,7 @@ class ActiveDepartmentService
         return Cache::store('array')->remember(
             sprintf('active_department_%s', $user->id),
             null,
-            function () use ($user): ?Department {
-                return $this->determineActiveDepartment($user);
-            },
+            fn(): ?Department => $this->determineActiveDepartment($user),
         );
     }
 

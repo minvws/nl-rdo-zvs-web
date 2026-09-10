@@ -91,7 +91,7 @@ class Contact extends EloquentModel implements DepartmentAwareInterface
             'contact_petition',
             'contact_id',
             'petition_id',
-        )->using(ContactPetition::class)->withPivot('role', 'reference', 'correspondence_preference');
+        )->using(ContactPetition::class)->withPivot('role', 'reference', 'correspondence_preference', 'date_first_phone_contact');
     }
 
     /**

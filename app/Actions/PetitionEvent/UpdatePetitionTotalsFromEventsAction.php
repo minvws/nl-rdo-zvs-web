@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\PetitionEvent;
 
 use App\Actions\PetitionEvent\Contracts\UpdatePetitionTotalsFromEventsActionInterface;
+use App\Config\DepartmentConfigurationService;
 use App\Enums\PetitionEventType;
 use App\Enums\TermType;
 use App\Factories\WizardEventCollectionFactory;
@@ -17,6 +18,7 @@ class UpdatePetitionTotalsFromEventsAction implements UpdatePetitionTotalsFromEv
     public function __construct(
         private readonly DerivedState $derivedState,
         private readonly WizardEventCollectionFactory $factory,
+        private readonly DepartmentConfigurationService $departmentConfiguration,
     ) {
     }
 
@@ -29,7 +31,12 @@ class UpdatePetitionTotalsFromEventsAction implements UpdatePetitionTotalsFromEv
         }
 
         $events = $this->factory::fromModels($petition->petitionEvents)->all();
-        $this->derivedState->addEvents($events)->buildCalendar();
+        $this->derivedState
+            ->withUnspecifiedAdjournmentMode(
+                $this->departmentConfiguration->unspecifiedAdjournmentMode($petition->department),
+            )
+            ->addEvents($events)
+            ->buildCalendar();
 
         $dateOfEntry = $this->derivedState->dateOfEntry() ?? $petition->date_of_entry;
         $calendar = $this->derivedState->getCalendar();

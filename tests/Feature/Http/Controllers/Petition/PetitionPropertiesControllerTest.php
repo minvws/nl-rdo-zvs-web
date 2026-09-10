@@ -13,6 +13,7 @@ use App\Models\User;
 use Tests\Feature\FeatureTestCase;
 use Tests\Helpers\ConfigHelper;
 
+use function __;
 use function sprintf;
 
 class PetitionPropertiesControllerTest extends FeatureTestCase
@@ -248,5 +249,149 @@ class PetitionPropertiesControllerTest extends FeatureTestCase
                 'description' => $this->faker->sentence(),
             ])
             ->assertNotFound();
+    }
+
+    public function testUpdateStoresTheDeadlineOverride(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        $this->configureOptionalFormFields($petition);
+
+        $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($authUser, true, $department)
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_UPDATE, [
+                'department' => $department,
+                'petition' => $petition,
+            ], [
+                'name' => $this->faker->name(),
+                'date_of_entry' => $petition->date_of_entry->format('Y-m-d'),
+                'deadline_override_at' => '2026-06-30',
+                'deadline_override_reason' => 'Afspraak met verzoeker',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $petition->refresh();
+
+        $this->assertSame('2026-06-30', $petition->deadline_override_at->format('Y-m-d'));
+        $this->assertSame('Afspraak met verzoeker', $petition->deadline_override_reason);
+    }
+
+    public function testUpdateClearsTheReasonWhenTheOverrideDateIsEmptied(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create([
+            'deadline_override_at' => '2026-06-30',
+            'deadline_override_reason' => 'Afspraak met verzoeker',
+        ]);
+
+        $this->configureOptionalFormFields($petition);
+
+        $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($authUser, true, $department)
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_UPDATE, [
+                'department' => $department,
+                'petition' => $petition,
+            ], [
+                'name' => $this->faker->name(),
+                'date_of_entry' => $petition->date_of_entry->format('Y-m-d'),
+                'deadline_override_at' => '',
+                'deadline_override_reason' => 'Afspraak met verzoeker',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $petition->refresh();
+
+        $this->assertNull($petition->deadline_override_at);
+        $this->assertNull($petition->deadline_override_reason);
+    }
+
+    public function testUpdateRejectsAnOverrideDateWithoutAReason(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create([
+            'deadline_override_at' => null,
+            'deadline_override_reason' => null,
+        ]);
+
+        $this->configureOptionalFormFields($petition);
+
+        $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($authUser, true, $department)
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_UPDATE, [
+                'department' => $department,
+                'petition' => $petition,
+            ], [
+                'name' => $this->faker->name(),
+                'date_of_entry' => $petition->date_of_entry->format('Y-m-d'),
+                'deadline_override_at' => '2026-06-30',
+                'deadline_override_reason' => '',
+            ])
+            ->assertSessionHasErrors('deadline_override_reason');
+
+        $petition->refresh();
+
+        $this->assertNull($petition->deadline_override_at);
+    }
+
+    public function testShowRendersTheOverrideAlongsideTheCalculatedDeadline(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create([
+            'deadline_at' => '2026-03-01',
+            'deadline_override_at' => '2026-06-30',
+            'deadline_override_reason' => 'Afspraak met verzoeker',
+        ]);
+
+        $authUser = User::factory()->withPermissionsAndDepartment(
+            $petition->department,
+            Permission::PETITION_READ,
+        )->fullyVerified()->create();
+
+        $this->beUser($authUser, true, $petition->department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_SHOW, [
+                'department' => $department,
+                'petition' => $petition,
+            ])
+            ->assertOk()
+            ->assertSee('30-06-2026')
+            ->assertSee('Afspraak met verzoeker')
+            ->assertSee('01-03-2026');
+    }
+
+    public function testShowRendersOnlyTheCalculatedDeadlineWithoutAnOverride(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create([
+            'deadline_at' => '2026-03-01',
+            'deadline_override_at' => null,
+            'deadline_override_reason' => null,
+        ]);
+
+        $authUser = User::factory()->withPermissionsAndDepartment(
+            $petition->department,
+            Permission::PETITION_READ,
+        )->fullyVerified()->create();
+
+        $this->beUser($authUser, true, $petition->department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_SHOW, [
+                'department' => $department,
+                'petition' => $petition,
+            ])
+            ->assertOk()
+            ->assertSee('01-03-2026')
+            ->assertDontSee(__('petition.deadline_calculated'));
+    }
+
+    private function configureOptionalFormFields(Petition $petition): void
+    {
+        ConfigHelper::set(sprintf('petition_variant.%s.optional_form_fields', $petition->petitionType->type->value), [
+            'name' => OptionalFormFieldSetting::REQUIRED,
+            'description' => OptionalFormFieldSetting::OPTIONAL,
+            'date_appealed_decision' => OptionalFormFieldSetting::OPTIONAL,
+            'petition_category_id' => OptionalFormFieldSetting::EXCLUDED,
+        ]);
     }
 }

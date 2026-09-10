@@ -200,8 +200,9 @@ class PetitionEventTypeTest extends TestCase
     {
         $conflicts = PetitionEventType::PRIMARY_DECISION->getConflicts(PetitionVariant::BEZWAAR);
 
-        $this->assertCount(12, $conflicts);
+        $this->assertCount(13, $conflicts);
         $this->assertContains(PetitionEventType::RECEIPT_OF_OBJECTION, $conflicts);
+        $this->assertContains(PetitionEventType::COMMITTEE_HEARING_DETERMINED, $conflicts);
         $this->assertContains(PetitionEventType::FINAL_RESULT, $conflicts);
     }
 
@@ -327,5 +328,16 @@ class PetitionEventTypeTest extends TestCase
         $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->requiresReasoning());
         $this->assertFalse(PetitionEventType::FINAL_RESULT->requiresReasoning(ResultType::FINAL_DECISION));
         $this->assertTrue(PetitionEventType::FINAL_RESULT->requiresReasoning(ResultType::OTHER));
+    }
+
+    #[Test]
+    public function testOnlyTheUnspecifiedAdjournmentCarriesAWithdrawalDuration(): void
+    {
+        foreach (PetitionEventType::cases() as $type) {
+            $this->assertSame(
+                $type === PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                $type->hasWithdrawalDuration(),
+            );
+        }
     }
 }

@@ -8,13 +8,13 @@ use App\Http\Requests\FormRequest;
 use App\Rules\CurrentPassword;
 use App\Services\Authentication\AuthenticationServiceInterface;
 use App\Services\HashService;
+use Illuminate\Foundation\Http\Attributes\ErrorBag;
 use Illuminate\Validation\Rules\Password;
 use Webmozart\Assert\Assert;
 
+#[ErrorBag('updatePassword')]
 class PasswordStoreRequest extends FormRequest
 {
-    protected $errorBag = 'updatePassword';
-
     /**
      * @return array<string, array<string|CurrentPassword|Password>>
      */

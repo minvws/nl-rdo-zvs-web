@@ -261,6 +261,44 @@
                         </div>
                     @endif
 
+                    @if ($collectsAdjournmentTerms)
+                        <div class="form-input-group">
+                            <x-input-label
+                                for="duration"
+                                required
+                                :content="__('petition_event.duration.unspecified_adjournment')" />
+                            <x-input-error
+                                id="duration-error"
+                                :messages="$errors->get('duration')" />
+                            <x-text-input
+                                id="duration"
+                                :hasError="$errors->has('duration')"
+                                type="number"
+                                name="duration"
+                                aria-describedby="duration-error"
+                                required
+                                value="{{ Form::old('duration') }}" />
+                        </div>
+
+                        <div class="form-input-group">
+                            <x-input-label
+                                for="withdrawal_duration"
+                                required
+                                :content="__('petition_event.withdrawal_duration.unspecified_adjournment')" />
+                            <x-input-error
+                                id="withdrawal_duration-error"
+                                :messages="$errors->get('withdrawal_duration')" />
+                            <x-text-input
+                                id="withdrawal_duration"
+                                :hasError="$errors->has('withdrawal_duration')"
+                                type="number"
+                                name="withdrawal_duration"
+                                aria-describedby="withdrawal_duration-error"
+                                required
+                                value="{{ Form::old('withdrawal_duration') }}" />
+                        </div>
+                    @endif
+
                     @if ($selectedType->hasPenalties($petition->petitionType->type))
                         <fieldset class="form-group">
                             <legend>{{ __('petition_event.penalties.title') }}</legend>

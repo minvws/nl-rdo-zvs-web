@@ -55,6 +55,7 @@ return [
     'actual_disclosure' => 'Feitelijke verstrekking',
     'adjournment' => 'Verdagingsbrief verzonden',
     'appeal_decision_not_timely' => 'Uitspraak BNT',
+    'committee_hearing_determined' => 'Commissiezitting bepaald',
     'final_result' => [
         'final_decision' => 'Finaal besluit',
         'final_decision_55_request' => 'Finaal besluit (5.5-verzoek)',
@@ -81,6 +82,7 @@ return [
     'primary_decision' => 'Primair besluit',
     'publication_date' => 'Publicatie',
     'receipt_of_objection' => 'Ontvangst bezwaar',
+    'receipt_of_complaint' => 'Ontvangst klacht',
     'receipt_appeal_not_timely' => 'Ontvangst BNT',
     'suspension_end' => 'Einde opschorting',
     'unspecified_adjournment' => 'Ongespecificeerde aanhouding',
@@ -155,6 +157,7 @@ return [
             'date_must_be_after_dependency' => 'De datum van :event moet na de datum van :dependency liggen',
             'date_must_be_in_suspension' => 'De datum valt niet binnen een actieve opschortingsperiode',
             'last_event_must_be_one_of' => 'De laatste gebeurtenis moet een van de volgende zijn: :events',
+            'date_must_not_be_in_the_future' => 'De datum van :event mag niet in de toekomst liggen',
         ],
     ],
 ];

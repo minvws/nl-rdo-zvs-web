@@ -49,7 +49,7 @@ class ClamavVirusscanner implements VirusscannerInterface
     private function getClient(): Client
     {
         return new Client(
-            (new Factory())->createClient(Config::string('virusscanner.clamav.socket')),
+            new Factory()->createClient(Config::string('virusscanner.clamav.socket')),
             Config::integer('virusscanner.clamav.socket_read_timeout'),
             PHP_NORMAL_READ,
         );

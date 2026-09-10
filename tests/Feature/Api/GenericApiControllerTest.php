@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Enums\ContactRole;
 use App\Models\ApiUser;
+use App\Models\Contact;
 use App\Models\CustomCost;
 use App\Models\CustomPetitionProperty;
 use App\Models\Decision;
@@ -209,6 +211,21 @@ class GenericApiControllerTest extends FeatureTestCase
         foreach ($data as $assignment) {
             $this->assertEquals($user->id, $assignment['user_id']);
         }
+    }
+
+    public function testContactPetitionEndpointReturnsFirstPhoneContactDate(): void
+    {
+        $petition = Petition::factory()->create();
+        $contact = Contact::factory()->recycle($petition->department)->create();
+
+        $petition->contacts()->attach($contact, [
+            'role' => ContactRole::APPLICANT->value,
+            'date_first_phone_contact' => '2026-04-09',
+        ]);
+
+        $response = $this->getJson('/api/v1/contact_petition')->assertOk();
+
+        $this->assertSame('2026-04-09', $response->json('data.0.date_first_phone_contact'));
     }
 
     #[DataProvider('genericApiEndpoints')]

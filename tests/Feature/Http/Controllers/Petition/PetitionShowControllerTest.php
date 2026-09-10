@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Petition;
 
 use App\Actions\PetitionEvent\UpdatePetitionTotalsFromEventsAction;
 use App\Enums\Authorization\Permission;
+use App\Enums\ContactRole;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
 use App\Enums\ProcessingStepStatus;
@@ -14,6 +15,7 @@ use App\Enums\TermType;
 use App\Enums\TimelineFilterGroup;
 use App\Enums\TimelineType;
 use App\Facades\DisplayDate;
+use App\Models\Contact;
 use App\Models\Decision;
 use App\Models\Department;
 use App\Models\Petition;
@@ -47,6 +49,31 @@ class PetitionShowControllerTest extends FeatureTestCase
             ])
             ->assertOk()
             ->assertViewIs('petition.show');
+    }
+
+    public function testShowDisplaysFirstPhoneContactDateOfTheApplicant(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $contact = Contact::factory()->recycle($department)->create();
+
+        $petition->contacts()->attach($contact, [
+            'role' => ContactRole::APPLICANT->value,
+            'date_first_phone_contact' => '2026-04-09',
+        ]);
+
+        $authUser = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_READ, Permission::CONTACT_MANAGE)
+            ->fullyVerified()
+            ->create();
+        $this->beUser($authUser, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition->id,
+            ])
+            ->assertOk()
+            ->assertSee(__('contact.date_first_phone_contact') . ':')
+            ->assertSee(DisplayDate::date(CalendarDate::createFromFormat('Y-m-d', '2026-04-09')));
     }
 
     public function testShowIntentionallyDisplaysCrossDepartmentRelations(): void

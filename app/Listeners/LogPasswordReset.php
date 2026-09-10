@@ -21,7 +21,7 @@ class LogPasswordReset
     {
         Assert::isInstanceOf($event->user, User::class);
         $this->logService->log(
-            (new ResetCredentialsLogEvent())
+            new ResetCredentialsLogEvent()
                 ->withEventCode(AccountChangeLogEvent::EVENTCODE_RESET)
                 ->asExecute()
                 ->withData(['email' => $event->user->email]),

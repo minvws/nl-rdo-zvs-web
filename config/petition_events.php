@@ -7,6 +7,15 @@ use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 
 return [
+    /*
+     * Per gebeurtenistype de teams die het mogen invoeren.
+     * Een type dat hier niet in staat, is voor elk team beschikbaar.
+     */
+    'department_availability' => [
+        PetitionEventType::MEETING_SCHEDULED->value => ['team-a', 'team-b', 'team-c'],
+        PetitionEventType::COMMITTEE_HEARING_DETERMINED->value => ['wjz-bb'],
+    ],
+
     'defaults' => [
         PetitionVariant::BEZWAAR->value => [
             PetitionEventType::PRIMARY_DECISION->value => [
@@ -16,6 +25,9 @@ return [
                 'duration' => 42,
             ],
             PetitionEventType::ADJOURNMENT->value => [
+                'duration' => 42,
+            ],
+            PetitionEventType::COMMITTEE_HEARING_DETERMINED->value => [
                 'duration' => 42,
             ],
             PetitionEventType::MEETING_SCHEDULED->value => [
@@ -34,6 +46,20 @@ return [
                 'penalties' => [
                     ['duration' => 150, 'amount' => 100],
                 ],
+            ],
+            PetitionEventType::FINAL_RESULT->value => [
+                'result_type' => ResultType::FINAL_DECISION,
+            ],
+        ],
+        PetitionVariant::KLACHT->value => [
+            PetitionEventType::RECEIPT_OF_COMPLAINT->value => [
+                'duration' => 42,
+            ],
+            PetitionEventType::ADJOURNMENT->value => [
+                'duration' => 28,
+            ],
+            PetitionEventType::MEETING_SCHEDULED->value => [
+                'duration' => 42,
             ],
             PetitionEventType::FINAL_RESULT->value => [
                 'result_type' => ResultType::FINAL_DECISION,
@@ -63,6 +89,11 @@ return [
     ],
     'team-c' => [
         PetitionVariant::BEZWAAR->value => [
+            PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->value => [
+                'duration' => 14,
+            ],
+        ],
+        PetitionVariant::KLACHT->value => [
             PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->value => [
                 'duration' => 14,
             ],

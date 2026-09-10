@@ -21,9 +21,7 @@ final class WizardEventCollectionFactory
         }
 
         $mapped = $events->map(
-            static function (PetitionEvent $event): PetitionEventData {
-                return PetitionEventDataFactory::fromModel($event);
-            },
+            static fn(PetitionEvent $event): PetitionEventData => PetitionEventDataFactory::fromModel($event),
         );
 
         return new WizardEventCollection($mapped);
