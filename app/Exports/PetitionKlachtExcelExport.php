@@ -6,32 +6,33 @@ namespace App\Exports;
 
 use App\Collections\CustomPetitionPropertyCollection;
 use App\Config\Config;
-use App\Enums\CustomDateLabel;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
-use App\Enums\ResultType;
 use App\Models\Petition;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Webmozart\Assert\Assert;
 
 use function __;
 use function sprintf;
 
-class PetitionKlachtExcelExport extends PetitionAbstractExcelExport
+class PetitionKlachtExcelExport extends PetitionAbstractExcelExport implements WithColumnFormatting
 {
     /**
      * @param Petition $row
      *
-     * @return array<string|null>
+     * @return array<string|float|null>
      */
     public function map(mixed $row): array
     {
+        $termEngineConverted = $row->isTermEngineConverted();
+
         return [
             $row->number,
             $row->name ?? '-',
 
             // the values below depend on Terms V1 or V2 being used
-            $this->dateOfEntry($row),
-            $this->dateDecision($row),
+            $this->dateOfEntry($row, $termEngineConverted),
+            $this->dateDecisionOnAppeal($row, $termEngineConverted),
 
             $this->formatInOutTerm($row->customPetitionProperties),
             $this->formatDecision($row->customPetitionProperties),
@@ -53,6 +54,17 @@ class PetitionKlachtExcelExport extends PetitionAbstractExcelExport
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'C' => ExcelDate::DATE_FORMAT,
+            'D' => ExcelDate::DATE_FORMAT,
+        ];
+    }
+
     private function formatInOutTerm(CustomPetitionPropertyCollection $customPetitionProperties): string
     {
         $optionSet = Config::arrayAllString(sprintf('export_mapping.%s.term_options', PetitionVariant::KLACHT->value));
@@ -69,25 +81,13 @@ class PetitionKlachtExcelExport extends PetitionAbstractExcelExport
         return $this->formatMatchingCustomOptions($customPetitionProperties, $optionSet);
     }
 
-    private function dateOfEntry(Petition $row): ?string
+    private function dateOfEntry(Petition $row, bool $termEngineConverted): ?float
     {
-        if ($row->isTermEngineConverted()) {
-            return $row->petitionEvents
-                ->firstWhere('type', PetitionEventType::RECEIPT_OF_COMPLAINT)?->date->toDateString() ?? null;
+        if ($termEngineConverted) {
+            return ExcelDate::fromCalendarDate($row->petitionEvents
+                ->firstWhere('type', PetitionEventType::RECEIPT_OF_COMPLAINT)?->date);
         }
 
         return $this->formatDate($row->date_of_entry);
-    }
-
-    private function dateDecision(Petition $row): ?string
-    {
-        if ($row->isTermEngineConverted()) {
-            return $row->petitionEvents
-                ->where('type', PetitionEventType::FINAL_RESULT)
-                ->where('result_type', ResultType::FINAL_DECISION)
-                ->first()?->date->toDateString() ?? null;
-        }
-
-        return $this->formatCustomDateValueByLabel($row->customDates, CustomDateLabel::DATE_DECISION_ON_APPEAL);
     }
 }

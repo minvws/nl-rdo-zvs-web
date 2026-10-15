@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Exports;
 
-use App\Facades\DisplayDate;
 use App\Models\Builder\Petition\Filters\PetitionStatusHistoryDateRangeFilter;
 use App\Models\Builder\Petition\Filters\PetitionTypeFilter;
 use App\Models\Petition;
@@ -12,6 +11,7 @@ use App\Models\PetitionCategory;
 use App\Models\PetitionStatusHistory;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -24,7 +24,12 @@ use function __;
 /**
  * @implements WithMapping<PetitionStatusHistory>
  */
-class PetitionInternalExcelExportStatusHistorySheet implements WithTitle, FromQuery, WithHeadings, WithMapping
+class PetitionInternalExcelExportStatusHistorySheet implements
+    WithTitle,
+    FromQuery,
+    WithHeadings,
+    WithMapping,
+    WithColumnFormatting
 {
     public function __construct(
         private readonly ExportCriteria $criteria,
@@ -60,7 +65,17 @@ class PetitionInternalExcelExportStatusHistorySheet implements WithTitle, FromQu
             $row->petition->number,
             __('petition_status.' . $row->petitionStatus->status_group->value),
             $row->petitionStatus->status,
-            DisplayDate::datetime($row->created_at),
+            ExcelDate::fromDateTime($row->created_at),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'D' => ExcelDate::DATETIME_FORMAT,
         ];
     }
 

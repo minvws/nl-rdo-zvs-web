@@ -13,6 +13,7 @@ use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
 use Carbon\CarbonImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 use function sprintf;
@@ -75,6 +76,114 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $this->assertNotContains(PetitionEventType::OPINION_OUTSIDE_TERM, $availableTypes);
         $this->assertNotContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
         $this->assertNotContains(PetitionEventType::SENT_PARTIAL_DECISION, $availableTypes);
+    }
+
+    public function testWooVerzoekOffersAReferralOnceThePetitionIsReceived(): void
+    {
+        $events = WizardEventCollection::make()->add(
+            new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ),
+        );
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertContains(PetitionEventType::REFERRED_TO_DEPARTMENT, $availableTypes);
+        $this->assertNotContains(PetitionEventType::ANSWER_RECEIVED, $availableTypes);
+    }
+
+    public function testWooVerzoekOffersAnAnswerOnceTheRequestIsReferred(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::REFERRED_TO_DEPARTMENT,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::now(),
+            ));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertNotContains(PetitionEventType::REFERRED_TO_DEPARTMENT, $availableTypes);
+        $this->assertContains(PetitionEventType::ANSWER_RECEIVED, $availableTypes);
+    }
+
+    public function testWooVerzoekOffersANewReferralOnceTheAnswerIsReceived(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::REFERRED_TO_DEPARTMENT,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::ANSWER_RECEIVED,
+                date: CalendarDate::create('2025-01-08'),
+                createdAt: CarbonImmutable::now(),
+            ));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertContains(PetitionEventType::REFERRED_TO_DEPARTMENT, $availableTypes);
+        $this->assertNotContains(PetitionEventType::ANSWER_RECEIVED, $availableTypes);
+    }
+
+    public function testWooVerzoekOffersNoReferralOrAnswerAfterTheFinalResult(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::REFERRED_TO_DEPARTMENT,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::FINAL_RESULT,
+                date: CalendarDate::create('2025-01-10'),
+                createdAt: CarbonImmutable::now(),
+                resultType: ResultType::OTHER,
+            ));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertNotContains(PetitionEventType::REFERRED_TO_DEPARTMENT, $availableTypes);
+        $this->assertNotContains(PetitionEventType::ANSWER_RECEIVED, $availableTypes);
+    }
+
+    public function testBezwaarDoesNotOfferAReferral(): void
+    {
+        $events = WizardEventCollection::make()->add(
+            new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+        );
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events);
+
+        $this->assertNotContains(PetitionEventType::REFERRED_TO_DEPARTMENT, $availableTypes);
+        $this->assertNotContains(PetitionEventType::ANSWER_RECEIVED, $availableTypes);
     }
 
     public function testReturnsPrimaryDecisionWhenNoEventsExist(): void
@@ -196,6 +305,70 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $currentEvents);
 
         $this->assertContains(PetitionEventType::SENT_PARTIAL_DECISION, $availableTypes);
+    }
+
+    public function testActualDisclosureIsAvailableAfterSentPartialDecision(): void
+    {
+        $currentEvents = $this->wooVerzoekWithSentPartialDecision();
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $currentEvents);
+
+        $this->assertContains(PetitionEventType::ACTUAL_DISCLOSURE, $availableTypes);
+    }
+
+    public function testPublicationDateRequiresActualDisclosureAfterSentPartialDecision(): void
+    {
+        $currentEvents = $this->wooVerzoekWithSentPartialDecision();
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $currentEvents);
+
+        $this->assertNotContains(PetitionEventType::PUBLICATION_DATE, $availableTypes);
+    }
+
+    public function testPublicationDateIsAvailableAfterActualDisclosureFollowingSentPartialDecision(): void
+    {
+        $currentEvents = $this->wooVerzoekWithSentPartialDecision()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::ACTUAL_DISCLOSURE,
+                date: CalendarDate::create('2025-02-01'),
+                createdAt: CarbonImmutable::now(),
+            ));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $currentEvents);
+
+        $this->assertContains(PetitionEventType::PUBLICATION_DATE, $availableTypes);
+    }
+
+    public function testFinalResultResultTypeStillBlocksFollowUpsAfterSentPartialDecision(): void
+    {
+        $currentEvents = $this->wooVerzoekWithSentPartialDecision()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::FINAL_RESULT,
+                date: CalendarDate::create('2025-02-01'),
+                createdAt: CarbonImmutable::now(),
+                resultType: ResultType::WITHDRAWN,
+            ));
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $currentEvents);
+
+        $this->assertNotContains(PetitionEventType::ACTUAL_DISCLOSURE, $availableTypes);
+        $this->assertNotContains(PetitionEventType::PUBLICATION_DATE, $availableTypes);
+    }
+
+    private function wooVerzoekWithSentPartialDecision(): WizardEventCollection
+    {
+        return WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::SENT_PARTIAL_DECISION,
+                date: CalendarDate::create('2025-01-15'),
+                createdAt: CarbonImmutable::now(),
+            ));
     }
 
     public function testExcludesFinalDecisionWhenItExists(): void
@@ -1397,11 +1570,9 @@ class PetitionEventAvailabilityServiceTest extends TestCase
 
     private function createEvent(PetitionEventType $type, string $date = '2025-01-01', ?int $duration = null, ?ResultType $resultType = null): PetitionEventData
     {
-        $reasoning = match (true) {
-            $type === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END => AdjournmentEndReason::Event->value,
-            $type === PetitionEventType::FINAL_RESULT && $resultType?->requiresReasoning() === true => 'Test reasoning',
-            default => null,
-        };
+        $reasoning = $type === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END
+            ? AdjournmentEndReason::Event->value
+            : null;
 
         return new PetitionEventData(
             type: $type,
@@ -1411,5 +1582,84 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             reasoning: $reasoning,
             resultType: $resultType,
         );
+    }
+
+    /**
+     * @return array<string, array{PetitionVariant, list<PetitionEventType>}>
+     */
+    public static function initialEventProvider(): array
+    {
+        return [
+            'bezwaar starts with the primary decision' => [
+                PetitionVariant::BEZWAAR,
+                [PetitionEventType::PRIMARY_DECISION],
+            ],
+            'woo-verzoek starts with its receipt' => [
+                PetitionVariant::WOO_VERZOEK,
+                [PetitionEventType::PETITION_RECEIVED],
+            ],
+            'klacht starts with its receipt' => [
+                PetitionVariant::KLACHT,
+                [PetitionEventType::RECEIPT_OF_COMPLAINT],
+            ],
+            'beroep has no events' => [
+                PetitionVariant::BEROEP,
+                [],
+            ],
+        ];
+    }
+
+    /**
+     * @param list<PetitionEventType> $expected
+     */
+    #[DataProvider('initialEventProvider')]
+    public function testOffersOnlyTheInitialEventWithoutEvents(PetitionVariant $variant, array $expected): void
+    {
+        $this->assertSame($expected, $this->service->getAvailableEventTypes($variant, WizardEventCollection::make()));
+    }
+
+    public function testReceiptAppealNotTimelyStaysAvailableAfterTheFinalResult(): void
+    {
+        $events = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::parse('2025-01-01'),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-01-20'),
+                createdAt: CarbonImmutable::parse('2025-01-20'),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::FINAL_RESULT,
+                date: CalendarDate::create('2025-02-20'),
+                createdAt: CarbonImmutable::parse('2025-02-20'),
+                resultType: ResultType::REJECTED,
+            ));
+
+        $this->assertSame(
+            [PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY],
+            $this->service->getAvailableEventTypes(PetitionVariant::BEZWAAR, $events),
+        );
+    }
+
+    public function testWooVerzoekOpinionOutsideTermNotAvailableWithoutADeadline(): void
+    {
+        // A receipt without a term has no deadline that can expire.
+        $events = WizardEventCollection::make()->add(
+            new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::parse('2025-01-01'),
+            ),
+        );
+
+        $availableTypes = $this->service->getAvailableEventTypes(PetitionVariant::WOO_VERZOEK, $events);
+
+        $this->assertNotContains(PetitionEventType::OPINION_OUTSIDE_TERM, $availableTypes);
+        $this->assertContains(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, $availableTypes);
     }
 }

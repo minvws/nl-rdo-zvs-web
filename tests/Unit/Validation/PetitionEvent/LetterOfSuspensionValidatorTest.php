@@ -7,6 +7,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 use App\Enums\PetitionEventType;
 use App\Enums\SuspensionType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -16,13 +17,13 @@ use Throwable;
 
 use function __;
 use function collect;
+use function lcfirst;
 
 class LetterOfSuspensionValidatorTest extends TestCase
 {
     #[Test]
     public function testItFailsWhenNoReceiptOfObjectionExists(): void
     {
-        $validator = PetitionEventType::LETTER_OF_SUSPENSION_SENT->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -33,7 +34,7 @@ class LetterOfSuspensionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::LETTER_OF_SUSPENSION_SENT, new PetitionEventData(
             type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
@@ -45,7 +46,9 @@ class LetterOfSuspensionValidatorTest extends TestCase
         $this->assertSame(
             __('term.validation.common.event_requires_dependency_any', [
                 'event' => PetitionEventType::LETTER_OF_SUSPENSION_SENT->label(),
-                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label() . ' of ' . PetitionEventType::PETITION_RECEIVED->label(),
+                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label()
+                    . ' ' . __('general.or') . ' '
+                    . PetitionEventType::PETITION_RECEIVED->label(),
             ]),
             $result->getErrors()['general'],
         );
@@ -54,7 +57,6 @@ class LetterOfSuspensionValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenDateIsBeforeLastEvent(): void
     {
-        $validator = PetitionEventType::LETTER_OF_SUSPENSION_SENT->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -71,7 +73,7 @@ class LetterOfSuspensionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::LETTER_OF_SUSPENSION_SENT, new PetitionEventData(
             type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
@@ -94,7 +96,6 @@ class LetterOfSuspensionValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenDateIsInActiveSuspensionPeriod(): void
     {
-        $validator = PetitionEventType::LETTER_OF_SUSPENSION_SENT->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -118,7 +119,7 @@ class LetterOfSuspensionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::LETTER_OF_SUSPENSION_SENT, new PetitionEventData(
             type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
             date: CalendarDate::create('2025-02-05'),
             createdAt: CarbonImmutable::now(),
@@ -136,7 +137,6 @@ class LetterOfSuspensionValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenReceiptOfObjectionExistsAndDateIsValid(): void
     {
-        $validator = PetitionEventType::LETTER_OF_SUSPENSION_SENT->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -153,7 +153,7 @@ class LetterOfSuspensionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::LETTER_OF_SUSPENSION_SENT, new PetitionEventData(
             type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
             date: CalendarDate::create('2025-01-20'),
             createdAt: CarbonImmutable::now(),
@@ -167,7 +167,6 @@ class LetterOfSuspensionValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenDateIsNotInObjectionOrDecisionPeriod(): void
     {
-        $validator = PetitionEventType::LETTER_OF_SUSPENSION_SENT->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -184,7 +183,7 @@ class LetterOfSuspensionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::LETTER_OF_SUSPENSION_SENT, new PetitionEventData(
             type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
             date: CalendarDate::create('2025-02-01'),
             createdAt: CarbonImmutable::now(),
@@ -196,6 +195,9 @@ class LetterOfSuspensionValidatorTest extends TestCase
         $this->assertStringContainsString(
             __('term.validation.common.date_must_be_in_term', [
                 'event' => PetitionEventType::LETTER_OF_SUSPENSION_SENT->label(),
+                'term' => lcfirst(__('term.objection_period.default'))
+                    . ' ' . __('general.or') . ' '
+                    . lcfirst(__('term.decision_period.default')),
             ]),
             $result->getErrors()['date'],
         );

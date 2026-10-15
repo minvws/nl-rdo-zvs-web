@@ -1,0 +1,50 @@
+info:
+  name: petition_assignments
+  type: http
+  seq: 27
+
+http:
+  method: GET
+  url: "{{host}}/api/v1/petition_assignments/"
+  headers:
+    - name: ""
+      value: ""
+      disabled: true
+  params:
+    - name: petition_id
+      value: ""
+      type: query
+      disabled: true
+    - name: user_id
+      value: ""
+      type: query
+      disabled: true
+    - name: per_page
+      value: "50"
+      type: query
+      disabled: true
+    - name: created_at_after
+      value: ""
+      type: query
+      disabled: true
+    - name: created_at_before
+      value: ""
+      type: query
+      disabled: true
+    - name: updated_at_after
+      value: ""
+      type: query
+      disabled: true
+    - name: updated_at_before
+      value: ""
+      type: query
+      disabled: true
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

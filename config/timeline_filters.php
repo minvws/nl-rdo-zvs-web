@@ -18,6 +18,7 @@ return [
             TimelineType::DECISION_UPDATED->value,
             TimelineType::POLICY_DEPARTMENT_CHANGED->value,
             TimelineType::QUERYSNAPSHOT_UPDATED->value,
+            TimelineType::TAGS_CHANGED->value,
             TimelineType::TIMELINEABLE_CREATED->value,
         ],
 

@@ -6,6 +6,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 
 use App\Enums\PetitionEventType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -20,11 +21,10 @@ class PrimaryDecisionValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenNoPrimaryDecisionExists(): void
     {
-        $validator = PetitionEventType::PRIMARY_DECISION->rule();
         $state = new DerivedState();
         $state->addEvents(collect([]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::PRIMARY_DECISION, new PetitionEventData(
             type: PetitionEventType::PRIMARY_DECISION,
             date: CalendarDate::create('2025-01-01'),
             createdAt: CarbonImmutable::now(),
@@ -38,7 +38,6 @@ class PrimaryDecisionValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenPrimaryDecisionAlreadyExists(): void
     {
-        $validator = PetitionEventType::PRIMARY_DECISION->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -49,7 +48,7 @@ class PrimaryDecisionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::PRIMARY_DECISION, new PetitionEventData(
             type: PetitionEventType::PRIMARY_DECISION,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
@@ -67,7 +66,6 @@ class PrimaryDecisionValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenOnlyOtherEventsExist(): void
     {
-        $validator = PetitionEventType::PRIMARY_DECISION->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -78,7 +76,7 @@ class PrimaryDecisionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::PRIMARY_DECISION, new PetitionEventData(
             type: PetitionEventType::PRIMARY_DECISION,
             date: CalendarDate::create('2025-01-01'),
             createdAt: CarbonImmutable::now(),

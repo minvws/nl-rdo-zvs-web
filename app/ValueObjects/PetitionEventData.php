@@ -90,11 +90,11 @@ readonly class PetitionEventData
             throw InvalidPetitionEventData::hearingFormNotAllowed($this->type);
         }
 
-        if ($this->reasoning !== null && !$this->type->hasReasoning($this->resultType)) {
+        if ($this->reasoning !== null && !$this->type->hasReasoning()) {
             throw InvalidPetitionEventData::reasoningNotAllowed($this->type);
         }
 
-        if ($this->type->requiresReasoning($this->resultType) && $this->reasoning === null) {
+        if ($this->type->requiresReasoning() && $this->reasoning === null) {
             throw InvalidPetitionEventData::reasoningRequired($this->type);
         }
 

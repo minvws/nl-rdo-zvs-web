@@ -15,8 +15,8 @@ use App\Models\Department;
 use App\Models\Petition;
 use App\Rules\CalendarDateRule;
 use App\Services\DerivedState;
-use App\Services\EventValidatorInterface;
 use App\Services\PetitionEvent\PetitionEventsStorage;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PenaltyData;
 use App\ValueObjects\PetitionEventData;
@@ -93,13 +93,7 @@ class AddPetitionEventRequest extends FormRequest
                 Rule::requiredIf(function (): bool {
                     $type = $this->enum('type', PetitionEventType::class);
 
-                    if (!$type instanceof PetitionEventType) {
-                        return false;
-                    }
-
-                    $resultType = $this->enum('result_type', ResultType::class);
-
-                    return $type->requiresReasoning($resultType);
+                    return $type instanceof PetitionEventType && $type->requiresReasoning();
                 }),
                 Rule::when(function (): bool {
                     $type = $this->enum('type', PetitionEventType::class);
@@ -207,24 +201,9 @@ class AddPetitionEventRequest extends FormRequest
                 ->withUnspecifiedAdjournmentMode($this->unspecifiedAdjournmentMode())
                 ->addEvents($wizardEvents->all());
 
-            $eventValidator = $type->rule();
-
-            // @codeCoverageIgnoreStart
-            if (!$eventValidator instanceof EventValidatorInterface) {
-                return;
-            }
-            // @codeCoverageIgnoreEnd
-
             $event = $this->toPetitionEventData();
 
-            $result = $eventValidator->validate(
-                $event,
-                $this->derivedState,
-            );
-
-            if ($result->isValid()) {
-                return;
-            }
+            $result = PetitionEventRules::validate($type, $event, $this->derivedState);
 
             foreach ($result->getErrors() as $field => $message) {
                 $validator->errors()->add($field, $message);

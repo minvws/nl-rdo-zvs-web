@@ -23,9 +23,11 @@ use App\Models\PetitionEvent;
 use App\Models\PetitionTerm;
 use App\Models\PetitionType;
 use App\Models\ProcessingStep;
+use App\Models\Tag;
 use App\Models\TimelineItem;
 use App\Models\User;
 use App\ValueObjects\CalendarDate;
+use Illuminate\Support\Number;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 
@@ -162,6 +164,73 @@ class PetitionShowControllerTest extends FeatureTestCase
             ->assertSee(__('petition.deadline_notice_of_default_penalty_period_end'))
             ->assertSee(DisplayDate::date($petition->deadline_notice_of_default))
             ->assertSee(DisplayDate::date(CalendarDate::create('2025-02-22')));
+    }
+
+    public function testShowDisplaysIgsForfeitedInSidebar(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        PetitionEvent::factory()
+            ->for($petition)
+            ->create([
+                'type' => PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                'date' => CalendarDate::create('2025-02-17'),
+                'duration' => 2,
+                'penalties' => [
+                    ['amount' => 100, 'duration' => 3],
+                ],
+            ]);
+
+        app(UpdatePetitionTotalsFromEventsAction::class)->execute($petition);
+        $petition->refresh();
+
+        $this->assertSame(300, $petition->igs_forfeited);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition->id,
+            ])
+            ->assertOk()
+            ->assertSeeInOrder([
+                __('petition.igs_forfeited'),
+                Number::currency(300, 'EUR', 'nl', 0),
+            ]);
+    }
+
+    public function testShowDisplaysDashForIgsForfeitedWithoutPenalty(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        PetitionEvent::factory()
+            ->for($petition)
+            ->create([
+                'type' => PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
+                'date' => CalendarDate::create('2025-02-17'),
+                'duration' => 2,
+            ]);
+
+        app(UpdatePetitionTotalsFromEventsAction::class)->execute($petition);
+        $petition->refresh();
+
+        $this->assertSame(0, $petition->igs_forfeited);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition->id,
+            ])
+            ->assertOk()
+            ->assertSeeInOrder([
+                __('petition.igs_forfeited'),
+                '-',
+            ]);
     }
 
     public function testShowWithTimelineFilter(): void
@@ -393,5 +462,61 @@ class PetitionShowControllerTest extends FeatureTestCase
             ->assertSee(__('decision.processing_steps_completed'))
             ->assertSee(__('decision.processing_steps_in_progress'))
             ->assertSeeInOrder([$decision->date->format('d-m-Y'), '-', '2/2']);
+    }
+
+    public function testShowDisplaysTheTagsOfThePetition(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $tag = Tag::factory()->recycle($department)->create(['name' => 'Veelklager']);
+        $petition->tags()->attach($tag);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition->id,
+            ])
+            ->assertOk()
+            ->assertSee('id="tags-block"', false)
+            ->assertSee('Veelklager');
+    }
+
+    public function testShowListsTagsChangedUnderTheUpdatesTimelineFilter(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        TimelineItem::factory()->recycle($petition)->create([
+            'type' => TimelineType::TAGS_CHANGED->value,
+            'data' => [
+                'tag_ids' => [$this->faker->uuid()],
+                'tag_names' => ['Veelklager'],
+            ],
+        ]);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $tagsChangedText = __('timeline.tags_changed', ['tags' => 'Veelklager']);
+
+        $response = $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition,
+                'timeline_filter_group' => TimelineFilterGroup::UPDATES->value,
+            ])
+            ->assertOk()
+            ->assertSee($tagsChangedText);
+
+        $timelineFilterGroups = $response->viewData('timelineFilterGroups');
+        $this->assertIsArray($timelineFilterGroups);
+        $this->assertSame([TimelineFilterGroup::UPDATES->value], array_keys($timelineFilterGroups));
+
+        $this->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+            'department' => $department,
+            'petition' => $petition,
+            'timeline_filter_group' => TimelineFilterGroup::NOTES->value,
+        ])
+            ->assertOk()
+            ->assertDontSee($tagsChangedText);
     }
 }

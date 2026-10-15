@@ -14,9 +14,7 @@ readonly class PetitionDeliverableUpdatePetitionDeadlineAtAction
             ->sortBy('deadline_at')
             ->last();
 
-        $petition->deadline_at = $petitionDeliverableWithLatestDeadlineAt !== null
-            ? $petitionDeliverableWithLatestDeadlineAt->deadline_at
-            : $petition->date_of_entry;
+        $petition->deadline_at = $petitionDeliverableWithLatestDeadlineAt->deadline_at ?? $petition->date_of_entry;
 
         $petition->save();
     }

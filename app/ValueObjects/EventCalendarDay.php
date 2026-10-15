@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\ValueObjects;
 
+use App\Enums\DecisionPeriodType;
 use App\Enums\SuspensionType;
 
 use function array_merge;
@@ -32,6 +33,11 @@ class EventCalendarDay
         public readonly bool $isUnspecifiedAdjournment = false,
         public readonly ?string $penaltySourceTerm = null,
         public readonly bool $isUnspecifiedAdjournmentWithdrawal = false,
+        public readonly bool $isOriginalDeadline = false,
+        public readonly bool $isOpenUnspecifiedAdjournment = false,
+        public readonly ?DecisionPeriodType $decisionPeriodType = null,
+        /** The decision term in days that ending an unspecified adjournment on this day applied. */
+        public readonly ?int $appliedUnspecifiedAdjournmentTerm = null,
     ) {
     }
 
@@ -53,6 +59,10 @@ class EventCalendarDay
          *     petitionEvents?: array<PetitionEventData>,
          *     penaltySourceTerm?: string|null,
          *     isUnspecifiedAdjournmentWithdrawal?: bool,
+         *     isOriginalDeadline?: bool,
+         *     isOpenUnspecifiedAdjournment?: bool,
+         *     decisionPeriodType?: DecisionPeriodType|null,
+         *     appliedUnspecifiedAdjournmentTerm?: int|null,
          * } $typedProperties */
         $typedProperties = $properties;
 
@@ -81,6 +91,7 @@ class EventCalendarDay
 
         return collect([
             'applicableTerm' => $this->applicableTerm,
+            'decisionPeriodType' => $this->decisionPeriodType?->value,
             'suspensionType' => $this->suspensionType?->value,
             'isATW' => $this->isATW,
             'isDeadline' => $this->isDeadline,
@@ -88,6 +99,7 @@ class EventCalendarDay
             'petitionEvents' => $petitionEventValues ?: null,
             'isUnspecifiedAdjournment' => $this->isUnspecifiedAdjournment,
             'isUnspecifiedAdjournmentWithdrawal' => $this->isUnspecifiedAdjournmentWithdrawal,
+            'isOriginalDeadline' => $this->isOriginalDeadline,
         ])
             ->reject(static fn ($value): bool => $value === 0 || ($value === '' || $value === '0') || $value === null)
             ->map(static fn ($value, string $key): string => sprintf('%s: %s', $key, $value))

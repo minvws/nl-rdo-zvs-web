@@ -6,6 +6,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 
 use App\Enums\PetitionEventType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -20,7 +21,6 @@ class FinalDecisionValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenNoReceiptOfObjectionExists(): void
     {
-        $validator = PetitionEventType::FINAL_RESULT->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -31,7 +31,7 @@ class FinalDecisionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::FINAL_RESULT, new PetitionEventData(
             type: PetitionEventType::FINAL_RESULT,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),
@@ -43,8 +43,8 @@ class FinalDecisionValidatorTest extends TestCase
             __('term.validation.common.event_requires_dependency_any', [
                 'event' => PetitionEventType::FINAL_RESULT->label(),
                 'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label()
-                    . ' of ' . PetitionEventType::PETITION_RECEIVED->label()
-                    . ' of ' . PetitionEventType::RECEIPT_OF_COMPLAINT->label(),
+                    . ' ' . __('general.or') . ' ' . PetitionEventType::PETITION_RECEIVED->label()
+                    . ' ' . __('general.or') . ' ' . PetitionEventType::RECEIPT_OF_COMPLAINT->label(),
             ]),
             $result->getErrors()['general'],
         );
@@ -53,7 +53,6 @@ class FinalDecisionValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenDateIsBeforeLastEvent(): void
     {
-        $validator = PetitionEventType::FINAL_RESULT->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -70,7 +69,7 @@ class FinalDecisionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::FINAL_RESULT, new PetitionEventData(
             type: PetitionEventType::FINAL_RESULT,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
@@ -89,7 +88,6 @@ class FinalDecisionValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenReceiptOfObjectionExistsAndDateIsAfterLastEvent(): void
     {
-        $validator = PetitionEventType::FINAL_RESULT->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -106,7 +104,7 @@ class FinalDecisionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::FINAL_RESULT, new PetitionEventData(
             type: PetitionEventType::FINAL_RESULT,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),
@@ -119,7 +117,6 @@ class FinalDecisionValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenFinalResultAlreadyExists(): void
     {
-        $validator = PetitionEventType::FINAL_RESULT->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -141,7 +138,7 @@ class FinalDecisionValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::FINAL_RESULT, new PetitionEventData(
             type: PetitionEventType::FINAL_RESULT,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),

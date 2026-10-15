@@ -27,5 +27,6 @@ enum PetitionCriteria: string
     case STATUS_GROUP = 'status_group';
     case STATUS = 'status';
     case SUM_OF_PENALTIES_PER_DATE = 'sum_of_penalties_per_date';
+    case TAG = 'tag';
     case TEAM = 'team';
 }

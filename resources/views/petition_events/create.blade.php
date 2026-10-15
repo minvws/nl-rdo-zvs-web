@@ -10,9 +10,8 @@
 @php
     $title = Str::ucfirst($selectedType->label($petition->petitionType->type)) . ' ' . Str::lower(__('petition_event.create'));
     $reasoningSelectEnumClass = $selectedType->reasoningSelectEnumClass();
-    $selectedResultType = ResultType::tryFrom(old('result_type', request('result_type', $config['result_type']->value ?? null)));
     $reasoningValue = old('reasoning', request('reasoning', ''));
-    $reasoningRequired = (bool) $selectedResultType?->requiresReasoning();
+    $reasoningRequired = $selectedType->requiresReasoning();
 @endphp
 
 @section('pageTitle', __('petition.create_in') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
@@ -107,12 +106,6 @@
                                 name="result_type"
                                 class="form-control @error('result_type') input-error @enderror"
                                 aria-describedby="result_type-error"
-                                hx-get="{{ route(RouteName::PETITION_EVENTS_WIZARD_CREATE, ['department' => $department, 'petition' => $petition, 'type' => $selectedType]) }}"
-                                hx-trigger="change"
-                                hx-target="#reasoning-wrapper-container"
-                                hx-select="#reasoning-wrapper-container"
-                                hx-swap="outerHTML"
-                                hx-include="closest form"
                                 required>
                                 @foreach (ResultType::getGroupedForPetitionType($petition->petitionType->type) as $group => $types)
                                     @if (count($types) > 0)
@@ -131,30 +124,26 @@
                         </div>
                     @endif
 
-                    <div id="reasoning-wrapper-container">
-                        @if ($selectedType->hasReasoningTextarea($selectedResultType))
-                            <div
-                                id="reasoning-wrapper"
-                                class="form-input-group">
-                                <x-input-label
-                                    for="reasoning"
-                                    :required="$reasoningRequired"
-                                    :content="__('petition_event.result_type_other_reasoning')" />
-                                <x-input-error
-                                    id="reasoning-error"
-                                    :messages="$errors->get('reasoning')" />
-                                <input
-                                    id="reasoning"
-                                    name="reasoning"
-                                    type="text"
-                                    class="form-control @error('reasoning') input-error @enderror"
-                                    aria-describedby="reasoning-error"
-                                    maxlength="1000"
-                                    value="{{ $reasoningValue }}"
-                                    @required($reasoningRequired) />
-                            </div>
-                        @endif
-                    </div>
+                    @if ($selectedType->hasReasoningTextarea())
+                        <div class="form-input-group">
+                            <x-input-label
+                                for="reasoning"
+                                :required="$reasoningRequired"
+                                :content="__('petition_event.reasoning_textarea')" />
+                            <x-input-error
+                                id="reasoning-error"
+                                :messages="$errors->get('reasoning')" />
+                            <input
+                                id="reasoning"
+                                name="reasoning"
+                                type="text"
+                                class="form-control @error('reasoning') input-error @enderror"
+                                aria-describedby="reasoning-error"
+                                maxlength="1000"
+                                value="{{ $reasoningValue }}"
+                                @required($reasoningRequired) />
+                        </div>
+                    @endif
 
                     @if ($selectedType->hasHearingForm())
                         <div class="form-input-group">
@@ -211,6 +200,15 @@
 
                     @if ($selectedType->hasEndDate())
                         <div class="form-input-group">
+                            @if (Lang::has('petition_event.fieldset_title.term_deadline.' . $selectedType->value))
+                                <legend>
+                                    {{ __('petition_event.fieldset_title.term_deadline.' . $selectedType->value . '.title') }}
+                                </legend>
+                                <p class="form-legend__help">
+                                    {{ __('petition_event.fieldset_title.term_deadline.' . $selectedType->value . '.subtitle') }}
+                                </p>
+                            @endif
+
                             <x-input-label
                                 for="term_deadline"
                                 required
@@ -227,22 +225,10 @@
                                 required
                                 value="{{ old('term_deadline', $config['term_deadline'] ?? null) }}" />
                         </div>
-                        <input
-                            type="hidden"
-                            id="duration"
-                            name="duration"
-                            value="{{ Form::old('duration', $config['duration'] ?? null) }}" />
-                    @elseif ($selectedType->hasDuration())
-                        <div class="form-input-group">
-                            @if (Lang::has('petition_event.fieldset_title.duration.' . $selectedType->value))
-                                <legend>
-                                    {{ __('petition_event.fieldset_title.duration.' . $selectedType->value . '.title') }}
-                                </legend>
-                                <p class="form-legend__help">
-                                    {{ __('petition_event.fieldset_title.duration.' . $selectedType->value . '.subtitle') }}
-                                </p>
-                            @endif
+                    @endif
 
+                    @if ($selectedType->hasDuration())
+                        <div class="form-input-group">
                             <x-input-label
                                 for="duration"
                                 required
@@ -352,7 +338,7 @@
                         {{ __('general.create') }}
                     </x-primary-button>
                     <a
-                        class="button"
+                        class="button secondary"
                         href="{{ route(RouteName::PETITION_EVENTS_WIZARD_STEP, ['department' => $department, 'petition' => $petition]) }}">
                         {{ __('general.cancel') }}
                     </a>

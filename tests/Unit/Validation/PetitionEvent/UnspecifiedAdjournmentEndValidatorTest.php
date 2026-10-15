@@ -7,6 +7,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -36,8 +37,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             createdAt: CarbonImmutable::now(),
             reasoning: AdjournmentEndReason::Event->value,
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $event, $state);
 
         $this->assertFalse($result->isValid());
         $this->assertArrayHasKey('general', $result->getErrors());
@@ -86,8 +86,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             createdAt: CarbonImmutable::now(),
             reasoning: AdjournmentEndReason::Event->value,
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $event, $state);
 
         $this->assertTrue($result->isValid());
     }
@@ -116,8 +115,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             createdAt: CarbonImmutable::now(),
             reasoning: AdjournmentEndReason::Event->value,
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $event, $state);
 
         $this->assertFalse($result->isValid());
         $errors = $result->getErrors();
@@ -160,8 +158,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             createdAt: CarbonImmutable::now(),
             reasoning: AdjournmentEndReason::Event->value,
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $event, $state);
 
         $this->assertFalse($result->isValid());
         $errors = $result->getErrors();
@@ -196,8 +193,7 @@ class UnspecifiedAdjournmentEndValidatorTest extends TestCase
             createdAt: CarbonImmutable::now(),
             reasoning: AdjournmentEndReason::Event->value,
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $event, $state);
 
         $this->assertTrue($result->isValid());
     }

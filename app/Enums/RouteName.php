@@ -52,6 +52,12 @@ enum RouteName: string
     case DEPARTMENTS_ADMIN_TEAMS_DELETE = 'departments.admin.teams.delete';
     case DEPARTMENTS_ADMIN_TEAMS_INDEX = 'departments.admin.teams.index';
 
+    // departments.admin.tags
+    case DEPARTMENTS_ADMIN_TAGS_CREATE = 'departments.admin.tags.create';
+    case DEPARTMENTS_ADMIN_TAGS_DELETE = 'departments.admin.tags.delete';
+    case DEPARTMENTS_ADMIN_TAGS_EDIT = 'departments.admin.tags.edit';
+    case DEPARTMENTS_ADMIN_TAGS_INDEX = 'departments.admin.tags.index';
+
     // departments.contacts
     case DEPARTMENTS_CONTACTS_INDEX = 'departments.contacts.index';
     case DEPARTMENTS_CONTACTS_INDEX_FILTER = 'departments.contacts.index_filter';
@@ -152,6 +158,11 @@ enum RouteName: string
     case DEPARTMENTS_PETITIONS_POLICY_DEPARTMENT_EDIT = 'departments.petitions.policy-department.edit';
     case DEPARTMENTS_PETITIONS_POLICY_DEPARTMENT_SHOW = 'departments.petitions.policy-department.show';
     case DEPARTMENTS_PETITIONS_POLICY_DEPARTMENT_UPDATE = 'departments.petitions.policy-department.update';
+
+    // departments.petitions.tags
+    case DEPARTMENTS_PETITIONS_TAGS_EDIT = 'departments.petitions.tags.edit';
+    case DEPARTMENTS_PETITIONS_TAGS_SHOW = 'departments.petitions.tags.show';
+    case DEPARTMENTS_PETITIONS_TAGS_UPDATE = 'departments.petitions.tags.update';
 
     // departments.petitions.exports
     case DEPARTMENTS_PETITIONS_EXPORTS_EXPORT = 'departments.petitions.exports.export';

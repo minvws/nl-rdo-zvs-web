@@ -1,0 +1,37 @@
+/* Header navigation */
+
+nav > .container--main-nav a.active-parent {
+  background: var(--oc-gray-1);
+  color: var(--oc-blue-8);
+  border-radius: 8px;
+}
+
+nav > .container ul li a:not([class]) {
+  border-radius: 8px;
+}
+
+body > header nav .actions {
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  gap: 0.5rem;
+
+  > li:has(.logout-button) {
+    align-self: stretch;
+
+    form {
+      height: 100%;
+    }
+  }
+
+  .notification-link {
+    padding: 0.5rem;
+    border-radius: 8px;
+
+    &:hover,
+    &:focus-visible {
+      background-color: var(--oc-gray-1);
+      color: var(--oc-blue-8);
+    }
+  }
+}

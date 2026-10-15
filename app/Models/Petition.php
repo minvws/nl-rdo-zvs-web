@@ -8,9 +8,11 @@ use App\Collections\CustomPetitionPropertyCollection;
 use App\Collections\PetitionCollection;
 use App\Collections\PetitionCustomDateCollection;
 use App\Collections\PetitionDeliverableCollection;
+use App\Collections\PetitionEventCollection;
 use App\Collections\PetitionTermCollection;
 use App\Collections\PetitionTypeCustomDateLabelCollection;
 use App\Collections\PolicyDepartmentCollection;
+use App\Collections\TagCollection;
 use App\Enums\AssignmentRole;
 use App\Enums\ContactRole;
 use App\Models\Casts\CalendarDateCast;
@@ -89,6 +91,7 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read ?Team $team
  * @property-read ?PetitionCategory $petitionCategory
  * @property-read PolicyDepartmentCollection $policyDepartments
+ * @property-read TagCollection $tags
  * @property-read PetitionDeliverableCollection $petitionDeliverables
  * @property-read PetitionStatus $petitionStatus
  * @property-read PetitionTermCollection $petitionTerms
@@ -101,7 +104,7 @@ use Ramsey\Uuid\UuidInterface;
  * @property-read CustomPetitionPropertyCollection $availableCustomPetitionProperties
  * @property-read Collection<int, TimelineItem> $timelineItems
  * @property-read Collection<int, Contact> $institution
- * @property-read Collection<int, PetitionEvent> $petitionEvents
+ * @property-read PetitionEventCollection $petitionEvents
  * @property-read Collection<int, PetitionQuerysnapshot> $querysnapshots
  * @property-read ?PetitionAssignment $firstAssignee
  * @property-read ?PetitionAssignment $secondAssignee
@@ -192,6 +195,14 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
     public function policyDepartments(): BelongsToMany
     {
         return $this->belongsToMany(PolicyDepartment::class);
+    }
+
+    /**
+     * @return BelongsToMany<Tag, $this>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'petition_tag', 'petition_id', 'tag_id');
     }
 
     /**
@@ -368,7 +379,7 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
      */
     public function petitionEvents(): HasMany
     {
-        return $this->hasMany(PetitionEvent::class, 'petition_id');
+        return $this->hasMany(PetitionEvent::class, 'petition_id')->oldest()->orderBy('id');
     }
 
     public function isTermEngineConverted(): bool
@@ -417,7 +428,13 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
      */
     protected function dateOfClose(): Attribute
     {
-        return Attribute::make(get: $this->customDates->getMaxDateForDateOfClose(...));
+        return Attribute::make(get: function (): ?CalendarDate {
+            if ($this->isTermEngineConverted()) {
+                return $this->petitionEvents->finalResult()?->date;
+            }
+
+            return $this->customDates->getMaxDateForDateOfClose();
+        });
     }
 
     /**

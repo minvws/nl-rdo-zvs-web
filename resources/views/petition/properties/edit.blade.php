@@ -8,7 +8,7 @@
             <h2 class="petition-property__title">{{ __("petition.model_singular") }}</h2>
 
             <a
-                href="{{ route(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_EDIT, ["department" => $petition->department->slug, "petition" => $petition]) }}"
+                href="{{ route(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                 class="icon-only petition-property__edit"
                 hx-push-url="false"
                 hx-swap="innerHTML"

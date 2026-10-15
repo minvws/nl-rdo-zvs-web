@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Exports;
 
 use App\Enums\ExportType;
+use App\Exports\ExcelDate;
 use App\Exports\ExportCriteria;
 use App\Exports\PetitionBeroepExcelExport;
 use App\Models\PetitionType;
+use App\ValueObjects\CalendarDate;
 use App\ValueObjects\DateRange;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 use Tests\Feature\FeatureTestCase;
@@ -30,9 +32,9 @@ class PetitionBeroepExcelExportTest extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             null,
-            '2022-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2022-01-01')),
             'Deels gegrond, Niet gegrond',
         ];
 
@@ -53,6 +55,15 @@ class PetitionBeroepExcelExportTest extends FeatureTestCase
         ];
 
         $this->assertEquals($expectedResult, $petitionBeroepExcelExport->headings());
+    }
+
+    public function testColumnFormats(): void
+    {
+        $this->assertSame([
+            'C' => ExcelDate::DATE_FORMAT,
+            'D' => ExcelDate::DATE_FORMAT,
+            'E' => ExcelDate::DATE_FORMAT,
+        ], $this->makePetitionBeroepExcelExport()->columnFormats());
     }
 
     public function makePetitionBeroepExcelExport(): PetitionBeroepExcelExport

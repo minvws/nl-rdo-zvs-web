@@ -6,6 +6,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 
 use App\Enums\PetitionEventType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -20,7 +21,6 @@ class HearingDateValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenNoReceiptOfObjectionExists(): void
     {
-        $validator = PetitionEventType::HEARING_DATE->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -31,7 +31,7 @@ class HearingDateValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::HEARING_DATE, new PetitionEventData(
             type: PetitionEventType::HEARING_DATE,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),
@@ -51,7 +51,6 @@ class HearingDateValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenDateIsBeforeLastEvent(): void
     {
-        $validator = PetitionEventType::HEARING_DATE->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -68,7 +67,7 @@ class HearingDateValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::HEARING_DATE, new PetitionEventData(
             type: PetitionEventType::HEARING_DATE,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
@@ -87,7 +86,6 @@ class HearingDateValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenReceiptOfObjectionExistsAndDateIsAfterLastEvent(): void
     {
-        $validator = PetitionEventType::HEARING_DATE->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -104,7 +102,7 @@ class HearingDateValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::HEARING_DATE, new PetitionEventData(
             type: PetitionEventType::HEARING_DATE,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),
@@ -117,7 +115,6 @@ class HearingDateValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenAnotherHearingDateAlreadyExists(): void
     {
-        $validator = PetitionEventType::HEARING_DATE->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -139,7 +136,7 @@ class HearingDateValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::HEARING_DATE, new PetitionEventData(
             type: PetitionEventType::HEARING_DATE,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),

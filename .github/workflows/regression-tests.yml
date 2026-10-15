@@ -72,6 +72,13 @@ jobs:
           composer:latest \
           composer install --ignore-platform-reqs
 
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run regression tests
         env:
           WWWGROUP: 1001

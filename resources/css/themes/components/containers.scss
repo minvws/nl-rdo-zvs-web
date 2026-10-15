@@ -1,7 +1,20 @@
+body > header {
+  padding-inline: 0;
+}
+
+main:has(> .container) {
+  padding: 0;
+  gap: 0;
+}
+
 .container {
   margin-inline: auto;
   max-width: 3000px;
   width: 95dvw;
+
+  section {
+    max-width: none;
+  }
 }
 
 .container--narrow {

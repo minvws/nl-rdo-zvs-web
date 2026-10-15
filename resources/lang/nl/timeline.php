@@ -27,6 +27,8 @@ return [
         'body' => 'Eerste telefonisch contact met :contact was op :date',
     ],
     'policy_department_changed' => 'Beleidsdirecties zijn gewijzigd naar :policyDepartments',
+    'tags_changed' => 'Tags zijn gewijzigd naar :tags',
+    'tags_cleared' => 'Alle tags zijn van de zaak gehaald',
 
     'filter_groups' => [
         'updates' => 'Aanpassingen',

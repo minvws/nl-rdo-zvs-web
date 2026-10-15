@@ -11,8 +11,8 @@
   align-items: center;
 
   button.icon-only {
-    --button-icon-only-min-width: 2rem;
-    --button-icon-only-min-height: 2rem;
+    min-width: 2rem;
+    min-height: 2rem;
   }
 }
 

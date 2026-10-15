@@ -13,6 +13,7 @@ use App\Services\Petition\PetitionParticularityCollector;
 use App\ValueObjects\CalendarDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 use function array_map;
@@ -68,6 +69,50 @@ class PetitionQueryBuilder extends Builder
         );
     }
 
+    /**
+     * Returns the particularity labels that occur on at least one petition matched by this query. It is built from
+     * the same label queries as the particularity filter, so every returned label yields at least one petition when
+     * filtered on.
+     *
+     * Each label query is joined laterally on the petitions separately, so the database only evaluates the conditions
+     * of one label at a time. A calculated label query only produces its own label, so it can stop at the first match.
+     *
+     * @return Collection<int, string>
+     */
+    public function pluckOccurringParticularities(): Collection
+    {
+        $petitions = $this->toBase()
+            ->cloneWithout(['columns', 'orders', 'limit', 'offset'])
+            ->cloneWithoutBindings(['select', 'order']);
+
+        $query = $this->occurringLabelsQuery($petitions, $this->relatedPetitionParticularityLabelsQuery(
+            'petition_id',
+            'related_petition_id',
+        ))->union($this->occurringLabelsQuery($petitions, $this->relatedPetitionParticularityLabelsQuery(
+            'related_petition_id',
+            'petition_id',
+        )));
+
+        foreach ($this->calculatedParticularityLabelQueries(CalendarDate::today()) as $labelQuery) {
+            $query->union($this->occurringLabelsQuery($petitions, $labelQuery)->limit(1));
+        }
+
+        /** @var Collection<int, string> $labels */
+        $labels = $query->pluck('label');
+
+        return $labels->sort()->values();
+    }
+
+    private function occurringLabelsQuery(QueryBuilder $petitions, QueryBuilder $labels): QueryBuilder
+    {
+        return DB::query()->fromSub(
+            $petitions->clone()
+                ->joinLateral($labels, 'particularities')
+                ->select('particularities.label'),
+            'occurring_particularities',
+        );
+    }
+
     private function particularitySortKeyQuery(): QueryBuilder
     {
         return DB::query()
@@ -77,24 +122,41 @@ class PetitionQueryBuilder extends Builder
 
     private function particularityLabelsQuery(): QueryBuilder
     {
-        $today = CalendarDate::today()->toDateString();
+        $query = $this->relatedPetitionParticularityLabelsQuery('petition_id', 'related_petition_id')
+            ->unionAll($this->relatedPetitionParticularityLabelsQuery('related_petition_id', 'petition_id'));
 
-        return $this->relatedPetitionParticularityLabelsQuery()
-            ->unionAll($this->noticeOfDefaultParticularityLabelQuery())
-            ->unionAll($this->suspensionParticularityLabelQuery($today))
-            ->unionAll($this->adjournmentParticularityLabelQuery($today))
-            ->unionAll($this->appealNotTimelyParticularityLabelQuery($today))
-            ->unionAll($this->adjournmentLetterParticularityLabelQuery());
+        foreach ($this->calculatedParticularityLabelQueries(CalendarDate::today()) as $labelQuery) {
+            $query->unionAll($labelQuery);
+        }
+
+        return $query;
     }
 
-    private function relatedPetitionParticularityLabelsQuery(): QueryBuilder
+    /**
+     * @return array<QueryBuilder>
+     */
+    private function calculatedParticularityLabelQueries(CalendarDate $today): array
     {
+        return [
+            $this->noticeOfDefaultParticularityLabelQuery(),
+            $this->suspensionParticularityLabelQuery($today),
+            $this->adjournmentParticularityLabelQuery($today),
+            $this->appealNotTimelyParticularityLabelQuery($today),
+            $this->receiptAppealNotTimelyParticularityLabelQuery(),
+            $this->adjournmentLetterParticularityLabelQuery(),
+        ];
+    }
+
+    private function relatedPetitionParticularityLabelsQuery(
+        string $petitionKey,
+        string $relatedPetitionKey,
+    ): QueryBuilder {
         return DB::query()
             ->from('petition_petition')
-            ->join('petitions as related_petitions', 'related_petitions.id', '=', 'petition_petition.related_petition_id')
+            ->join('petitions as related_petitions', 'related_petitions.id', '=', 'petition_petition.' . $relatedPetitionKey)
             ->join('petition_types', 'petition_types.id', '=', 'related_petitions.petition_type_id')
             ->selectRaw('petition_types.particularity_label as label')
-            ->whereColumn('petition_petition.petition_id', 'petitions.id')
+            ->whereColumn('petition_petition.' . $petitionKey, 'petitions.id')
             ->whereNotNull('petition_types.particularity_label');
     }
 
@@ -144,7 +206,7 @@ class PetitionQueryBuilder extends Builder
             );
     }
 
-    private function suspensionParticularityLabelQuery(string $today): QueryBuilder
+    private function suspensionParticularityLabelQuery(CalendarDate $today): QueryBuilder
     {
         return DB::query()
             ->selectRaw('? as label', [PetitionParticularityCollector::LABEL_SUSPENSION])
@@ -165,7 +227,7 @@ class PetitionQueryBuilder extends Builder
      *
      * @param array<SuspensionType> $suspensionTypes
      */
-    private static function activeSuspensionLetterEventQuery(array $suspensionTypes, string $today): QueryBuilder
+    private static function activeSuspensionLetterEventQuery(array $suspensionTypes, CalendarDate $today): QueryBuilder
     {
         return DB::query()
             ->from('petition_events as suspension_start')
@@ -176,7 +238,7 @@ class PetitionQueryBuilder extends Builder
                 'suspension_start.suspension_type',
                 array_map(static fn(SuspensionType $type): string => $type->value, $suspensionTypes),
             )
-            ->whereRaw('suspension_start."date" + 1 <= ?::date', [$today])
+            ->whereRaw('suspension_start."date" + 1 <= ?::date', [$today->toDateString()])
             ->whereRaw(
                 <<<'SQL'
                 ?::date <= coalesce(
@@ -192,22 +254,22 @@ class PetitionQueryBuilder extends Builder
                     suspension_start."date" + coalesce(suspension_start.duration, 0)
                 )
                 SQL,
-                [$today, PetitionEventType::SUSPENSION_END->value],
+                [$today->toDateString(), PetitionEventType::SUSPENSION_END->value],
             );
     }
 
-    private static function suspensionTermQuery(string $today): QueryBuilder
+    private static function suspensionTermQuery(CalendarDate $today): QueryBuilder
     {
         return DB::query()
             ->from('petition_terms')
             ->selectRaw('1')
             ->whereColumn('petition_terms.petition_id', 'petitions.id')
             ->where('type', TermType::SUSPENSION->value)
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today);
+            ->whereDate('start_date', '<=', $today->toDateString())
+            ->whereDate('end_date', '>=', $today->toDateString());
     }
 
-    private function adjournmentParticularityLabelQuery(string $today): QueryBuilder
+    private function adjournmentParticularityLabelQuery(CalendarDate $today): QueryBuilder
     {
         return DB::query()
             ->selectRaw('? as label', [PetitionParticularityCollector::LABEL_ADJOURNMENT])
@@ -230,11 +292,18 @@ class PetitionQueryBuilder extends Builder
             });
     }
 
-    private function appealNotTimelyParticularityLabelQuery(string $today): QueryBuilder
+    private function appealNotTimelyParticularityLabelQuery(CalendarDate $today): QueryBuilder
     {
         return DB::query()
             ->selectRaw('? as label', [PetitionParticularityCollector::LABEL_APPEAL_NOT_TIMELY])
             ->whereExists($this->runningAppealNotTimelyTermQuery($today));
+    }
+
+    private function receiptAppealNotTimelyParticularityLabelQuery(): QueryBuilder
+    {
+        return DB::query()
+            ->selectRaw('? as label', [PetitionParticularityCollector::LABEL_RECEIPT_APPEAL_NOT_TIMELY])
+            ->whereExists(self::petitionEventOfTypeQuery(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY));
     }
 
     private function adjournmentLetterParticularityLabelQuery(): QueryBuilder
@@ -244,12 +313,12 @@ class PetitionQueryBuilder extends Builder
             ->whereExists(self::petitionEventOfTypeQuery(PetitionEventType::ADJOURNMENT));
     }
 
-    private function runningAppealNotTimelyTermQuery(string $today): QueryBuilder
+    private function runningAppealNotTimelyTermQuery(CalendarDate $today): QueryBuilder
     {
         return self::petitionEventOfTypeQuery(PetitionEventType::APPEAL_DECISION_NOT_TIMELY)
             ->where('petition_events.duration', '>', 0)
-            ->whereRaw('petition_events."date" <= ?::date', [$today])
-            ->whereRaw('?::date <= petition_events."date" + petition_events.duration', [$today]);
+            ->whereRaw('petition_events."date" <= ?::date', [$today->toDateString()])
+            ->whereRaw('?::date <= petition_events."date" + petition_events.duration', [$today->toDateString()]);
     }
 
     private static function petitionEventOfTypeQuery(PetitionEventType $type): QueryBuilder
@@ -257,7 +326,7 @@ class PetitionQueryBuilder extends Builder
         return self::anyPetitionEventQuery()->where('petition_events.type', $type->value);
     }
 
-    private static function adjournmentTermQuery(string $today): QueryBuilder
+    private static function adjournmentTermQuery(CalendarDate $today): QueryBuilder
     {
         return DB::query()
             ->from('petition_terms')
@@ -268,16 +337,16 @@ class PetitionQueryBuilder extends Builder
                 TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_EVENT->value,
                 TermType::UNSPECIFIED_ADJOURNMENT_UNTIL_WITHDRAWAL->value,
             ])
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today);
+            ->whereDate('start_date', '<=', $today->toDateString())
+            ->whereDate('end_date', '>=', $today->toDateString());
     }
 
-    private static function adjournmentDraftTermQuery(string $today): QueryBuilder
+    private static function adjournmentDraftTermQuery(CalendarDate $today): QueryBuilder
     {
         return DB::query()
             ->from('petition_draft_terms')
             ->selectRaw('1')
             ->whereColumn('petition_draft_terms.petition_id', 'petitions.id')
-            ->whereDate('start_date', '>', $today);
+            ->whereDate('start_date', '>', $today->toDateString());
     }
 }

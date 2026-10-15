@@ -1,0 +1,37 @@
+.x-scrollable-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.x-scrollable {
+  overflow-x: scroll;
+}
+
+.shadow {
+  position: absolute;
+  top: 0;
+  z-index: 100;
+  width: 4rem;
+  height: 100%;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.shadow-left {
+  left: 0;
+  background: radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.1) 30%, transparent 100%);
+  opacity: 1;
+
+  .at-start & {
+    opacity: 0;
+  }
+}
+
+.shadow-right {
+  right: 0;
+  background: radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.1) 30%, transparent 100%);
+
+  .at-end & {
+    opacity: 0;
+  }
+}

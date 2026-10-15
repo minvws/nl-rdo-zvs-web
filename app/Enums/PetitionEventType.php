@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
-use App\Services\EventValidatorInterface;
+use App\ValueObjects\WizardEventCollection;
 use BackedEnum;
 use Illuminate\Support\Facades\Lang;
-use Webmozart\Assert\Assert;
 
-use function app;
-use function resolve;
 use function sprintf;
 
 /**
@@ -39,22 +36,8 @@ enum PetitionEventType: string
     case RECEIPT_APPEAL_NOT_TIMELY = 'receipt_appeal_not_timely';
     case SENT_PARTIAL_DECISION = 'sent_partial_decision';
     case RECEIPT_OF_COMPLAINT = 'receipt_of_complaint';
-
-    public function rule(): ?EventValidatorInterface
-    {
-        $key = 'validation.rule.' . $this->value;
-
-        // @codeCoverageIgnoreStart
-        if (!app()->has($key)) {
-            return null;
-        }
-        // @codeCoverageIgnoreEnd
-
-        $rule = resolve($key);
-        Assert::nullOrIsInstanceOf($rule, EventValidatorInterface::class);
-
-        return $rule;
-    }
+    case REFERRED_TO_DEPARTMENT = 'referred_to_department';
+    case ANSWER_RECEIVED = 'answer_received';
 
     /**
      * @codeCoverageIgnore pure config mapping, no business logic to test
@@ -63,6 +46,7 @@ enum PetitionEventType: string
     {
         return match ($this) {
             self::MEETING_SCHEDULED => true,
+            self::APPEAL_DECISION_NOT_TIMELY => true,
             default => false,
         };
     }
@@ -85,7 +69,6 @@ enum PetitionEventType: string
             self::ADJOURNMENT,
             self::COMMITTEE_HEARING_DETERMINED,
             self::NOTICE_OF_DEFAULT_RECEIVED,
-            self::APPEAL_DECISION_NOT_TIMELY,
             self::PETITION_RECEIVED, => true,
             default => false,
         };
@@ -134,13 +117,13 @@ enum PetitionEventType: string
         };
     }
 
-    public function hasReasoning(?ResultType $resultType = null): bool
+    public function hasReasoning(): bool
     {
         if ($this->hasReasoningSelect()) {
             return true;
         }
 
-        return $this->hasReasoningTextarea($resultType);
+        return $this->hasReasoningTextarea();
     }
 
     public function hasReasoningSelect(): bool
@@ -159,20 +142,18 @@ enum PetitionEventType: string
         };
     }
 
-    public function hasReasoningTextarea(?ResultType $resultType = null): bool
+    public function hasReasoningTextarea(): bool
     {
         return match ($this) {
-            self::FINAL_RESULT => $resultType?->requiresReasoning() ?? false,
-            self::UNSPECIFIED_ADJOURNMENT => true,
+            self::FINAL_RESULT, self::UNSPECIFIED_ADJOURNMENT => true,
             default => false,
         };
     }
 
-    public function requiresReasoning(?ResultType $resultType = null): bool
+    public function requiresReasoning(): bool
     {
         return match ($this) {
             self::UNSPECIFIED_ADJOURNMENT_END => true,
-            self::FINAL_RESULT => $resultType?->requiresReasoning() ?? false,
             default => false,
         };
     }
@@ -189,7 +170,9 @@ enum PetitionEventType: string
             self::PUBLICATION_DATE,
             self::ACTUAL_DISCLOSURE,
             self::OPINION_OUTSIDE_TERM,
-            self::SENT_PARTIAL_DECISION => $petitionType === PetitionVariant::WOO_VERZOEK,
+            self::SENT_PARTIAL_DECISION,
+            self::REFERRED_TO_DEPARTMENT,
+            self::ANSWER_RECEIVED => $petitionType === PetitionVariant::WOO_VERZOEK,
 
             self::NOTICE_OF_DEFAULT_WITHDRAWN => match ($petitionType) {
                 PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => true,
@@ -223,7 +206,7 @@ enum PetitionEventType: string
     public function getDependencies(PetitionVariant $petitionType): array
     {
         return match ($this) {
-            self::ACTUAL_DISCLOSURE => [self::FINAL_RESULT],
+            self::ACTUAL_DISCLOSURE => [self::FINAL_RESULT, self::SENT_PARTIAL_DECISION],
 
             self::PUBLICATION_DATE => [self::ACTUAL_DISCLOSURE, self::FINAL_RESULT],
 
@@ -237,6 +220,7 @@ enum PetitionEventType: string
             self::MEETING_SCHEDULED,
             self::OPINION_OUTSIDE_TERM,
             self::SENT_PARTIAL_DECISION,
+            self::REFERRED_TO_DEPARTMENT,
             self::FINAL_RESULT => match ($petitionType) {
                 PetitionVariant::BEZWAAR => [self::RECEIPT_OF_OBJECTION],
                 PetitionVariant::WOO_VERZOEK => [self::PETITION_RECEIVED],
@@ -260,6 +244,8 @@ enum PetitionEventType: string
             self::NOTICE_OF_DEFAULT_WITHDRAWN => [self::NOTICE_OF_DEFAULT_RECEIVED],
 
             self::APPEAL_DECISION_NOT_TIMELY => [self::RECEIPT_APPEAL_NOT_TIMELY],
+
+            self::ANSWER_RECEIVED => [self::REFERRED_TO_DEPARTMENT],
 
             default => [],
         };
@@ -384,6 +370,9 @@ enum PetitionEventType: string
                 ],
                 default => [],
             },
+            self::REFERRED_TO_DEPARTMENT, self::ANSWER_RECEIVED => [
+                self::FINAL_RESULT,
+            ],
             self::OPINION_OUTSIDE_TERM => match ($petitionType) {
                 PetitionVariant::WOO_VERZOEK => [
                     self::FINAL_RESULT,
@@ -432,6 +421,42 @@ enum PetitionEventType: string
             self::NOTICE_OF_DEFAULT_RECEIVED => $isRepeat ? self::NOTICE_OF_DEFAULT_WITHDRAWN : null,
             default => null,
         };
+    }
+
+    /**
+     * The event this one closes. It can only be added while such an event is still open.
+     */
+    public function closes(): ?self
+    {
+        return match ($this) {
+            self::APPEAL_DECISION_NOT_TIMELY => self::RECEIPT_APPEAL_NOT_TIMELY,
+            self::ANSWER_RECEIVED => self::REFERRED_TO_DEPARTMENT,
+            default => null,
+        };
+    }
+
+    /**
+     * The event that has to close this one before it can be added again.
+     */
+    public function mustBeClosedBy(): ?self
+    {
+        return match ($this) {
+            self::REFERRED_TO_DEPARTMENT => self::ANSWER_RECEIVED,
+            default => null,
+        };
+    }
+
+    public function fitsOpenEvents(WizardEventCollection $events): bool
+    {
+        $opening = $this->closes();
+
+        if ($opening instanceof self) {
+            return $events->hasOpen($opening, $this);
+        }
+
+        $closing = $this->mustBeClosedBy();
+
+        return !$closing instanceof self || !$events->hasOpen($this, $closing);
     }
 
     public function description(?PetitionVariant $petitionType = null): string

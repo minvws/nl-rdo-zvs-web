@@ -7,6 +7,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 use App\Enums\PetitionEventType;
 use App\Enums\SuspensionType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -22,11 +23,10 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenNoEventsExist(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect([]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),
@@ -39,7 +39,6 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenNoSuspensionDaysExistAfterLastEvent(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -50,7 +49,7 @@ class SuspensionEndValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),
@@ -73,7 +72,6 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenDateIsNotInActiveSuspensionPeriod(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -84,7 +82,7 @@ class SuspensionEndValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-01-09'),
             createdAt: CarbonImmutable::now(),
@@ -102,7 +100,6 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenSuspensionDaysExistAfterLastEventAndDateIsValid(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -114,7 +111,7 @@ class SuspensionEndValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
@@ -127,7 +124,6 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenSuspensionDaysExistAfterLastEventEvenIfLastEventIsNotSuspension(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -144,7 +140,7 @@ class SuspensionEndValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-01-20'),
             createdAt: CarbonImmutable::now(),
@@ -157,7 +153,6 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItAcceptsCommitteeHearingScheduledAsValidLastEventType(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -186,7 +181,7 @@ class SuspensionEndValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-01-22'),
             createdAt: CarbonImmutable::now(),
@@ -199,7 +194,6 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenAdjournmentIsTheLastEvent(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -217,7 +211,7 @@ class SuspensionEndValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-01-20'),
             createdAt: CarbonImmutable::now(),
@@ -230,11 +224,10 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItPassesOnTheLastDayOfTheSuspensionWindowAfterAnAdjournment(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect($this->suspensionFollowedByAdjournment()));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-01-30'),
             createdAt: CarbonImmutable::now(),
@@ -247,11 +240,10 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItFailsOnTheDayAfterTheSuspensionWindowAfterAnAdjournment(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect($this->suspensionFollowedByAdjournment()));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-01-31'),
             createdAt: CarbonImmutable::now(),
@@ -267,11 +259,10 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenTheEndDatePrecedesTheAdjournment(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect($this->suspensionFollowedByAdjournment()));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-01-14'),
             createdAt: CarbonImmutable::now(),
@@ -309,7 +300,6 @@ class SuspensionEndValidatorTest extends TestCase
     #[Test]
     public function testItRejectsEndSuspensionWhenNotSuspended(): void
     {
-        $validator = PetitionEventType::SUSPENSION_END->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -332,7 +322,7 @@ class SuspensionEndValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::SUSPENSION_END, new PetitionEventData(
             type: PetitionEventType::SUSPENSION_END,
             date: CalendarDate::create('2025-02-25'),
             createdAt: CarbonImmutable::now(),

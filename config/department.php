@@ -70,5 +70,6 @@ return [
     'unspecified-adjournment' => [
         'team-a' => UnspecifiedAdjournmentMode::FREEZES_TERMS->value,
         'team-b' => UnspecifiedAdjournmentMode::FREEZES_TERMS->value,
+        'team-i' => UnspecifiedAdjournmentMode::FREEZES_TERMS->value,
     ],
 ];

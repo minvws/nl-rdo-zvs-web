@@ -75,12 +75,7 @@
                 </tr>
             @endforelse
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="3">
-                    {{ $footer }}
-                </td>
-            </tr>
-        </tfoot>
     </table>
+
+    {{ $footer }}
 </section>

@@ -43,10 +43,14 @@
                 </div>
 
                 @if ($petition->isTermEngineConverted())
-                    <x-objection-events-calendar :events="$events" />
+                    <section class="mt-5">
+                        <x-objection-events-calendar
+                            :events="$events"
+                            :department="$petition->department" />
+                    </section>
                     @if (Config::get('app.features.term_engine_v2'))
                         <a
-                            class="mt-2"
+                            class="button secondary mt-2"
                             href="{{ route(RouteName::PETITION_EVENTS_WIZARD_RESET, ['department' => $petition->department, 'petition' => $petition]) }}">
                             {{ __('term.manage_terms') }}
                         </a>
@@ -175,29 +179,27 @@
                                 </tr>
                             @endforelse
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="4">
-                                    @can(Ability::UPDATE, $petition)
-                                        <div class="button-container">
-                                            <a
-                                                href="{{ route(RouteName::DEPARTMENTS_PETITIONS_DECISIONS_CREATE, ['department' => $department, 'petition' => $petition]) }}">
-                                                {{ __('decision.create') }}
-                                            </a>
-                                            <a
-                                                href="{{ route(RouteName::DEPARTMENTS_PETITIONS_DECISION_ATTACH_FORM, ['department' => $department, 'petition' => $petition]) }}">
-                                                {{ __('decision.link') }}
-                                            </a>
-                                            <a
-                                                href="{{ route(RouteName::DEPARTMENTS_PETITIONS_FINAL_DECISION_EDIT, ['department' => $department, 'petition' => $petition]) }}">
-                                                {{ __('decision.set_final_decision') }}
-                                            </a>
-                                        </div>
-                                    @endcan
-                                </td>
-                            </tr>
-                        </tfoot>
                     </table>
+
+                    @can(Ability::UPDATE, $petition)
+                        <div class="button-container">
+                            <a
+                                class="button secondary"
+                                href="{{ route(RouteName::DEPARTMENTS_PETITIONS_DECISIONS_CREATE, ['department' => $department, 'petition' => $petition]) }}">
+                                {{ __('decision.create') }}
+                            </a>
+                            <a
+                                class="button secondary"
+                                href="{{ route(RouteName::DEPARTMENTS_PETITIONS_DECISION_ATTACH_FORM, ['department' => $department, 'petition' => $petition]) }}">
+                                {{ __('decision.link') }}
+                            </a>
+                            <a
+                                class="button secondary"
+                                href="{{ route(RouteName::DEPARTMENTS_PETITIONS_FINAL_DECISION_EDIT, ['department' => $department, 'petition' => $petition]) }}">
+                                {{ __('decision.set_final_decision') }}
+                            </a>
+                        </div>
+                    @endcan
                 </section>
 
                 <x-petition.table
@@ -212,6 +214,7 @@
                         @can(Ability::UPDATE, $petition)
                             <div class="button-container">
                                 <a
+                                    class="button secondary"
                                     href="{{ route(RouteName::DEPARTMENTS_PETITION_PETITION_ATTACH_FORM, ['department' => $department, 'petition' => $petition]) }}">
                                     {{ __('petition.link') }}
                                 </a>

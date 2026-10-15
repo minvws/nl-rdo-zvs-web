@@ -1,0 +1,46 @@
+info:
+  name: petition_timeline_items
+  type: http
+  seq: 29
+
+http:
+  method: GET
+  url: "{{host}}/api/v1/petition_timeline_items/"
+  headers:
+    - name: ""
+      value: ""
+      disabled: true
+  params:
+    - name: timelineable_id
+      value: ""
+      type: query
+      disabled: true
+    - name: per_page
+      value: "50"
+      type: query
+      disabled: true
+    - name: created_at_after
+      value: ""
+      type: query
+      disabled: true
+    - name: created_at_before
+      value: ""
+      type: query
+      disabled: true
+    - name: updated_at_after
+      value: ""
+      type: query
+      disabled: true
+    - name: updated_at_before
+      value: ""
+      type: query
+      disabled: true
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

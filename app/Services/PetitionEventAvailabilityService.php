@@ -31,6 +31,8 @@ readonly class PetitionEventAvailabilityService
         PetitionEventType::SENT_PARTIAL_DECISION,
         PetitionEventType::MEETING_SCHEDULED,
         PetitionEventType::HEARING_DATE,
+        PetitionEventType::REFERRED_TO_DEPARTMENT,
+        PetitionEventType::ANSWER_RECEIVED,
     ];
 
     /**
@@ -124,10 +126,7 @@ readonly class PetitionEventAvailabilityService
             return false;
         }
 
-        if (
-            $eventType === PetitionEventType::APPEAL_DECISION_NOT_TIMELY
-            && !$this->hasOpenAppealNotTimelyReceipt($currentEvents)
-        ) {
+        if (!$eventType->fitsOpenEvents($currentEvents)) {
             return false;
         }
 
@@ -149,12 +148,6 @@ readonly class PetitionEventAvailabilityService
         }
 
         return !in_array($eventType->value, $usedTypes, true);
-    }
-
-    private function hasOpenAppealNotTimelyReceipt(WizardEventCollection $currentEvents): bool
-    {
-        return $this->countOfType($currentEvents, PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY)
-            > $this->countOfType($currentEvents, PetitionEventType::APPEAL_DECISION_NOT_TIMELY);
     }
 
     /**
@@ -247,21 +240,12 @@ readonly class PetitionEventAvailabilityService
 
     private function hasOpenSuspension(WizardEventCollection $currentEvents): bool
     {
-        return $this->countOfType($currentEvents, PetitionEventType::LETTER_OF_SUSPENSION_SENT)
-            > $this->countOfType($currentEvents, PetitionEventType::SUSPENSION_END);
+        return $currentEvents->hasOpen(PetitionEventType::LETTER_OF_SUSPENSION_SENT, PetitionEventType::SUSPENSION_END);
     }
 
     private function hasOpenAdjournment(WizardEventCollection $currentEvents): bool
     {
-        return $this->countOfType($currentEvents, PetitionEventType::UNSPECIFIED_ADJOURNMENT)
-            > $this->countOfType($currentEvents, PetitionEventType::UNSPECIFIED_ADJOURNMENT_END);
-    }
-
-    private function countOfType(WizardEventCollection $currentEvents, PetitionEventType $type): int
-    {
-        return $currentEvents->all()->filter(
-            static fn(PetitionEventData $event): bool => $event->type === $type,
-        )->count();
+        return $currentEvents->hasOpen(PetitionEventType::UNSPECIFIED_ADJOURNMENT, PetitionEventType::UNSPECIFIED_ADJOURNMENT_END);
     }
 
     /**

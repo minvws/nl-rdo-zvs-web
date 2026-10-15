@@ -7,7 +7,6 @@ namespace Tests\Unit\Enums;
 use App\Enums\AdjournmentEndReason;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
-use App\Enums\ResultType;
 use Illuminate\Support\Facades\Lang;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -84,7 +83,10 @@ class PetitionEventTypeTest extends TestCase
     {
         $description = PetitionEventType::ADJOURNMENT->description();
 
-        $this->assertEquals('Dit is de datum waarop er is verdaagd.', $description);
+        $this->assertEquals(
+            'Dit is de datum waarop een ongespecificeerde aanhouding is afgesproken. De ongespecificeerde aanhouding is een aanhouding waarvan de einddatum nog niet bekend is.',
+            $description,
+        );
     }
 
     #[Test]
@@ -297,9 +299,7 @@ class PetitionEventTypeTest extends TestCase
     public function testHasReasoningReturnsTrueForConfiguredEventTypes(): void
     {
         $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasReasoning());
-        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoning());
-        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoning(ResultType::FINAL_DECISION));
-        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoning(ResultType::OTHER));
+        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoning());
         $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT->hasReasoning());
         $this->assertFalse(PetitionEventType::HEARING_DATE->hasReasoning());
     }
@@ -317,17 +317,15 @@ class PetitionEventTypeTest extends TestCase
         $this->assertFalse(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->hasReasoningTextarea());
 
         $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoningSelect());
-        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoningTextarea());
-        $this->assertFalse(PetitionEventType::FINAL_RESULT->hasReasoningTextarea(ResultType::FINAL_DECISION));
-        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoningTextarea(ResultType::OTHER));
+        $this->assertTrue(PetitionEventType::FINAL_RESULT->hasReasoningTextarea());
     }
 
     #[Test]
     public function testRequiresReasoningUsesCentralConfiguration(): void
     {
         $this->assertTrue(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->requiresReasoning());
-        $this->assertFalse(PetitionEventType::FINAL_RESULT->requiresReasoning(ResultType::FINAL_DECISION));
-        $this->assertTrue(PetitionEventType::FINAL_RESULT->requiresReasoning(ResultType::OTHER));
+        $this->assertFalse(PetitionEventType::FINAL_RESULT->requiresReasoning());
+        $this->assertFalse(PetitionEventType::UNSPECIFIED_ADJOURNMENT->requiresReasoning());
     }
 
     #[Test]

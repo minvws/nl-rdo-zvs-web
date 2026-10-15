@@ -18,7 +18,7 @@
             @can(Ability::CREATE, Petition::class)
                 @foreach ($petitionTypes as $petitionType)
                     <a
-                        class="button"
+                        class="button secondary"
                         id="petitions-create-{{ $petitionType->type }}"
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_CREATE, ["department" => $department, "petitionType" => $petitionType]) }}"
                         aria-label="{{ $petitionType->name }} {{ Str::lower(__("general.create")) }}">
@@ -37,349 +37,378 @@
             <form
                 data-auto-submit="form"
                 method="post"
-                class="filters__form"
+                class="filters__form filters__form--stacked"
                 action="{{ route(RouteName::DEPARTMENTS_PETITIONS_INDEX_FILTER, ["department" => $department]) }}">
                 @csrf
-                <div class="form-filter-group search">
-                    <x-input-label
-                        class="form-label"
-                        for="search"
-                        :content="__('general.search_petitions')" />
-                    <div>
-                        <input
-                            maxlength="255"
-                            id="search"
-                            class="search__input"
-                            type="search"
-                            name="filter[{{ PetitionCriteria::SEARCH->value }}]"
-                            placeholder="{{ __("general.search_by_multiple") }}"
-                            value="{{ request(sprintf("filter.%s", PetitionCriteria::SEARCH->value)) }}" />
-                        <button
-                            formaction="{{ route(RouteName::DEPARTMENTS_PETITIONS_INDEX_FILTER, ["department" => $department]) }}"
-                            type="submit"
-                            class="icon-only">
-                            <x-tabler-search
-                                aria-hidden="true"
-                                focusable="false" />
-                            <span class="visually-hidden">Zoeken</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div
-                    class="form-filter-group"
-                    data-hide-table-column-content="{{ strtolower(__("petition.status")) }}">
-                    <x-input-label
-                        class="form-label"
-                        for="petition-status-group"
-                        :content="__('petition.status')" />
-                    <select
-                        data-auto-submit="input"
-                        id="petition-status-group"
-                        name="filter[{{ PetitionCriteria::STATUS_GROUP->value }}]"
-                        class="form-select">
-                        <option value="">{{ __("petition.filter.no_filter") }}</option>
-                        @foreach (StatusGroup::cases() as $status_group)
-                            <option
-                                value="{{ $status_group }}"
-                                @selected(request(sprintf("filter.%s", PetitionCriteria::STATUS_GROUP->value)) === $status_group->value)>
-                                {{ __("petition_status." . $status_group->value) }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div
-                    class="form-filter-group"
-                    data-hide-table-column-content="{{ strtolower(__("petition.substatus")) }}">
-                    <x-input-label
-                        class="form-label"
-                        for="petition-status"
-                        :content="__('petition.substatus')" />
-                    <select
-                        data-auto-submit="input"
-                        id="petition-status"
-                        name="filter[{{ PetitionCriteria::STATUS->value }}]"
-                        class="form-select">
-                        <option value="">{{ __("petition.filter.no_filter") }}</option>
-                        @foreach ($usedPetitionStatuses as $status)
-                            <option
-                                value="{{ $status->status }}"
-                                @selected(request(sprintf("filter.%s", PetitionCriteria::STATUS->value)) === $status->status)>
-                                {{ $status->status }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div
-                    class="form-filter-group"
-                    data-hide-table-column-content="{{ strtolower(__("petition.particularities")) }}">
-                    <x-input-label
-                        class="form-label"
-                        for="petition-particularities"
-                        :content="__('petition.particularities')" />
-                    <select
-                        data-auto-submit="input"
-                        id="petition-particularities"
-                        name="filter[{{ PetitionCriteria::PARTICULARITIES->value }}]"
-                        class="form-select">
-                        <option value="">{{ __("petition.filter.no_filter") }}</option>
-                        @foreach ($usedPetitionParticularities as $particularity)
-                            <option
-                                value="{{ $particularity }}"
-                                @selected(request(sprintf("filter.%s", PetitionCriteria::PARTICULARITIES->value)) === $particularity)>
-                                {{ $particularity }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                @if ($usedCustomProperties->isNotEmpty())
-                    <div
-                        class="form-filter-group"
-                        data-hide-table-column-content="{{ strtolower(__("petition.custom_property")) }}">
+                <div class="filters__top">
+                    <div class="form-filter-group search">
                         <x-input-label
                             class="form-label"
-                            for="petition-custom-property"
-                            :content="__('petition.custom_property')" />
+                            for="search"
+                            :content="__('general.search_petitions')" />
+                        <div>
+                            <input
+                                maxlength="255"
+                                id="search"
+                                class="search__input"
+                                type="search"
+                                name="filter[{{ PetitionCriteria::SEARCH->value }}]"
+                                placeholder="{{ __("general.search_by_multiple") }}"
+                                value="{{ request(sprintf("filter.%s", PetitionCriteria::SEARCH->value)) }}" />
+                            <button
+                                formaction="{{ route(RouteName::DEPARTMENTS_PETITIONS_INDEX_FILTER, ["department" => $department]) }}"
+                                type="submit"
+                                class="icon-only">
+                                <x-tabler-search
+                                    aria-hidden="true"
+                                    focusable="false" />
+                                <span class="visually-hidden">Zoeken</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        class="form-filter-submit"
+                        formaction="{{ route(RouteName::DEPARTMENTS_PETITIONS_INDEX_FILTER, ["department" => $department]) }}"
+                        data-auto-submit="submit"
+                        type="submit"
+                        method="post">
+                        {{ __("general.filter_now") }}
+                    </button>
+
+                    <a
+                        class="button form-filter-reset"
+                        @if ($hasSavedFilters)
+                            href="{{ route(RouteName::DEPARTMENTS_PETITIONS_INDEX, ["department" => $department, "filter" => "clear"]) }}"
+                        @else
+                            aria-disabled="true"
+                        @endif>
+                        {{ __("general.clear_filters") }}
+                    </a>
+                </div>
+
+                <div class="filters__grid">
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("petition.status")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="petition-status-group"
+                            :content="__('petition.status')" />
                         <select
                             data-auto-submit="input"
-                            id="petition-custom-property"
-                            name="filter[{{ PetitionCriteria::CUSTOM_PROPERTY->value }}]"
+                            id="petition-status-group"
+                            name="filter[{{ PetitionCriteria::STATUS_GROUP->value }}]"
                             class="form-select">
                             <option value="">{{ __("petition.filter.no_filter") }}</option>
-                            @foreach ($usedCustomProperties as $property)
+                            @foreach (StatusGroup::cases() as $status_group)
                                 <option
-                                    value="{{ $property->id }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::CUSTOM_PROPERTY->value)) === $property->id->toString())>
-                                    {{ $property->name }}
+                                    value="{{ $status_group }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::STATUS_GROUP->value)) === $status_group->value)>
+                                    {{ __("petition_status." . $status_group->value) }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
-                @endif
 
-                <div
-                    class="form-filter-group"
-                    data-hide-table-column-content="{{ strtolower(__("contact.attached_applicant_type")) }}">
-                    <x-input-label
-                        class="form-label"
-                        for="petition-applicant-type"
-                        :content="__('contact.attached_applicant_type')" />
-                    <select
-                        data-auto-submit="input"
-                        id="petition-applicant-type"
-                        name="filter[{{ PetitionCriteria::APPLICANT->value }}]"
-                        class="form-select">
-                        <option value="">{{ __("petition.filter.no_filter") }}</option>
-                        @foreach (ContactType::cases() as $contact_type)
-                            <option
-                                value="{{ $contact_type->value }}"
-                                @selected(request(sprintf("filter.%s", PetitionCriteria::APPLICANT->value)) === $contact_type->value)>
-                                {{ __("contact.contact_type_enum." . $contact_type->value) }}
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("petition.substatus")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="petition-status"
+                            :content="__('petition.substatus')" />
+                        <select
+                            data-auto-submit="input"
+                            id="petition-status"
+                            name="filter[{{ PetitionCriteria::STATUS->value }}]"
+                            class="form-select">
+                            <option value="">{{ __("petition.filter.no_filter") }}</option>
+                            @foreach ($usedPetitionStatuses as $status)
+                                <option
+                                    value="{{ $status->status }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::STATUS->value)) === $status->status)>
+                                    {{ $status->status }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("petition.particularities")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="petition-particularities"
+                            :content="__('petition.particularities')" />
+                        <select
+                            data-auto-submit="input"
+                            id="petition-particularities"
+                            name="filter[{{ PetitionCriteria::PARTICULARITIES->value }}]"
+                            class="form-select">
+                            <option value="">{{ __("petition.filter.no_filter") }}</option>
+                            @foreach ($usedPetitionParticularities as $particularity)
+                                <option
+                                    value="{{ $particularity }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::PARTICULARITIES->value)) === $particularity)>
+                                    {{ $particularity }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @if ($usedCustomProperties->isNotEmpty())
+                        <div
+                            class="form-filter-group"
+                            data-hide-table-column-content="{{ strtolower(__("petition.custom_property")) }}">
+                            <x-input-label
+                                class="form-label"
+                                for="petition-custom-property"
+                                :content="__('petition.custom_property')" />
+                            <select
+                                data-auto-submit="input"
+                                id="petition-custom-property"
+                                name="filter[{{ PetitionCriteria::CUSTOM_PROPERTY->value }}]"
+                                class="form-select">
+                                <option value="">{{ __("petition.filter.no_filter") }}</option>
+                                @foreach ($usedCustomProperties as $property)
+                                    <option
+                                        value="{{ $property->id }}"
+                                        @selected(request(sprintf("filter.%s", PetitionCriteria::CUSTOM_PROPERTY->value)) === $property->id->toString())>
+                                        {{ $property->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("contact.attached_applicant_type")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="petition-applicant-type"
+                            :content="__('contact.attached_applicant_type')" />
+                        <select
+                            data-auto-submit="input"
+                            id="petition-applicant-type"
+                            name="filter[{{ PetitionCriteria::APPLICANT->value }}]"
+                            class="form-select">
+                            <option value="">{{ __("petition.filter.no_filter") }}</option>
+                            @foreach (ContactType::cases() as $contact_type)
+                                <option
+                                    value="{{ $contact_type->value }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::APPLICANT->value)) === $contact_type->value)>
+                                    {{ __("contact.contact_type_enum." . $contact_type->value) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("policy_department.model_plural")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="policy-department-id"
+                            :content="__('policy_department.model_singular')" />
+                        <select
+                            data-auto-submit="input"
+                            id="policy-department-id"
+                            name="filter[{{ PetitionCriteria::POLICY_DEPARTMENT->value }}]"
+                            class="form-select">
+                            <option value="">{{ __("petition.filter.no_filter") }}</option>
+                            @foreach ($policyDepartments as $policyDepartment)
+                                <option
+                                    value="{{ $policyDepartment->id }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::POLICY_DEPARTMENT->value)) === $policyDepartment->id->toString())>
+                                    {{ $policyDepartment->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("petition_category.model_singular")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="petition-category-id"
+                            :content="__('petition_category.model_singular')" />
+                        <select
+                            data-auto-submit="input"
+                            id="petition-category-id"
+                            name="filter[{{ PetitionCriteria::CATEGORY->value }}]"
+                            class="form-select">
+                            <option value="">{{ __("petition.filter.no_filter") }}</option>
+                            @foreach ($usedPetitionCategories as $petitionCategory)
+                                <option
+                                    value="{{ $petitionCategory->id }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::CATEGORY->value)) === $petitionCategory->id->toString())>
+                                    {{ $petitionCategory->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("team.model_singular")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="petition-team-id"
+                            :content="__('team.model_singular')" />
+                        <select
+                            data-auto-submit="input"
+                            id="petition-team-id"
+                            name="filter[{{ PetitionCriteria::TEAM->value }}]"
+                            class="form-select">
+                            <option value="">{{ __("petition.filter.no_filter") }}</option>
+                            @foreach ($usedTeams as $team)
+                                <option
+                                    value="{{ $team->id }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::TEAM->value)) === $team->id->toString())>
+                                    {{ $team->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("petition.type")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="petition-type"
+                            :content="__('petition.type')" />
+                        <select
+                            data-auto-submit="input"
+                            id="petition-type"
+                            name="filter[{{ PetitionCriteria::PETITION_TYPE->value }}]"
+                            class="form-select">
+                            <option value="">{{ __("petition.filter.no_filter") }}</option>
+                            @foreach ($usedPetitionTypes as $petitionType)
+                                <option
+                                    value="{{ $petitionType->id }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::PETITION_TYPE->value)) === $petitionType->id->toString())>
+                                    {{ $petitionType->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div
+                        class="form-filter-group"
+                        data-hide-table-column-content="{{ strtolower(__("petition.assigned_user")) }}">
+                        <x-input-label
+                            class="form-label"
+                            for="assigned-user"
+                            :content="__('petition.assigned_user')" />
+                        <select
+                            data-auto-submit="input"
+                            id="assigned-user"
+                            name="filter[{{ PetitionCriteria::ASSIGNED_USER->value }}]"
+                            class="form-select">
+                            <option value="">
+                                {{ __("petition.filter.no_filter") }}
                             </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div
-                    class="form-filter-group"
-                    data-hide-table-column-content="{{ strtolower(__("policy_department.model_plural")) }}">
-                    <x-input-label
-                        class="form-label"
-                        for="policy-department-id"
-                        :content="__('policy_department.model_singular')" />
-                    <select
-                        data-auto-submit="input"
-                        id="policy-department-id"
-                        name="filter[{{ PetitionCriteria::POLICY_DEPARTMENT->value }}]"
-                        class="form-select">
-                        <option value="">{{ __("petition.filter.no_filter") }}</option>
-                        @foreach ($policyDepartments as $policyDepartment)
                             <option
-                                value="{{ $policyDepartment->id }}"
-                                @selected(request(sprintf("filter.%s", PetitionCriteria::POLICY_DEPARTMENT->value)) === $policyDepartment->id->toString())>
-                                {{ $policyDepartment->name }}
+                                value="none"
+                                @selected(request()->has(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) && request(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) === "none")>
+                                {{ __("petition.filter.unassigned") }}
                             </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div
-                    class="form-filter-group"
-                    data-hide-table-column-content="{{ strtolower(__("petition_category.model_singular")) }}">
-                    <x-input-label
-                        class="form-label"
-                        for="petition-category-id"
-                        :content="__('petition_category.model_singular')" />
-                    <select
-                        data-auto-submit="input"
-                        id="petition-category-id"
-                        name="filter[{{ PetitionCriteria::CATEGORY->value }}]"
-                        class="form-select">
-                        <option value="">{{ __("petition.filter.no_filter") }}</option>
-                        @foreach ($usedPetitionCategories as $petitionCategory)
-                            <option
-                                value="{{ $petitionCategory->id }}"
-                                @selected(request(sprintf("filter.%s", PetitionCriteria::CATEGORY->value)) === $petitionCategory->id->toString())>
-                                {{ $petitionCategory->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                            @foreach ($assignedUsers as $user)
+                                <option
+                                    value="{{ $user->id }}"
+                                    @selected(request(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) === $user->id->toString())>
+                                    {{ $user->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div
-                    class="form-filter-group"
-                    data-hide-table-column-content="{{ strtolower(__("team.model_singular")) }}">
-                    <x-input-label
-                        class="form-label"
-                        for="petition-team-id"
-                        :content="__('team.model_singular')" />
-                    <select
-                        data-auto-submit="input"
-                        id="petition-team-id"
-                        name="filter[{{ PetitionCriteria::TEAM->value }}]"
-                        class="form-select">
-                        <option value="">{{ __("petition.filter.no_filter") }}</option>
-                        @foreach ($usedTeams as $team)
-                            <option
-                                value="{{ $team->id }}"
-                                @selected(request(sprintf("filter.%s", PetitionCriteria::TEAM->value)) === $team->id->toString())>
-                                {{ $team->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    @if ($usedTags->isNotEmpty())
+                        <div
+                            class="form-filter-group"
+                            data-hide-table-column-content="{{ strtolower(__("tag.model_plural")) }}">
+                            <x-input-label
+                                class="form-label"
+                                for="petition-tag"
+                                :content="__('tag.model_singular')" />
+                            <select
+                                data-auto-submit="input"
+                                id="petition-tag"
+                                name="filter[{{ PetitionCriteria::TAG->value }}]"
+                                class="form-select">
+                                <option value="">{{ __("petition.filter.no_filter") }}</option>
+                                @foreach ($usedTags as $tag)
+                                    <option
+                                        value="{{ $tag->id }}"
+                                        @selected(request(sprintf("filter.%s", PetitionCriteria::TAG->value)) === $tag->id->toString())>
+                                        {{ $tag->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    <div
+                        class="form-filter-group"
+                        data-filter-group="archive">
+                        <x-input-label
+                            class="form-label"
+                            for="filter_archive"
+                            :content="__('petition.filter.archive.label')" />
+                        <select
+                            data-auto-submit="input"
+                            id="filter_archive"
+                            name="{{ sprintf("filter[%s]", PetitionCriteria::ARCHIVE->value) }}"
+                            class="form-select">
+                            @foreach ($archiveFilters as $archiveFilter)
+                                <option
+                                    value="{{ $archiveFilter->value }}"
+                                    @selected(
+                                        request(sprintf("filter.%s", PetitionCriteria::ARCHIVE->value)) ===
+                                            $archiveFilter->value ||
+                                        (! request()->has(sprintf("filter.%s", PetitionCriteria::ARCHIVE->value)) &&
+                                            $archiveFilter === ArchiveFilter::HIDE_ARCHIVED)
+                                    )>
+                                    {{ $archiveFilter->label() }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div
+                        class="form-filter-group"
+                        data-filter-group="deadline_from">
+                        <x-input-label
+                            class="form-label"
+                            for="filter_deadline_from"
+                            :content="__('petition.filter.deadline_from')" />
+                        <input
+                            id="filter_deadline_from"
+                            class="form-control"
+                            type="date"
+                            step="1"
+                            name="filter[{{ PetitionCriteria::DEADLINE_FROM->value }}]"
+                            value="{{ request(sprintf("filter.%s", PetitionCriteria::DEADLINE_FROM->value)) }}" />
+                    </div>
+
+                    <div
+                        class="form-filter-group"
+                        data-filter-group="deadline_to">
+                        <x-input-label
+                            class="form-label"
+                            for="filter_deadline_to"
+                            :content="__('petition.filter.deadline_to')" />
+                        <input
+                            id="filter_deadline_to"
+                            class="form-control"
+                            type="date"
+                            step="1"
+                            name="filter[{{ PetitionCriteria::DEADLINE_TO->value }}]"
+                            value="{{ request(sprintf("filter.%s", PetitionCriteria::DEADLINE_TO->value)) }}" />
+                    </div>
                 </div>
-
-                <div
-                    class="form-filter-group"
-                    data-hide-table-column-content="{{ strtolower(__("petition.type")) }}">
-                    <x-input-label
-                        class="form-label"
-                        for="petition-type"
-                        :content="__('petition.type')" />
-                    <select
-                        data-auto-submit="input"
-                        id="petition-type"
-                        name="filter[{{ PetitionCriteria::PETITION_TYPE->value }}]"
-                        class="form-select">
-                        <option value="">{{ __("petition.filter.no_filter") }}</option>
-                        @foreach ($usedPetitionTypes as $petitionType)
-                            <option
-                                value="{{ $petitionType->id }}"
-                                @selected(request(sprintf("filter.%s", PetitionCriteria::PETITION_TYPE->value)) === $petitionType->id->toString())>
-                                {{ $petitionType->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div
-                    class="form-filter-group"
-                    data-hide-table-column-content="{{ strtolower(__("petition.assigned_user")) }}">
-                    <x-input-label
-                        class="form-label"
-                        for="assigned-user"
-                        :content="__('petition.assigned_user')" />
-                    <select
-                        data-auto-submit="input"
-                        id="assigned-user"
-                        name="filter[{{ PetitionCriteria::ASSIGNED_USER->value }}]"
-                        class="form-select">
-                        <option value="">
-                            {{ __("petition.filter.no_filter") }}
-                        </option>
-                        <option
-                            value="none"
-                            @selected(request()->has(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) && request(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) === "none")>
-                            {{ __("petition.filter.unassigned") }}
-                        </option>
-                        @foreach ($assignedUsers as $user)
-                            <option
-                                value="{{ $user->id }}"
-                                @selected(request(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) === $user->id->toString())>
-                                {{ $user->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div
-                    class="form-filter-group"
-                    data-filter-group="archive">
-                    <x-input-label
-                        class="form-label"
-                        for="filter_archive"
-                        :content="__('petition.filter.archive.label')" />
-                    <select
-                        data-auto-submit="input"
-                        id="filter_archive"
-                        name="{{ sprintf("filter[%s]", PetitionCriteria::ARCHIVE->value) }}"
-                        class="form-select">
-                        @foreach ($archiveFilters as $archiveFilter)
-                            <option
-                                value="{{ $archiveFilter->value }}"
-                                @selected(
-                                    request(sprintf("filter.%s", PetitionCriteria::ARCHIVE->value)) ===
-                                        $archiveFilter->value ||
-                                    (! request()->has(sprintf("filter.%s", PetitionCriteria::ARCHIVE->value)) &&
-                                        $archiveFilter === ArchiveFilter::HIDE_ARCHIVED)
-                                )>
-                                {{ $archiveFilter->label() }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div
-                    class="form-filter-group"
-                    data-filter-group="deadline_from">
-                    <x-input-label
-                        class="form-label"
-                        for="filter_deadline_from"
-                        :content="__('petition.filter.deadline_from')" />
-                    <input
-                        id="filter_deadline_from"
-                        class="form-control"
-                        type="date"
-                        step="1"
-                        name="filter[{{ PetitionCriteria::DEADLINE_FROM->value }}]"
-                        value="{{ request(sprintf("filter.%s", PetitionCriteria::DEADLINE_FROM->value)) }}" />
-                </div>
-
-                <div
-                    class="form-filter-group"
-                    data-filter-group="deadline_to">
-                    <x-input-label
-                        class="form-label"
-                        for="filter_deadline_to"
-                        :content="__('petition.filter.deadline_to')" />
-                    <input
-                        id="filter_deadline_to"
-                        class="form-control"
-                        type="date"
-                        step="1"
-                        name="filter[{{ PetitionCriteria::DEADLINE_TO->value }}]"
-                        value="{{ request(sprintf("filter.%s", PetitionCriteria::DEADLINE_TO->value)) }}" />
-                </div>
-
-                <button
-                    class="form-filter-submit"
-                    formaction="{{ route(RouteName::DEPARTMENTS_PETITIONS_INDEX_FILTER, ["department" => $department]) }}"
-                    data-auto-submit="submit"
-                    type="submit"
-                    method="post">
-                    {{ __("general.filter_now") }}
-                </button>
-
-                <a
-                    class="button form-filter-reset"
-                    @if ($hasSavedFilters)
-                        href="{{ route(RouteName::DEPARTMENTS_PETITIONS_INDEX, ["department" => $department, "filter" => "clear"]) }}"
-                    @else
-                        aria-disabled="true"
-                    @endif>
-                    {{ __("general.clear_filters") }}
-                </a>
             </form>
         </div>
     </section>
@@ -541,6 +570,11 @@
                                 </th>
                                 <th
                                     scope="col"
+                                    data-hide-table-column-content="{{ strtolower(__("tag.model_plural")) }}">
+                                    {{ __("tag.model_plural") }}
+                                </th>
+                                <th
+                                    scope="col"
                                     aria-sort="{{ Sort::getAria(PetitionCriteria::DEADLINE_AT) }}"
                                     data-hide-table-column-content="{{ strtolower(__("petition.deadline_at")) }}">
                                     <a
@@ -676,6 +710,12 @@
                                         data-hide-table-column-content="{{ strtolower(__("petition.particularities")) }}">
                                         <x-petition.particularity_labels :petition="$petition" />
                                     </td>
+                                    <td data-hide-table-column-content="{{ strtolower(__("tag.model_plural")) }}">
+                                        <x-tag.list
+                                            :tags="$petition->tags"
+                                            :limit="3"
+                                            empty="-" />
+                                    </td>
                                     <td data-hide-table-column-content="{{ strtolower(__("petition.deadline_at")) }}">
                                         {{ $petition->effective_deadline_at !== null ? DisplayDate::date($petition->effective_deadline_at) : "-" }}
                                         @if ($petition->hasDeadlineOverride())
@@ -715,7 +755,7 @@
                             @empty
                                 <tr>
                                     <td
-                                        colspan="12"
+                                        colspan="20"
                                         class="no-results">
                                         @if (! empty(request("number")) || ! empty(request("petition_status_text")) || ! empty(request("assigned_to")) || ! empty(request("petition_type_id")))
                                             {{ __("petition.no_petitions_for_search") }}

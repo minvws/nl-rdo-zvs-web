@@ -18,9 +18,9 @@
 
     &:hover {
       span {
-        background-color: var(--button-base-hover-background-color);
-        border-color: var(--button-base-hover-border-color);
-        color: var(--button-base-hover-text-color);
+        background-color: var(--oc-white);
+        border-color: var(--oc-blue-9);
+        color: var(--oc-blue-9);
       }
     }
 
@@ -69,7 +69,8 @@ details[open] .icon {
 }
 
 .column-toggle.active {
-  border-color: var(--oc-gray-6);
+  background-color: var(--oc-white);
+  border: 1px solid var(--oc-gray-6);
   color: var(--oc-gray-6);
 
   &:hover {

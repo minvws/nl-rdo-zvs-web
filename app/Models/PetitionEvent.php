@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Collections\PetitionEventCollection;
 use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
@@ -13,6 +14,7 @@ use App\Models\Casts\UuidCast;
 use App\ValueObjects\CalendarDate;
 use Carbon\CarbonImmutable;
 use Database\Factories\PetitionEventFactory;
+use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\DateFormat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +34,7 @@ use Override;
  * @property array<array{amount: int, duration: int}> $penalties
  * @property CarbonImmutable $created_at
  */
+#[CollectedBy(PetitionEventCollection::class)]
 #[DateFormat('Y-m-d H:i:s.u')]
 class PetitionEvent extends EloquentModel
 {

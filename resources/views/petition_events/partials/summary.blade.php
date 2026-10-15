@@ -1,6 +1,16 @@
 @use(App\Enums\PetitionEventType)
 @use(App\Enums\RouteName)
 <x-app-layout>
+    <section class="mb-4">
+        <div class="visually-grouped">
+            <x-petition-header-details
+                :petition="$petition"
+                :hasBackLink="true"
+                :backLinkRoute="route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $petition->department, 'petition' => $petition])"
+                :backLinkLabel="__('general.back_to_petition')" />
+        </div>
+    </section>
+
     <x-petition-events.menu
         :petition="$petition"
         :availableTypes="$availableTypes" />
@@ -28,7 +38,7 @@
                                 </strong>
                             </td>
                             <td>{{ $event->date->toDateString() }}</td>
-                            <td>{{ $event->duration > 1 ? $event->duration . ' dagen' : '' }}</td>
+                            <td>{{ $termTexts[$index] }}</td>
                             <td>
                                 @if (! empty($event->penalties))
                                     <div>
@@ -91,7 +101,9 @@
 
     <section class="mb-4">
         <div class="visually-grouped">
-            <x-objection-events-calendar :events="$events" />
+            <x-objection-events-calendar
+                :events="$events"
+                :department="$petition->department" />
         </div>
     </section>
 
@@ -104,11 +116,11 @@
                 <div class="button-container">
                     <button
                         type="submit"
-                        class="button">
+                        class="button secondary">
                         {{ __('term.finish_store') }}
                     </button>
                     <a
-                        class="button"
+                        class="button secondary"
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $petition->department, 'petition' => $petition]) }}">
                         {{ __('general.cancel') }}
                     </a>

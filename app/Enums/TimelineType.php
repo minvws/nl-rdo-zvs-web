@@ -44,4 +44,5 @@ enum TimelineType: string
     case PETITION_UNARCHIVED = 'petition_unarchived';
     case PETITION_EVENTS_CREATED = 'petition_events_created';
     case FINAL_DECISION_SET = 'final_decision_set';
+    case TAGS_CHANGED = 'tags_changed';
 }

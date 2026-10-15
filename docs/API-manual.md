@@ -11,6 +11,9 @@ The API exposes:
 
 Authentication is handled with Laravel Sanctum bearer tokens.
 
+The API is read-only: every `/api/v1/*` endpoint is a paginated `GET`. Which tables are exposed,
+and which of their columns are returned, is defined in `config/api_tables.php`.
+
 ## 1. Start ZVS on localhost
 
 From the project root:
@@ -24,7 +27,7 @@ By default, the app is available at:
 
 - `http://localhost` (Sail default `APP_PORT=80`)
 
-If your local port differs, use your own host/port in Postman.
+If your local port differs, use your own host/port in the API client.
 
 ## 2. Create API credentials
 
@@ -92,27 +95,76 @@ Response shape:
 
 ### Common query parameters
 
-- `per_page` (max 100)
-- `created_at_after`
-- `created_at_before`
-- `updated_at_after`
-- `updated_at_before`
+All endpoints accept:
 
-## 3a. Timeline Items Endpoint
+- `page` - page number (default: 1)
+- `per_page` - items per page (default: 15, max: 100; higher values are capped at 100)
+- `created_at_after` - keeps rows with `created_at` strictly after this timestamp
+- `created_at_before` - keeps rows with `created_at` strictly before this timestamp
+- `updated_at_after` - keeps rows with `updated_at` strictly after this timestamp
+- `updated_at_before` - keeps rows with `updated_at` strictly before this timestamp
+
+Timestamps are compared as given; use ISO 8601 (for example `2026-01-31T00:00:00Z`).
+
+### Filtering on fields
+
+Every field an endpoint exposes doubles as an exact-match filter. For example
+`GET /api/v1/petitions?number=2026-0001` or `GET /api/v1/petition_events?petition_id=<uuid>`.
+The fields available per endpoint are returned in `meta.available_fields` on every response.
+
+Two things to be aware of:
+
+- A parameter that is present but empty (`?number=`) filters on an empty string and returns no
+  rows. Leave a filter out entirely instead of sending it empty.
+- The `filterable_fields` key in `config/api_tables.php` is not read by the query builder; filtering
+  is derived from the `fields` list. It only documents intent.
+
+## 4. Available endpoints
+
+| Endpoint (`/api/v1/...`) | Database table |
+| --- | --- |
+| `users` | `users` |
+| `petitions` | `petitions` |
+| `petition_petition` | `petition_petition` |
+| `petition_deliverables` | `petition_deliverables` |
+| `petition_draft_terms` | `petition_draft_terms` |
+| `petition_custom_properties` | `custom_petition_property_petition` |
+| `decision_petition` | `decision_petition` |
+| `categories` | `petition_categories` |
+| `tags` | `tags` |
+| `contacts` | `contacts` |
+| `terms` | `petition_terms` |
+| `decisions` | `decisions` |
+| `departments` | `departments` |
+| `petition_statuses` | `petition_statuses` |
+| `petition_status_histories` | `petition_statuses_history_entries` |
+| `petition_types` | `petition_types` |
+| `petition_custom_costs` | `custom_costs` |
+| `petition_custom_dates` | `petition_custom_dates` |
+| `public_holidays` | `public_holidays` |
+| `processing_steps` | `processing_steps` |
+| `policy_departments` | `policy_departments` |
+| `custom_petition_properties_definitions` | `custom_petition_properties` |
+| `petition_external_urls` | `petition_external_urls` |
+| `petition_policy_department` | `petition_policy_department` |
+| `petition_tag` | `petition_tag` |
+| `petition_querysnapshots` | `petition_querysnapshots` |
+| `contact_petition` | `contact_petition` |
+| `custom_petition_properties` | `custom_petition_properties` |
+| `petition_events` | `petition_events` |
+| `petition_timeline_items` | `timeline_items` |
+| `petition_assignments` | `petition_assignments` |
+
+`custom_petition_properties` and `custom_petition_properties_definitions` are aliases: both read the
+`custom_petition_properties` table and expose the same fields.
+
+The endpoints below need some extra explanation.
 
 ### GET /api/v1/petition_timeline_items
 
 Retrieve timeline items (activities) for all cases or filtered by specific case.
 
-**Authentication:** Required (Sanctum token)
-
-**Query Parameters:**
-- `page` - Page number (default: 1)
-- `per_page` - Items per page (default: 15, max: 100)
-- `created_at_after` - ISO 8601 timestamp
-- `created_at_before` - ISO 8601 timestamp
-- `updated_at_after` - ISO 8601 timestamp
-- `updated_at_before` - ISO 8601 timestamp
+**Endpoint-specific filter:** `timelineable_id` - restrict to one case (or other timelineable record)
 
 **Response Fields:**
 - `internal_id` - Timeline item ID
@@ -130,23 +182,11 @@ curl -H "Authorization: Bearer TOKEN" \
   http://localhost/api/v1/petition_timeline_items?page=1
 ```
 
-## 3b. Petition Assignments Endpoint
-
 ### GET /api/v1/petition_assignments
 
 Retrieve petition-to-user assignments (lawyer assignments with PRIMARY and SECONDARY roles).
 
-**Authentication:** Required (Sanctum token)
-
-**Query Parameters:**
-- `page` - Page number (default: 1)
-- `per_page` - Items per page (default: 15, max: 100)
-- `petition_id` - Filter by specific petition ID
-- `user_id` - Filter by specific user/lawyer ID
-- `created_at_after` - ISO 8601 timestamp
-- `created_at_before` - ISO 8601 timestamp
-- `updated_at_after` - ISO 8601 timestamp
-- `updated_at_before` - ISO 8601 timestamp
+**Endpoint-specific filters:** `petition_id`, `user_id`
 
 **Response Fields:**
 - `id` - Assignment record ID
@@ -167,22 +207,75 @@ curl -H "Authorization: Bearer TOKEN" \
   "http://localhost/api/v1/petition_assignments?user_id=<user_id>"
 ```
 
-## 5. Use the Postman collection
+### GET /api/v1/petition_events
 
-Collection file:
+Retrieve the events that drive status transitions, suspensions and deadline calculations on a case.
 
-- `postman/zvs-api-v1.postman_collection.json`
+**Endpoint-specific filters:** `petition_id`, `type`
 
-### Steps
+**Response Fields:**
+- `id` - Event ID
+- `petition_id` - Petition the event belongs to
+- `type` - Event type
+- `date` - Event date
+- `duration` - Duration in days, for events that suspend a term
+- `penalties` - Penalty amount attached to the event
+- `suspension_type` - Suspension type, for suspension events
+- `result_type` - Result type, for events that close a term
+- `reasoning` - Free-text reasoning (used for unspecified adjournment)
+- `created_at` - Creation timestamp
+- `updated_at` - Update timestamp
 
-1. Import the collection in Postman.
-2. Open collection variables and set:
+**Example Request:**
+```bash
+curl -H "Authorization: Bearer TOKEN" \
+  "http://localhost/api/v1/petition_events?petition_id=<petition_id>"
+```
+
+### GET /api/v1/tags and GET /api/v1/petition_tag
+
+`tags` is the tag list each department manages itself. `petition_tag` links tags to petitions.
+
+**Response Fields (`tags`):**
+- `id` - Tag ID
+- `department_id` - Department the tag belongs to
+- `name` - Tag name
+- `color` - Colour (`blue`, `green`, `yellow`, `orange`, `red`, `grape`, `gray`)
+- `description` - Explanation for case handlers (optional)
+- `active` - Whether the tag can still be added to a petition
+- `created_at` - Creation timestamp
+- `updated_at` - Update timestamp
+
+**Response Fields (`petition_tag`):**
+- `petition_id` - Petition ID
+- `tag_id` - Tag ID
+
+Inactive tags stay in `tags` and stay linked in `petition_tag`. Filter on `tag_id` rather than on the
+name, because a department can rename a tag.
+
+**Example Request:**
+```bash
+curl -H "Authorization: Bearer TOKEN" \
+  "http://localhost/api/v1/petition_tag?tag_id=<tag_id>"
+```
+
+## 5. Use the Bruno collection
+
+A Bruno collection is maintained in `docs/bruno-collection/`, with one request per endpoint plus a
+`login` request. It covers every endpoint listed in section 4. When an endpoint or a field is added
+to `config/api_tables.php`, update the collection in the same change.
+
+1. Open `docs/bruno-collection` as a collection in Bruno.
+2. Set the collection variables:
    - `host` = `http://localhost` (or your local port)
    - `api_key` = generated API key
    - `api_secret` = generated API secret
-3. Run `login` request first.
-4. The `login` test script stores `access_token` automatically.
-5. Run any `GET /api/v1/*` request.
+3. Select (or create) an environment. The `login` request stores the token with `bru.setEnvVar`,
+   so an environment has to be active for it to land.
+4. Run the `login` request first. Its after-response script stores `access_token`, which every other
+   request uses as its bearer token.
+5. Run any `GET /api/v1/*` request. Query parameters are included but disabled; enable the ones you
+   need and give them a value.
 
 ## 6. Run API tests
 
@@ -191,11 +284,12 @@ Run API endpoint tests:
 ```bash
 vendor/bin/sail artisan test tests/Feature/Http/Controllers/Api/AuthenticationControllerTest.php
 vendor/bin/sail artisan test tests/Feature/Api/GenericApiControllerTest.php
+vendor/bin/sail artisan test tests/Feature/Api/TimelineItemsEndpointTest.php
 ```
 
 Run credential command tests:
 
 ```bash
-vendor/bin/sail artisan test tests/Feature/Commands/CreateApiUserCommandTest.php
-vendor/bin/sail artisan test tests/Feature/Commands/GenerateApiCredentialsTest.php
+vendor/bin/sail artisan test tests/Feature/Commands/Api/CreateApiUserCommandTest.php
+vendor/bin/sail artisan test tests/Feature/Commands/Api/GenerateApiCredentialsTest.php
 ```

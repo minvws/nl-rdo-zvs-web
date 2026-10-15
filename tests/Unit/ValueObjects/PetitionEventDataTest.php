@@ -383,13 +383,41 @@ class PetitionEventDataTest extends TestCase
                 date: CalendarDate::create('2025-01-15'),
                 createdAt: CarbonImmutable::now(),
                 resultType: $resultType,
-                reasoning: $resultType === ResultType::OTHER ? 'Some explanation' : null,
             );
 
             $array = $event->toArray();
 
             $this->assertSame($resultType->value, $array['result_type']);
         }
+    }
+
+    #[Test]
+    public function itAcceptsReasoningForEveryResultType(): void
+    {
+        foreach (ResultType::cases() as $resultType) {
+            $event = new PetitionEventData(
+                type: PetitionEventType::FINAL_RESULT,
+                date: CalendarDate::create('2025-01-15'),
+                createdAt: CarbonImmutable::now(),
+                resultType: $resultType,
+                reasoning: 'Some explanation',
+            );
+
+            $this->assertSame('Some explanation', $event->reasoning);
+        }
+    }
+
+    #[Test]
+    public function itAcceptsAFinalResultWithoutReasoning(): void
+    {
+        $event = new PetitionEventData(
+            type: PetitionEventType::FINAL_RESULT,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+            resultType: ResultType::OTHER,
+        );
+
+        $this->assertNull($event->reasoning);
     }
 
     #[Test]

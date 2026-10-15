@@ -555,7 +555,7 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
     }
 
     #[Test]
-    public function testReasoningIsRequiredForFinalResultOther(): void
+    public function testReasoningIsOptionalForFinalResultOther(): void
     {
         ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(PetitionVariant::WOO_VERZOEK);
 
@@ -584,7 +584,11 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
             ]);
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('reasoning');
+        $response->assertSessionHasNoErrors();
+
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+        $this->assertNull($events->last()->reasoning);
     }
 
     #[Test]
@@ -624,6 +628,46 @@ final class AddPetitionEventRequestTest extends FeatureTestCase
         $lastEvent = $events->last();
         $this->assertSame('Custom other final result explanation', $lastEvent->reasoning);
         $this->assertSame(ResultType::OTHER, $lastEvent->resultType);
+    }
+
+    #[Test]
+    public function testReasoningAcceptsValueForFinalResultWithADecision(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(PetitionVariant::WOO_VERZOEK);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
+        Session::put($sessionKey, WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PETITION_RECEIVED,
+                date: CalendarDate::create(now()->subDays(2)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            )));
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::FINAL_RESULT->value,
+                'date' => now()->subDay()->toDateString(),
+                'result_type' => ResultType::FINAL_DECISION->value,
+                'reasoning' => 'Toelichting bij het besluit',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+
+        $events = Session::get($sessionKey);
+        $this->assertNotNull($events);
+        $lastEvent = $events->last();
+        $this->assertSame('Toelichting bij het besluit', $lastEvent->reasoning);
+        $this->assertSame(ResultType::FINAL_DECISION, $lastEvent->resultType);
     }
 
     #[Test]

@@ -28,6 +28,7 @@ use Tests\Feature\FeatureTestCase;
 
 use function __;
 use function now;
+use function preg_match;
 use function route;
 use function sprintf;
 
@@ -195,6 +196,61 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
 
         $this->assertContains(PetitionEventType::COMMITTEE_HEARING_DETERMINED, $availableTypes);
         $this->assertNotContains(PetitionEventType::MEETING_SCHEDULED, $availableTypes);
+    }
+
+    #[Test]
+    public function testStartShowsBothTermsOfAnUnspecifiedAdjournment(): void
+    {
+        ['department' => $department, 'petition' => $petition] = $this->createPetitionSetup(['slug' => 'team-c']);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        Session::put(
+            sprintf('wizard.petition.%s.events', $petition->id),
+            $this->objectionReceiptEvents()->add(new PetitionEventData(
+                type: PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                date: CalendarDate::create(now()->subDays(10)->toDateString()),
+                createdAt: CarbonImmutable::now(),
+                duration: 14,
+                withdrawalDuration: 7,
+            )),
+        );
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_STEP, [
+                'department' => $department,
+                'petition' => $petition,
+            ]));
+
+        $response->assertOk();
+        $response->assertSee('14 / 7 dagen');
+    }
+
+    #[Test]
+    public function testStartShowsWhichPetitionIsBeingEdited(): void
+    {
+        ['department' => $department, 'petitionType' => $petitionType, 'petition' => $petition] = $this->createPetitionSetup();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_STEP, [
+                'department' => $department,
+                'petition' => $petition,
+            ]));
+
+        $response->assertOk();
+        $response->assertSeeInOrder([$petitionType->name, $petition->name, $petition->number]);
+        $response->assertSee(route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+            'department' => $department,
+            'petition' => $petition,
+        ]));
     }
 
     #[Test]
@@ -1122,7 +1178,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     }
 
     #[Test]
-    public function testCreateActionUsesHtmxForFinalResultReasoningFieldToggle(): void
+    public function testCreateActionShowsAnOptionalReasoningFieldForEveryResultType(): void
     {
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::WOO_VERZOEK]);
@@ -1137,20 +1193,21 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
             ->fullyVerified()
             ->create();
 
-        $route = route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
-            'department' => $department,
-            'petition' => $petition,
-            'type' => PetitionEventType::FINAL_RESULT,
-        ]);
+        foreach ([null, ResultType::FINAL_DECISION, ResultType::OTHER] as $resultType) {
+            $response = $this->beUser($user, true, $department)->get(route(RouteName::PETITION_EVENTS_WIZARD_CREATE, [
+                'department' => $department,
+                'petition' => $petition,
+                'type' => PetitionEventType::FINAL_RESULT,
+                'result_type' => $resultType?->value,
+            ]));
 
-        $response = $this->beUser($user, true, $department)->get($route);
+            $response->assertOk();
 
-        $response->assertOk();
-        $response->assertSee('hx-get="' . $route . '"', escape: false);
-        $response->assertSee('hx-target="#reasoning-wrapper-container"', escape: false);
-        $response->assertSee('hx-select="#reasoning-wrapper-container"', escape: false);
-        $response->assertSee('id="reasoning-wrapper-container"', escape: false);
-        $response->assertDontSee("document.addEventListener('DOMContentLoaded'", escape: false);
+            $content = $response->getContent();
+            $this->assertIsString($content);
+            $this->assertSame(1, preg_match('/<input\s[^>]*id="reasoning"[^>]*>/', $content, $matches));
+            $this->assertStringNotContainsString('required', $matches[0]);
+        }
     }
 
     #[Test]
@@ -1388,7 +1445,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
             ->fullyVerified()
             ->create();
 
-        // Add PRIMARY_DECISION, RECEIPT_OF_OBJECTION, and NOTICE_OF_DEFAULT_RECEIVED
+        // Add PRIMARY_DECISION, RECEIPT_OF_OBJECTION, NOTICE_OF_DEFAULT_RECEIVED, and RECEIPT_APPEAL_NOT_TIMELY
         Session::put(sprintf('wizard.petition.%s.events', $petition->id), WizardEventCollection::make()
             ->add(new PetitionEventData(
                 type: PetitionEventType::PRIMARY_DECISION,
@@ -1410,6 +1467,11 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
                 penalties: [
                     new PenaltyData(amount: 1000, duration: 15),
                 ],
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY,
+                date: CalendarDate::create(now()->addDays(35)->toDateString()),
+                createdAt: CarbonImmutable::now(),
             )));
 
         $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
@@ -1422,6 +1484,7 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
                 'type' => PetitionEventType::APPEAL_DECISION_NOT_TIMELY->value,
                 'date' => now()->addDays(40)->toDateString(),
                 'duration' => 20,
+                'term_deadline' => now()->addDays(60)->toDateString(),
                 'penalties' => [
                     ['duration' => 10, 'amount' => 500],
                 ],
@@ -1434,6 +1497,8 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
         $events = Session::get($sessionKey);
         $this->assertInstanceOf(WizardEventCollection::class, $events);
         $this->assertNotNull($events);
+        $this->assertGreaterThanOrEqual(5, $events->count());
+        $this->assertEquals(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->value, $events->all()[4]->type->value);
     }
 
     #[Test]
@@ -1702,24 +1767,6 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
         $this->assertNotEmpty(PetitionEventType::FINAL_RESULT->description());
         $this->assertNotEmpty(PetitionEventType::UNSPECIFIED_ADJOURNMENT->description());
         $this->assertNotEmpty(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->description());
-    }
-
-    #[Test]
-    public function testEnumRuleMethod(): void
-    {
-        // Test validators that return rules
-        $this->assertNotNull(PetitionEventType::PRIMARY_DECISION->rule());
-        $this->assertNotNull(PetitionEventType::RECEIPT_OF_OBJECTION->rule());
-        $this->assertNotNull(PetitionEventType::LETTER_OF_SUSPENSION_SENT->rule());
-        $this->assertNotNull(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->rule());
-        $this->assertNotNull(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->rule());
-        $this->assertNotNull(PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule());
-        $this->assertNotNull(PetitionEventType::SUSPENSION_END->rule());
-        $this->assertNotNull(PetitionEventType::MEETING_SCHEDULED->rule());
-        $this->assertNotNull(PetitionEventType::HEARING_DATE->rule());
-        $this->assertNotNull(PetitionEventType::FINAL_RESULT->rule());
-        $this->assertNotNull(PetitionEventType::UNSPECIFIED_ADJOURNMENT->rule());
-        $this->assertNotNull(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END->rule());
     }
 
     /**

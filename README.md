@@ -44,6 +44,8 @@ iRealisatie is developing a modern case management system to support these proce
 3. Run `sail artisan key:generate` to generate a new application key
 4. Run `sail artisan migrate:fresh --seed` to (re)run all migrations and default seeder
 
+The seeder uses a production export of departments, petition types and statuses, see [docs/seed-data.md](docs/seed-data.md) to refresh it.
+
 ##### run MinIO (in sail) for data storage
 
 MinIO is a high-performance, S3-compatible object storage solution, we use it to store uploaded files and exports.

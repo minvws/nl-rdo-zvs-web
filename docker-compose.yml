@@ -110,7 +110,7 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock:ro
 
     minio:
-        image: 'minio/minio:RELEASE.2025-09-07T16-13-09Z'
+        image: 'ghcr.io/minvws/nl-rdo-zvs-web-private/minio:release.2025-09-07t16-13-09z'
         ports:
             - '${MINIO_PORT:-9000}:9000'
             - '${MINIO_CONSOLE_PORT:-9001}:9001'
@@ -135,6 +135,7 @@ services:
     minio-setup:
         image: sail-8.5/app
         pull_policy: never
+        user: '${WWWUSER:-1000}:${WWWGROUP:-1000}'
         depends_on:
             minio:
                 condition: service_healthy

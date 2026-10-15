@@ -21,6 +21,8 @@ return [
             Permission::PETITION_CATEGORY_READ->value,
             Permission::TEAM_WRITE->value,
             Permission::TEAM_READ->value,
+            Permission::TAG_WRITE->value,
+            Permission::TAG_READ->value,
             Permission::POLICY_DEPARTMENT_WRITE->value,
             Permission::POLICY_DEPARTMENT_READ->value,
             Permission::ADMIN_PANEL_VIEW->value,
@@ -33,6 +35,7 @@ return [
             Permission::PETITION_TYPE_READ->value,
             Permission::PETITION_CATEGORY_READ->value,
             Permission::TEAM_READ->value,
+            Permission::TAG_READ->value,
 
             Permission::CONTACT_WRITE->value,
             Permission::CONTACT_READ->value,
@@ -48,6 +51,7 @@ return [
             Permission::PETITION_TYPE_READ->value,
             Permission::PETITION_CATEGORY_READ->value,
             Permission::TEAM_READ->value,
+            Permission::TAG_READ->value,
 
             Permission::CONTACT_READ->value,
             Permission::PETITION_READ->value,

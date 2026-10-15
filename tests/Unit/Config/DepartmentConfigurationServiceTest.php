@@ -39,6 +39,10 @@ class DepartmentConfigurationServiceTest extends TestCase
             UnspecifiedAdjournmentMode::FREEZES_TERMS,
             $this->service->unspecifiedAdjournmentMode(Department::factory()->make(['slug' => 'team-b'])),
         );
+        $this->assertSame(
+            UnspecifiedAdjournmentMode::FREEZES_TERMS,
+            $this->service->unspecifiedAdjournmentMode(Department::factory()->make(['slug' => 'team-i'])),
+        );
     }
 
     public function testUnspecifiedAdjournmentModeFallsBackToContinuingForEveryOtherTeam(): void
@@ -209,6 +213,17 @@ class DepartmentConfigurationServiceTest extends TestCase
         $this->assertFalse(
             $this->service->isEventTypeAvailable($department, PetitionEventType::MEETING_SCHEDULED),
         );
+    }
+
+    public function testIsEventTypeAvailableOffersTheReferralEventsOnlyToTeamI(): void
+    {
+        $teamI = Department::factory()->make(['slug' => 'team-i']);
+        $teamA = Department::factory()->make(['slug' => 'team-a']);
+
+        $this->assertTrue($this->service->isEventTypeAvailable($teamI, PetitionEventType::REFERRED_TO_DEPARTMENT));
+        $this->assertTrue($this->service->isEventTypeAvailable($teamI, PetitionEventType::ANSWER_RECEIVED));
+        $this->assertFalse($this->service->isEventTypeAvailable($teamA, PetitionEventType::REFERRED_TO_DEPARTMENT));
+        $this->assertFalse($this->service->isEventTypeAvailable($teamA, PetitionEventType::ANSWER_RECEIVED));
     }
 
     public function testGetEventConfigurationReturnsSpecificConfiguration(): void

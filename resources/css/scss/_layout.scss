@@ -14,6 +14,11 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+  align-self: stretch;
+
+  a.button {
+    display: flex;
+  }
 
   .department-selector__tag {
     width: 1rem;

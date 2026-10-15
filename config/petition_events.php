@@ -14,6 +14,8 @@ return [
     'department_availability' => [
         PetitionEventType::MEETING_SCHEDULED->value => ['team-a', 'team-b', 'team-c'],
         PetitionEventType::COMMITTEE_HEARING_DETERMINED->value => ['wjz-bb'],
+        PetitionEventType::REFERRED_TO_DEPARTMENT->value => ['team-i'],
+        PetitionEventType::ANSWER_RECEIVED->value => ['team-i'],
     ],
 
     'defaults' => [

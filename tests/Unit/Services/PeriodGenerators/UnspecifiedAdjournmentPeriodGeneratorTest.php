@@ -15,82 +15,142 @@ use App\ValueObjects\EventCalendarDay;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Helpers\InspectsEventCalendar;
 use Tests\TestCase;
 
 use function collect;
 
 class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
 {
-    #[Test]
-    public function testFreezesDaysBetweenStartAndEndExclusive(): void
+    use InspectsEventCalendar;
+
+    /**
+     * Today is 2025-01-25. Every end is a [date, reason] pair.
+     *
+     * @return array<string, array{
+     *     starts: list<string>,
+     *     ends: list<array{string, AdjournmentEndReason}>,
+     *     frozenDays: list<string>,
+     *     withdrawalDays: list<string>,
+     * }>
+     */
+    public static function freezeProvider(): array
     {
-        $calendar = new EventCalendar();
-        $events = collect([
-            $this->adjournment('2025-01-10'),
-            $this->adjournmentEnd('2025-01-13', AdjournmentEndReason::Event),
-        ]);
-
-        (new UnspecifiedAdjournmentPeriodGenerator())->generate($events, $calendar);
-
-        // The frozen range is [start, end): start up to the day before the end event.
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-10'))->isUnspecifiedAdjournment);
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-11'))->isUnspecifiedAdjournment);
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-12'))->isUnspecifiedAdjournment);
-
-        // The end-event day itself counts towards the term again, so it is not frozen.
-        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-13')));
+        return [
+            'the end day itself counts towards the term again' => [
+                'starts' => ['2025-01-10'],
+                'ends' => [
+                    ['2025-01-13', AdjournmentEndReason::Event],
+                ],
+                'frozenDays' => self::dateRange('2025-01-10', '2025-01-12'),
+                'withdrawalDays' => [],
+            ],
+            'an end the day after the start freezes a single day' => [
+                'starts' => ['2025-01-10'],
+                'ends' => [
+                    ['2025-01-11', AdjournmentEndReason::Event],
+                ],
+                'frozenDays' => ['2025-01-10'],
+                'withdrawalDays' => [],
+            ],
+            'an end on the start day freezes nothing' => [
+                'starts' => ['2025-01-10'],
+                'ends' => [
+                    ['2025-01-10', AdjournmentEndReason::Event],
+                ],
+                'frozenDays' => [],
+                'withdrawalDays' => [],
+            ],
+            'a withdrawal is marked on the end day' => [
+                'starts' => ['2025-01-10'],
+                'ends' => [
+                    ['2025-01-13', AdjournmentEndReason::Withdrawal],
+                ],
+                'frozenDays' => self::dateRange('2025-01-10', '2025-01-12'),
+                'withdrawalDays' => ['2025-01-13'],
+            ],
+            'an open adjournment freezes up to today' => [
+                'starts' => ['2025-01-20'],
+                'ends' => [],
+                'frozenDays' => self::dateRange('2025-01-20', '2025-01-24'),
+                'withdrawalDays' => [],
+            ],
+            'an open adjournment started today freezes nothing yet' => [
+                'starts' => ['2025-01-25'],
+                'ends' => [],
+                'frozenDays' => [],
+                'withdrawalDays' => [],
+            ],
+            'every cycle freezes its own range' => [
+                'starts' => ['2025-01-10', '2025-01-20'],
+                'ends' => [
+                    ['2025-01-12', AdjournmentEndReason::Event],
+                    ['2025-01-22', AdjournmentEndReason::Withdrawal],
+                ],
+                'frozenDays' => ['2025-01-10', '2025-01-11', '2025-01-20', '2025-01-21'],
+                'withdrawalDays' => ['2025-01-22'],
+            ],
+            'starts and ends are paired in date order' => [
+                'starts' => ['2025-01-20', '2025-01-10'],
+                'ends' => [
+                    ['2025-01-22', AdjournmentEndReason::Event],
+                    ['2025-01-12', AdjournmentEndReason::Event],
+                ],
+                'frozenDays' => ['2025-01-10', '2025-01-11', '2025-01-20', '2025-01-21'],
+                'withdrawalDays' => [],
+            ],
+            'a second cycle that is still open' => [
+                'starts' => ['2025-01-10', '2025-01-22'],
+                'ends' => [
+                    ['2025-01-12', AdjournmentEndReason::Event],
+                ],
+                'frozenDays' => ['2025-01-10', '2025-01-11', '2025-01-22', '2025-01-23', '2025-01-24'],
+                'withdrawalDays' => [],
+            ],
+            'a freeze crossing the turn of the year' => [
+                'starts' => ['2024-12-30'],
+                'ends' => [
+                    ['2025-01-02', AdjournmentEndReason::Event],
+                ],
+                'frozenDays' => ['2024-12-30', '2024-12-31', '2025-01-01'],
+                'withdrawalDays' => [],
+            ],
+        ];
     }
 
+    /**
+     * @param list<string> $starts
+     * @param list<array{string, AdjournmentEndReason}> $ends
+     * @param list<string> $frozenDays
+     * @param list<string> $withdrawalDays
+     */
     #[Test]
-    public function testOpenAdjournmentFreezesUpToButNotIncludingToday(): void
-    {
-        $calendar = new EventCalendar();
-        $start = CalendarDate::today()->addDays(-5);
-        $events = collect([$this->adjournment($start->toDateString())]);
-
-        (new UnspecifiedAdjournmentPeriodGenerator())->generate($events, $calendar);
-
-        $this->assertTrue($calendar->findDay($start)->isUnspecifiedAdjournment);
-        $this->assertTrue($calendar->findDay(CalendarDate::today()->addDays(-1))->isUnspecifiedAdjournment);
-        $this->assertNull($calendar->findDay(CalendarDate::today()));
-    }
-
-    #[Test]
-    public function testMarksWithdrawalOnEndDay(): void
-    {
+    #[DataProvider('freezeProvider')]
+    public function testFreezesTheDaysOfEveryAdjournment(
+        array $starts,
+        array $ends,
+        array $frozenDays,
+        array $withdrawalDays,
+    ): void {
+        $this->travelTo(CarbonImmutable::parse('2025-01-25'));
         $calendar = new EventCalendar();
         $events = collect([
-            $this->adjournment('2025-01-10'),
-            $this->adjournmentEnd('2025-01-13', AdjournmentEndReason::Withdrawal),
+            ...collect($starts)->map(fn(string $start): PetitionEventData => $this->adjournment($start)),
+            ...collect($ends)->map(fn(array $end): PetitionEventData => $this->adjournmentEnd($end[0], $end[1])),
         ]);
 
-        (new UnspecifiedAdjournmentPeriodGenerator())->generate($events, $calendar);
+        new UnspecifiedAdjournmentPeriodGenerator()->generate($events, $calendar);
 
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-13'))->isUnspecifiedAdjournmentWithdrawal);
-    }
-
-    #[Test]
-    public function testMultipleCyclesFreezeEachRange(): void
-    {
-        $calendar = new EventCalendar();
-        $events = collect([
-            $this->adjournment('2025-01-10'),
-            $this->adjournmentEnd('2025-01-12', AdjournmentEndReason::Event),
-            $this->adjournment('2025-01-20'),
-            $this->adjournmentEnd('2025-01-22', AdjournmentEndReason::Event),
-        ]);
-
-        (new UnspecifiedAdjournmentPeriodGenerator())->generate($events, $calendar);
-
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-10'))->isUnspecifiedAdjournment);
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-11'))->isUnspecifiedAdjournment);
-        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-12')));
-        // Gap between the two cycles is untouched.
-        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-15')));
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-20'))->isUnspecifiedAdjournment);
-        $this->assertTrue($calendar->findDay(CalendarDate::create('2025-01-21'))->isUnspecifiedAdjournment);
-        $this->assertNull($calendar->findDay(CalendarDate::create('2025-01-22')));
+        $this->assertSame($frozenDays, $this->datesWhere(
+            $calendar,
+            static fn(EventCalendarDay $day): bool => $day->isUnspecifiedAdjournment,
+        ));
+        $this->assertSame($withdrawalDays, $this->datesWhere(
+            $calendar,
+            static fn(EventCalendarDay $day): bool => $day->isUnspecifiedAdjournmentWithdrawal,
+        ));
     }
 
     #[Test]
@@ -219,7 +279,7 @@ class UnspecifiedAdjournmentPeriodGeneratorTest extends TestCase
 
     private function build(Collection $events): DerivedState
     {
-        return (new DerivedState())->addEvents($events)->buildCalendar();
+        return new DerivedState()->addEvents($events)->buildCalendar();
     }
 
     private function decisionBudgetDayCount(EventCalendar $calendar): int

@@ -26,6 +26,7 @@ http:
     - name: number
       value: ""
       type: query
+      disabled: true
   auth:
     type: bearer
     token: "{{access_token}}"

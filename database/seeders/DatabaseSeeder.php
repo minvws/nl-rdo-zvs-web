@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Actions\PetitionType\PetitionTypeCreateAction;
 use App\Collections\PetitionCategoryCollection;
 use App\Collections\PetitionStatusCollection;
 use App\Collections\PetitionTypeCollection;
@@ -14,7 +15,6 @@ use App\Enums\Authorization\GlobalRole;
 use App\Enums\CustomDateLabel;
 use App\Enums\CustomPetitionPropertyType;
 use App\Enums\PetitionVariant;
-use App\Enums\StatusGroup;
 use App\Enums\TermType;
 use App\Models\Contact;
 use App\Models\CustomPetitionProperty;
@@ -36,6 +36,7 @@ use App\Models\UserGlobalRole;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -45,8 +46,15 @@ use function json_encode;
 use function rand;
 use function sprintf;
 
+use const JSON_THROW_ON_ERROR;
+
 class DatabaseSeeder extends Seeder
 {
+    public function __construct(
+        private readonly PetitionTypeCreateAction $petitionTypeCreateAction,
+    ) {
+    }
+
     public function run(): void
     {
         $departments = $this->createDepartments();
@@ -66,15 +74,7 @@ class DatabaseSeeder extends Seeder
             $this->createCustomDateLabelsPerPetitionType($petitionTypes);
             $petitionCategories = $this->createPetitionCategories($department);
 
-            $this->createPetitions(
-                $department,
-                $users,
-                $contacts,
-                $petitionStatuses,
-                $petitionTypes,
-                $petitionCategories,
-                $policyDepartments,
-            );
+            $this->createPetitions($department, $users, $contacts, $petitionStatuses, $petitionCategories, $policyDepartments);
         }
 
         $this->createWooCustomPetitionProperties();
@@ -87,15 +87,14 @@ class DatabaseSeeder extends Seeder
      */
     private function createDepartments(): Collection
     {
-        return Department::factory()
-            ->count(4)
-            ->state(new Sequence(
-                ['name' => 'Team A Woo verzoeken regulier', 'slug' => 'team-a', 'config_key' => 'team-a', 'abbreviation' => 'A'],
-                ['name' => 'Team B Woo verzoeken Corona', 'slug' => 'team-b', 'config_key' => 'team-b', 'abbreviation' => 'B'],
-                ['name' => 'Team C Bezwaar en Beroep Woo', 'slug' => 'team-c', 'config_key' => 'team-c', 'abbreviation' => 'C'],
-                ['name' => 'WJZ Afdeling Bezwaar en Beroep', 'slug' => 'wjz-bb', 'config_key' => 'wjz-bb', 'abbreviation' => 'WJZ'],
-            ))
-            ->create();
+        return collect($this->readSeedData('departments.json'))
+            ->map(static fn (array $department): Department => Department::factory()->create([
+                'id' => $department['id'],
+                'name' => $department['name'],
+                'slug' => $department['slug'],
+                'config_key' => $department['slug'],
+                'abbreviation' => $department['abbreviation'],
+            ]));
     }
 
     /**
@@ -154,24 +153,24 @@ class DatabaseSeeder extends Seeder
 
     private function createPetitionStatuses(PetitionTypeCollection $petitionTypes): PetitionStatusCollection
     {
-        $petitionStatuses = new Collection();
-        $order = 1;
+        $petitionTypeIds = $petitionTypes->map(
+            static fn (PetitionType $petitionType): string => $petitionType->id->toString(),
+        );
 
-        foreach (StatusGroup::cases() as $statusGroup) {
-            foreach ($petitionTypes as $petitionType) {
-                $petitionStatus = PetitionStatus::factory()
-                    ->recycle($petitionType)
-                    ->create([
-                        'order' => $order,
-                        'status_group' => $statusGroup,
-                    ]);
+        collect($this->readSeedData('petition-statuses.json'))
+            ->filter(
+                static fn (array $petitionStatus): bool => $petitionTypeIds->contains($petitionStatus['petition_type_id']),
+            )
+            ->each(static fn (array $petitionStatus): PetitionStatus => PetitionStatus::query()->create([
+                'id' => $petitionStatus['id'],
+                'petition_type_id' => $petitionStatus['petition_type_id'],
+                'status' => $petitionStatus['status'],
+                'order' => $petitionStatus['order'],
+                'status_group' => $petitionStatus['status_group'],
+                'bg_color' => $petitionStatus['bg_color'],
+            ]));
 
-                $petitionStatuses->push($petitionStatus);
-                $order++;
-            }
-        }
-
-        return new PetitionStatusCollection($petitionStatuses);
+        return PetitionStatus::query()->whereIn('petition_type_id', $petitionTypeIds)->get();
     }
 
     public function createPublicHolidays(): void
@@ -293,32 +292,35 @@ class DatabaseSeeder extends Seeder
 
     public function createPetitionTypes(Department $department): PetitionTypeCollection
     {
-        $petitionTypes = [
-            [
-                'name' => 'Beroep',
-                'type' => PetitionVariant::BEROEP->value,
-            ],
-            [
-                'name' => 'Bezwaar',
-                'type' => PetitionVariant::BEZWAAR->value,
-            ],
-            [
+        $types = collect($this->readSeedData('petition-types.json'))
+            ->filter(
+                static fn (array $petitionType): bool => $petitionType['department_id'] === $department->id->toString(),
+            )
+            ->map(static fn (array $petitionType): PetitionType => PetitionType::query()->create([
+                'id' => $petitionType['id'],
+                'department_id' => $petitionType['department_id'],
+                'name' => $petitionType['name'],
+                'type' => $petitionType['type'],
+                'particularity_label' => $petitionType['particularity_label'],
+            ]));
+
+        if ($department->slug === 'team-wjz-klachten') {
+            $types->push($this->petitionTypeCreateAction->execute([
+                'department_id' => $department->id,
                 'name' => 'Klacht',
                 'type' => PetitionVariant::KLACHT->value,
-            ],
-            [
-                'name' => 'Woo verzoek',
-                'type' => PetitionVariant::WOO_VERZOEK->value,
-            ],
-        ];
+            ]));
+        }
 
-        $types = PetitionType::factory()
-            ->count(count($petitionTypes))
-            ->recycle($department)
-            ->state(new Sequence(...$petitionTypes))
-            ->create();
+        return new PetitionTypeCollection($types->values());
+    }
 
-        return new PetitionTypeCollection($types);
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function readSeedData(string $file): array
+    {
+        return File::json(sprintf('%s/data/%s', __DIR__, $file), JSON_THROW_ON_ERROR);
     }
 
     private function createTermTypeSettings(Department $department): void
@@ -515,19 +517,33 @@ class DatabaseSeeder extends Seeder
         UserCollection $users,
         Collection $contacts,
         PetitionStatusCollection $petitionStatuses,
-        PetitionTypeCollection $petitionTypes,
         PetitionCategoryCollection $petitionCategories,
         PolicyDepartmentCollection $policyDepartments,
     ): void {
+        $petitionStatusesPerType = $petitionStatuses->groupBy(
+            static fn (PetitionStatus $petitionStatus): string => $petitionStatus->petition_type_id->toString(),
+        );
+
         Petition::factory()
             ->count(21)
-            ->recycle([$department, $users, $contacts, $petitionStatuses, $petitionTypes, $petitionCategories])
+            ->recycle([$department, $users, $contacts, $petitionCategories])
+            ->state(function () use ($petitionStatusesPerType): array {
+                $petitionStatus = $petitionStatusesPerType->random()->random();
+
+                return [
+                    'petition_type_id' => $petitionStatus->petition_type_id,
+                    'petition_status_id' => $petitionStatus->id,
+                ];
+            })
             ->withFirstAssignee()
             ->create()
-            ->each(static function (Petition $petition) use ($policyDepartments, $petitionStatuses): void {
+            ->each(static function (Petition $petition) use ($policyDepartments, $petitionStatusesPerType): void {
                 $petitionPolicyDepartments = $policyDepartments->random(rand(0, 3));
                 $petition->policyDepartments()->attach($petitionPolicyDepartments);
-                PetitionStatusHistory::factory()->recycle([$petition, $petitionStatuses])->count(rand(1, 11))->create();
+                PetitionStatusHistory::factory()
+                    ->recycle([$petition, $petitionStatusesPerType->get($petition->petition_type_id->toString())])
+                    ->count(rand(1, 11))
+                    ->create();
             });
     }
 

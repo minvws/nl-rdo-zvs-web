@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Exports;
 
 use App\Enums\ExportType;
+use App\Exports\ExcelDate;
 use App\Exports\ExportCriteria;
 use App\Exports\PetitionInternalExcelExportStatusHistorySheet;
-use App\Facades\DisplayDate;
 use App\Models\Petition;
 use App\Models\PetitionStatus;
 use App\Models\PetitionStatusHistory;
@@ -44,7 +44,20 @@ class PetitionInternalExcelExportStatusHistorySheetTest extends FeatureTestCase
             $petition->number,
             __(sprintf('petition_status.%s', $petitionStatus->status_group->value)),
             $petitionStatus->status,
-            DisplayDate::datetime($history->created_at),
+            ExcelDate::fromDateTime($history->created_at),
         ], $result);
+    }
+
+    public function testColumnFormats(): void
+    {
+        $sheet = new PetitionInternalExcelExportStatusHistorySheet(
+            new ExportCriteria(
+                new PetitionType(),
+                ExportType::INTERNAL,
+                new DateRange(CalendarDate::today(), CalendarDate::today()),
+            ),
+        );
+
+        $this->assertSame(['D' => ExcelDate::DATETIME_FORMAT], $sheet->columnFormats());
     }
 }

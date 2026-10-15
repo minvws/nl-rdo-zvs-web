@@ -10,7 +10,7 @@
                 <div>
                     <h3 class="department-overview__title">{{ __('general.access') }}</h3>
                     <a
-                        class="button mt-2"
+                        class="button secondary mt-2"
                         href="{{ route(RouteName::ADMIN_USER_INDEX) }}">
                         {{ __('user.model_plural') }}
                     </a>
@@ -21,7 +21,7 @@
                 <div>
                     <h3 class="department-overview__title">{{ __('general.organization') }}</h3>
                     <a
-                        class="button mt-2"
+                        class="button secondary mt-2"
                         href="{{ route(RouteName::ADMIN_POLICY_DEPARTMENT_INDEX) }}">
                         {{ __('policy_department.model_plural') }}
                     </a>
@@ -32,7 +32,7 @@
                 <div>
                     <h3 class="department-overview__title">{{ __('general.general_term_law') }}</h3>
                     <a
-                        class="button mt-2"
+                        class="button secondary mt-2"
                         href="{{ route(RouteName::ADMIN_PUBLIC_HOLIDAY_INDEX) }}">
                         {{ __('public_holiday.model_plural') }}
                     </a>
@@ -54,7 +54,7 @@
                     </h3>
                     @can(Permission::PETITION_TYPE_WRITE->value)
                         <a
-                            class="button mt-2"
+                            class="button secondary mt-2"
                             href="{{
                                 route(RouteName::DEPARTMENTS_ADMIN_PETITION_TYPES_INDEX, [
                                     'department' => $department,
@@ -66,7 +66,7 @@
 
                     @can(Permission::PETITION_CATEGORY_WRITE->value)
                         <a
-                            class="button mt-2"
+                            class="button secondary mt-2"
                             href="{{
                                 route(RouteName::DEPARTMENTS_ADMIN_PETITION_CATEGORIES_INDEX, [
                                     'department' => $department,
@@ -78,13 +78,25 @@
 
                     @can(Permission::TEAM_WRITE->value)
                         <a
-                            class="button mt-2"
+                            class="button secondary mt-2"
                             href="{{
                                 route(RouteName::DEPARTMENTS_ADMIN_TEAMS_INDEX, [
                                     'department' => $department,
                                 ])
                             }}">
                             {{ __('team.model_plural') }}
+                        </a>
+                    @endcan
+
+                    @can(Permission::TAG_WRITE->value)
+                        <a
+                            class="button secondary mt-2"
+                            href="{{
+                                route(RouteName::DEPARTMENTS_ADMIN_TAGS_INDEX, [
+                                    'department' => $department,
+                                ])
+                            }}">
+                            {{ __('tag.model_plural') }}
                         </a>
                     @endcan
                 </div>

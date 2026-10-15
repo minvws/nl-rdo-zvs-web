@@ -18,11 +18,37 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 use Tests\Helpers\ConfigHelper;
 
+use function __;
 use function now;
+use function route;
 use function sprintf;
 
 class PetitionCreateControllerTest extends FeatureTestCase
 {
+    #[Test]
+    public function testCreatePageShowsThePetitionType(): void
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create([
+            'type' => PetitionVariant::WOO_VERZOEK,
+            'name' => 'Woo-verzoek',
+        ]);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::DEPARTMENTS_PETITIONS_CREATE, [
+                'department' => $department,
+                'petitionType' => $petitionType,
+            ]));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Woo-verzoek', __('petition.create')]);
+    }
+
     #[Test]
     public function testCreatePetitionWithValidCustomNumber(): void
     {

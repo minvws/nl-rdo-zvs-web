@@ -9,10 +9,12 @@ use App\Enums\CustomDateLabel;
 use App\Enums\ExportType;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
+use App\Exports\ExcelDate;
 use App\Exports\ExportCriteria;
 use App\Exports\PetitionInternalExcelExportPetitionSheet;
 use App\Models\Contact;
 use App\Models\CustomPetitionProperty;
+use App\Models\Decision;
 use App\Models\Petition;
 use App\Models\PetitionCustomDate as PetitionCustomDateModel;
 use App\Models\PetitionEvent;
@@ -27,7 +29,6 @@ use Illuminate\Database\Eloquent\Factories\Sequence;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\FeatureTestCase;
-use Tests\Helpers\ConfigHelper;
 
 use function __;
 use function count;
@@ -53,6 +54,12 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
                 'deadline_at' => $this->faker->calendarDate(),
                 'petition_status_id' => $petitionStatus->id,
                 'date_appealed_decision' => $this->faker->calendarDate(),
+                'legacy_term_penalty_today' => 100,
+                'igs_penalty_today' => 20,
+                'bnt_penalty_today' => 3,
+                'legacy_term_forfeited' => 4000,
+                'igs_forfeited' => 500,
+                'bnt_forfeited' => 60,
             ]);
 
         $petition->assignments()->create([
@@ -73,7 +80,7 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             'date_label' => CustomDateLabel::DATE_DECISION_ON_APPEAL,
         ]);
 
-        $petitionBeroepExcelExport = $this->makePetitionBeroepExcelExport();
+        $petitionSheet = $this->makePetitionSheet();
 
         $expectedResult = [
             $petition->number,
@@ -84,15 +91,15 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             $petition->petitionType->name,
             $petition->petitionCategory->name,
             $petition->team?->name,
-            $petition->date_of_entry->format('d-m-Y'),
-            $petition->date_appealed_decision->format('d-m-Y'),
-            $petition->deadline_at->format('d-m-Y'),
-            $petition->created_at->timezone(ConfigHelper::get('app.display_timezone'))->format('d-m-Y H:i'),
-            $petition->petitionTerms->penaltyToDate(CalendarDate::today()),
-            $petition->petitionTerms->totalPenalty(),
+            ExcelDate::fromCalendarDate($petition->date_of_entry),
+            ExcelDate::fromCalendarDate($petition->date_appealed_decision),
+            ExcelDate::fromCalendarDate($petition->deadline_at),
+            ExcelDate::fromDateTime($petition->created_at),
+            123,
+            4560,
             $petition->relatedPetitions->toString(),
-            $petitionCustomDateWithDrawn->format('Y-m-d'),
-            $petitionCustomDateDecisionAppeal->format('Y-m-d'),
+            ExcelDate::fromCalendarDate($petitionCustomDateWithDrawn),
+            ExcelDate::fromCalendarDate($petitionCustomDateDecisionAppeal),
             $petition->daysPending,
             __(sprintf('petition_status.%s', $petitionStatus->status_group->value)),
             $petitionStatus->status,
@@ -105,7 +112,7 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             null,
         ];
 
-        $this->assertEquals($expectedResult, $petitionBeroepExcelExport->map($petition));
+        $this->assertEquals($expectedResult, $petitionSheet->map($petition));
     }
 
     /**
@@ -128,8 +135,8 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
 
         $mockedPetition = $this->mockPetitionAsLegacy($petition);
 
-        $petitionBeroepExcelExport = $this->makePetitionBeroepExcelExport();
-        $map = $petitionBeroepExcelExport->map($mockedPetition);
+        $petitionSheet = $this->makePetitionSheet();
+        $map = $petitionSheet->map($mockedPetition);
 
         $this->assertEquals($expectedResult, $map[$key]);
     }
@@ -152,7 +159,8 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             [['Herziening – herstel bezwaar'], 22, 'Herziening - herstel bezwaar'], // watch it: dashes are different
             [['Herziening – herstel bezwaar', 'Informeel'], 22, 'Herziening - herstel bezwaar, Informeel'], // watch it: dashes are different
             [['A', 'D', 'E'], 23, 'A, D, E'],
-            [['A', 'E', 'B'], 23, 'A, E, B'],
+            [['A', 'E', 'B'], 23, 'A, B, E'],
+            [['E', 'D', 'A'], 23, 'A, D, E'],
             [['A', 'D', 'E', 'Z'], 23, 'A, D, E'],
             [['A'], 24, ''],
             [['Gegrond', 'Intrekking', 'Kennelijk gegrond'], 24, 'Gegrond, Intrekking, Kennelijk gegrond'],
@@ -167,9 +175,9 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             'deadline_override_reason' => 'Afspraak met verzoeker',
         ]);
 
-        $row = $this->makePetitionBeroepExcelExport()->map($petition);
+        $row = $this->makePetitionSheet()->map($petition);
 
-        $this->assertContains('30-06-2026', $row);
+        $this->assertEquals(ExcelDate::fromCalendarDate(CalendarDate::create('30-06-2026')), $row[10]);
     }
 
     public function testMapUsesTheCalculatedDeadlineWithoutAnOverride(): void
@@ -180,12 +188,26 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             'deadline_override_reason' => null,
         ]);
 
-        $row = $this->makePetitionBeroepExcelExport()->map($petition);
+        $row = $this->makePetitionSheet()->map($petition);
 
-        $this->assertContains('01-03-2026', $row);
+        $this->assertEquals(ExcelDate::fromCalendarDate(CalendarDate::create('01-03-2026')), $row[10]);
     }
 
-    public function makePetitionBeroepExcelExport(): PetitionInternalExcelExportPetitionSheet
+    public function testColumnFormats(): void
+    {
+        $this->assertSame([
+            'I' => ExcelDate::DATE_FORMAT,
+            'J' => ExcelDate::DATE_FORMAT,
+            'K' => ExcelDate::DATE_FORMAT,
+            'L' => ExcelDate::DATETIME_FORMAT,
+            'P' => ExcelDate::DATE_FORMAT,
+            'Q' => ExcelDate::DATE_FORMAT,
+            'Z' => ExcelDate::DATE_FORMAT,
+            'AA' => ExcelDate::DATE_FORMAT,
+        ], $this->makePetitionSheet()->columnFormats());
+    }
+
+    public function makePetitionSheet(): PetitionInternalExcelExportPetitionSheet
     {
         $startDate = $this->faker()->calendarDate();
         $endDate = $startDate->addDays(30);
@@ -210,7 +232,7 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             'date' => CalendarDate::today(),
         ]);
 
-        $export = $this->makePetitionBeroepExcelExport();
+        $export = $this->makePetitionSheet();
         $map = $export->map($petition);
 
         $this->assertEquals('Doorzending', $map[21]);
@@ -227,7 +249,7 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
             'date' => CalendarDate::today(),
         ]);
 
-        $export = $this->makePetitionBeroepExcelExport();
+        $export = $this->makePetitionSheet();
         $map = $export->map($petition);
 
         $this->assertEquals('', $map[20]);
@@ -245,10 +267,84 @@ class PetitionInternalExcelExportPetitionSheetTest extends FeatureTestCase
 
         $mockedPetition = $this->mockPetitionAsLegacy($petition);
 
-        $export = $this->makePetitionBeroepExcelExport();
+        $export = $this->makePetitionSheet();
         $map = $export->map($mockedPetition);
 
         $this->assertEquals('Doorzending', $map[21]);
+    }
+
+    /**
+     * @param array<int, bool> $expectedFilledColumns
+     */
+    #[DataProvider('finalResultDatesDataProvider')]
+    public function testFinalResultDatesWithTermEngineConverted(
+        ResultType $resultType,
+        array $expectedFilledColumns,
+    ): void
+    {
+        $date = CalendarDate::create('15-04-2026');
+        $petition = Petition::factory()->create();
+
+        PetitionEvent::factory()->create([
+            'petition_id' => $petition->id,
+            'type' => PetitionEventType::FINAL_RESULT,
+            'result_type' => $resultType,
+            'date' => $date,
+        ]);
+
+        $map = $this->makePetitionSheet()->map($petition);
+
+        foreach ($expectedFilledColumns as $column => $filled) {
+            $expected = $filled ? ExcelDate::fromCalendarDate($date) : null;
+            $this->assertEquals($expected, $map[$column], sprintf('column %d', $column));
+        }
+    }
+
+    public static function finalResultDatesDataProvider(): array
+    {
+        // 15: date withdrawn, 16: date decision on appeal, 25: date settlement without decision
+        // 26 (date decision) comes from the linked decisions, not the final result
+        return [
+            'final decision' => [ResultType::FINAL_DECISION, [15 => false, 16 => true, 25 => false, 26 => false]],
+            'withdrawn' => [ResultType::WITHDRAWN, [15 => true, 16 => false, 25 => true, 26 => false]],
+            'forwarded' => [ResultType::FORWARDED, [15 => false, 16 => false, 25 => true, 26 => false]],
+        ];
+    }
+
+    public function testDateOfDecisionWithTermEngineConvertedUsesLatestLinkedDecision(): void
+    {
+        $petition = Petition::factory()
+            ->hasAttached(Decision::factory()->state(['date' => CalendarDate::create('01-12-2026')]))
+            ->hasAttached(Decision::factory()->state(['date' => CalendarDate::create('22-12-2026')]))
+            ->create();
+
+        PetitionEvent::factory()->create([
+            'petition_id' => $petition->id,
+            'type' => PetitionEventType::FINAL_RESULT,
+            'result_type' => ResultType::WITHDRAWN,
+            'date' => CalendarDate::create('15-04-2026'),
+        ]);
+
+        $map = $this->makePetitionSheet()->map($petition);
+
+        $this->assertEquals(ExcelDate::fromCalendarDate(CalendarDate::create('22-12-2026')), $map[26]);
+    }
+
+    public function testFinalResultDatesWithTermEngineConvertedWithoutFinalResult(): void
+    {
+        $petition = Petition::factory()->create();
+
+        PetitionEvent::factory()->create([
+            'petition_id' => $petition->id,
+            'type' => PetitionEventType::RECEIPT_OF_OBJECTION,
+        ]);
+
+        $map = $this->makePetitionSheet()->map($petition);
+
+        $this->assertNull($map[15]);
+        $this->assertNull($map[16]);
+        $this->assertNull($map[25]);
+        $this->assertNull($map[26]);
     }
 
     private function mockPetitionAsLegacy(Petition $petition): Petition

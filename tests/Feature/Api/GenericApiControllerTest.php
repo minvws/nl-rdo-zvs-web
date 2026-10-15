@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Enums\ContactRole;
+use App\Enums\TagColor;
 use App\Models\ApiUser;
 use App\Models\Contact;
 use App\Models\CustomCost;
@@ -22,11 +23,14 @@ use App\Models\PetitionType;
 use App\Models\PolicyDepartment;
 use App\Models\ProcessingStep;
 use App\Models\PublicHoliday;
+use App\Models\Tag;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\FeatureTestCase;
 
+use function array_diff_key;
+use function array_map;
 use function sprintf;
 
 class GenericApiControllerTest extends FeatureTestCase
@@ -226,6 +230,71 @@ class GenericApiControllerTest extends FeatureTestCase
         $response = $this->getJson('/api/v1/contact_petition')->assertOk();
 
         $this->assertSame('2026-04-09', $response->json('data.0.date_first_phone_contact'));
+    }
+
+    public function testPetitionsEndpointReturnsTheIgsForfeited(): void
+    {
+        Petition::factory()->create(['igs_forfeited' => 1500]);
+
+        $response = $this->getJson('/api/v1/petitions?fields=id,igs_forfeited')->assertOk();
+
+        $this->assertSame(1500, $response->json('data.0.igs_forfeited'));
+    }
+
+    public function testTagsEndpointReturnsActiveAndInactiveTags(): void
+    {
+        $tag = Tag::factory()->create(['color' => TagColor::ORANGE, 'description' => 'Komt steeds terug']);
+        Tag::factory()->inactive()->create();
+
+        $response = $this->getJson('/api/v1/tags')->assertOk();
+
+        $response->assertJsonCount(2, 'data')
+            ->assertJsonStructure([
+                'data' => [
+                    ['id', 'department_id', 'name', 'color', 'description', 'active', 'created_at', 'updated_at'],
+                ],
+            ]);
+
+        $data = $response->json('data');
+        $this->assertContains(
+            [
+                'id' => $tag->id->toString(),
+                'department_id' => (string) $tag->department_id,
+                'name' => $tag->name,
+                'color' => TagColor::ORANGE->value,
+                'description' => 'Komt steeds terug',
+                'active' => true,
+            ],
+            array_map(static fn(array $row): array => array_diff_key($row, ['created_at' => 0, 'updated_at' => 0]), $data),
+        );
+    }
+
+    public function testFilteringPetitionTagByTagId(): void
+    {
+        $petition = Petition::factory()->create();
+        $tag = Tag::factory()->recycle($petition->department)->create();
+        $otherTag = Tag::factory()->recycle($petition->department)->create();
+        $petition->tags()->attach([$tag->id->toString(), $otherTag->id->toString()]);
+
+        $response = $this->getJson(sprintf('/api/v1/petition_tag?tag_id=%s', $tag->id))->assertOk();
+
+        $response->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.petition_id', $petition->id->toString())
+            ->assertJsonPath('data.0.tag_id', $tag->id->toString());
+    }
+
+    public function testFilteringPetitionTagByPetitionId(): void
+    {
+        $petition = Petition::factory()->create();
+        $otherPetition = Petition::factory()->recycle($petition->department)->create();
+        $tag = Tag::factory()->recycle($petition->department)->create();
+        $petition->tags()->attach($tag);
+        $otherPetition->tags()->attach($tag);
+
+        $response = $this->getJson(sprintf('/api/v1/petition_tag?petition_id=%s', $petition->id))->assertOk();
+
+        $response->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.petition_id', $petition->id->toString());
     }
 
     #[DataProvider('genericApiEndpoints')]

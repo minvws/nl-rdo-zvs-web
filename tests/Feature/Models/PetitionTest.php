@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Models;
 
 use App\Enums\CustomDateLabel;
+use App\Enums\PetitionEventType;
 use App\Models\Decision;
 use App\Models\Department;
 use App\Models\Petition;
@@ -66,6 +67,8 @@ class PetitionTest extends FeatureTestCase
 
     public function testDaysPendingWhenDateOfCloseIsNull(): void
     {
+        ConfigHelper::set('app.features.term_engine_v2', false);
+
         $petition = Petition::factory()
             ->create([
                 'date_of_entry' => CalendarDate::today()->subDays(10)->format('Y-m-d'),
@@ -75,6 +78,8 @@ class PetitionTest extends FeatureTestCase
 
     public function testDaysPendingWhenDateOfCloseIsFilled(): void
     {
+        ConfigHelper::set('app.features.term_engine_v2', false);
+
         $petition = Petition::factory()
             ->create([
                 'date_of_entry' => CalendarDate::today()->subDays(15)->format('Y-m-d'),
@@ -85,6 +90,34 @@ class PetitionTest extends FeatureTestCase
             'date_label' => CustomDateLabel::DATE_RULING->value,
         ];
         $petition->customDates()->create($customDates);
+        $this->assertEquals(10, $petition->daysPending);
+    }
+
+    public function testDaysPendingForTermEngineV2WithoutFinalResult(): void
+    {
+        $petition = Petition::factory()
+            ->create([
+                'date_of_entry' => CalendarDate::today()->subDays(15)->format('Y-m-d'),
+            ]);
+        PetitionEvent::factory()
+            ->for($petition)
+            ->withType(PetitionEventType::RECEIPT_OF_OBJECTION)
+            ->create(['date' => $petition->date_of_entry]);
+
+        $this->assertEquals(15, $petition->daysPending);
+    }
+
+    public function testDaysPendingForTermEngineV2WithFinalResult(): void
+    {
+        $petition = Petition::factory()
+            ->create([
+                'date_of_entry' => CalendarDate::today()->subDays(15)->format('Y-m-d'),
+            ]);
+        PetitionEvent::factory()
+            ->for($petition)
+            ->withType(PetitionEventType::FINAL_RESULT)
+            ->create(['date' => $petition->date_of_entry->addDays(10)]);
+
         $this->assertEquals(10, $petition->daysPending);
     }
 

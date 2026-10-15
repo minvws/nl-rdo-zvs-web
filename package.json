@@ -8,8 +8,8 @@
         "watch": "vite build --watch"
     },
     "dependencies": {
-        "@minvws/manon": "^17.1.0",
-        "@minvws/manon-themes": "^17.1.0",
+        "@minvws/manon": "^19.0.0",
+        "@minvws/manon-themes": "^19.0.0",
         "@popperjs/core": "^2.11.8",
         "htmx.org": "^2.0.8",
         "zxcvbn": "^4.4.2"

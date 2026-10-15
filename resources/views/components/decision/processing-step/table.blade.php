@@ -31,7 +31,7 @@
                 <tr>
                     <td>
                         @if ($decision->archived_at === null)
-                            <div class="sort horizontal-view">
+                            <div class="sort horizontal">
                                 @if (! $loop->first)
                                     <form
                                         class="inline"
@@ -116,12 +116,7 @@
                 </tr>
             @endforelse
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4">
-                    {{ $footer }}
-                </td>
-            </tr>
-        </tfoot>
     </table>
+
+    {{ $footer }}
 </section>

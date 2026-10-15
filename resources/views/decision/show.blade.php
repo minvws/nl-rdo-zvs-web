@@ -44,6 +44,7 @@
                             @if ($decision->archived_at === null)
                                 <div class="button-container">
                                     <a
+                                        class="button secondary"
                                         href="
                                     {{ route(RouteName::DEPARTMENTS_DECISION_PETITION_ATTACH_FORM, ['department' => $decision->department, 'decision' => $decision]) }}
                                     ">
@@ -64,6 +65,7 @@
                             @if ($decision->archived_at === null)
                                 <div class="button-container">
                                     <a
+                                        class="button secondary"
                                         href="{{ route(RouteName::DEPARTMENTS_DECISIONS_PROCESSING_STEPS_CREATE, ['department' => $decision->department, 'decision' => $decision]) }}
                                     ">
                                         {{ __('processing-step.add_processing_step') }}

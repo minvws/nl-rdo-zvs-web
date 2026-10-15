@@ -126,7 +126,7 @@ class LinkCategoriesFromExcelCommand extends Command
                 ->first();
 
             $petitionCategory = $petition->petitionCategory;
-            $currentName = $petitionCategory !== null ? $petitionCategory->name : '-';
+            $currentName = $petitionCategory->name ?? '-';
 
             if ($category === null) {
                 $tableRows[] = [$petitionNumber, $currentName, $categoryName, 'Category not found in department'];

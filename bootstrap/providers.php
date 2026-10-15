@@ -14,7 +14,6 @@ use App\Providers\FilesystemServiceProvider;
 use App\Providers\LegalTermDeadlineCalculatorServiceProvider;
 use App\Providers\RepositoryServiceProvider;
 use App\Providers\RouteServiceProvider;
-use App\Providers\ValidationServiceProvider;
 use App\Providers\ViewComponentServiceProvider;
 use App\Providers\ViewFactoryServiceProvider;
 
@@ -33,5 +32,4 @@ return [
     ViewComponentServiceProvider::class,
     ViewFactoryServiceProvider::class,
     LegalTermDeadlineCalculatorServiceProvider::class,
-    ValidationServiceProvider::class,
 ];

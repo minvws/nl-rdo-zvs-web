@@ -1,3 +1,10 @@
+table.connected-contacts-table,
+table.contacts-table {
+  thead tr {
+    background-color: var(--oc-gray-1);
+  }
+}
+
 table.connected-contacts-table {
   min-width: 1200px;
 

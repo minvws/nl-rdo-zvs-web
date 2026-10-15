@@ -61,6 +61,7 @@ return [
     'deadline_decision_period' => 'Deadline beslistermijn',
     'deadline_notice_of_default' => 'Deadline IGS',
     'deadline_notice_of_default_penalty_period_end' => 'Einde dwangsomtermijn IGS',
+    'igs_forfeited' => 'Dwangsom IGS',
     'deadline_appeal_not_timely' => 'Deadline BNT',
     'deadline_appeal_not_timely_penalty_period_end' => 'Einde dwangsomtermijn BNT',
     'deadline_override_at' => 'Afwijkende deadline',

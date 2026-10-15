@@ -1,0 +1,104 @@
+button.secondary,
+a.button.secondary {
+  &:not(:disabled, [aria-disabled="true"]):hover {
+    background-color: var(--oc-blue-0);
+    color: var(--oc-blue-8);
+    border-color: var(--oc-blue-8);
+  }
+}
+
+.icon-only {
+  background-color: transparent;
+  aspect-ratio: 1;
+  width: 2rem;
+  border-radius: 8px;
+  display: grid;
+  justify-content: center;
+  font-size: 0;
+  line-height: 0;
+  color: inherit;
+  padding: 0;
+  border: 0;
+  place-items: center;
+  justify-self: end;
+
+  > svg {
+    flex-shrink: 0;
+  }
+
+  &:hover,
+  &:focus,
+  &:focus-visible {
+    background-color: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--oc-blue-8);
+    outline-style: var(--zvs-focus-outline-style);
+    outline-color: var(--zvs-focus-outline-color);
+    outline-width: var(--zvs-focus-outline-width);
+    outline-offset: var(--zvs-focus-outline-offset);
+  }
+}
+
+.icon-only--xsmall {
+  --zvs-focus-outline-offset: -2px;
+  margin-block-start: 0;
+  border-color: inherit;
+  padding: 0 1rem;
+  height: inherit;
+  min-height: inherit;
+}
+
+.icon-only--small {
+  --zvs-focus-outline-offset: -2px;
+  margin-block-start: 0;
+  border-color: inherit;
+}
+
+.icon-only--delete {
+  background-color: transparent;
+  color: var(--oc-red-9);
+
+  &:hover,
+  &:focus-visible {
+    background-color: transparent;
+    color: var(--oc-red-9);
+    outline-style: var(--zvs-focus-outline-style);
+    outline-color: var(--oc-red-9);
+    outline-width: var(--zvs-focus-outline-width);
+  }
+}
+
+button.icon-only--add {
+  &:hover,
+  &:focus-visible {
+    background-color: transparent;
+    color: var(--oc-blue-8);
+    outline-style: var(--zvs-focus-outline-style);
+    outline-color: var(--zvs-focus-outline-color);
+    outline-width: var(--zvs-focus-outline-width);
+    outline-offset: -2px;
+  }
+}
+
+#petition-events-menu {
+  display: flex;
+  flex-wrap: wrap;
+
+  .petition-events-menu-card {
+    flex: 0 1 calc(20% - 1rem);
+    padding: 1rem;
+    border: 1px solid var(--oc-gray-4);
+    border-radius: 8px;
+    background-color: var(--oc-white);
+    margin: 0.5rem;
+
+    a.button {
+      display: flex;
+    }
+  }
+}

@@ -86,6 +86,13 @@
         @include('petition.policy-department.show', ['petition' => $petition])
     </div>
 
+    <div
+        id="tags-block"
+        class="petition-edit"
+        data-throw-petition-refresh="timeline">
+        @include('petition.tags.show', ['petition' => $petition])
+    </div>
+
     @if ($availableCostTypes->isNotEmpty())
         <div
             id="custom-costs-block"

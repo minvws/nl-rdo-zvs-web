@@ -1,0 +1,227 @@
+[
+    {
+        "id": "1efe21c0-0e05-6c1b-73a0-c2053da2aea7",
+        "name": "WOO-verzoek",
+        "type": "woo_verzoek",
+        "department_id": "1f019043-86ba-6e31-772c-7ef8ba2c04f0",
+        "particularity_label": null,
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-04-14 14:04:58+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c1c-174d-9dbcbabed1fd",
+        "name": "WOO-verzoek (covid-19)",
+        "type": "woo_verzoek",
+        "department_id": "1f019043-86bd-6540-8740-ee41cc2f8162",
+        "particularity_label": null,
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-04-14 14:04:58+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c1d-a4f9-403891683d1a",
+        "name": "Bezwaarprocedure",
+        "type": "bezwaar",
+        "department_id": "1f019043-86bd-6541-37ac-a59a652087eb",
+        "particularity_label": "Bez",
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-04-14 14:04:58+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c1e-385e-e65fc6e4b3b5",
+        "name": "Beroep niet tijdig",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6541-37ac-a59a652087eb",
+        "particularity_label": "BNT",
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-04-14 14:04:58+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c1f-540b-17ffa7f9494b",
+        "name": "Inhoudelijk beroep",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6541-37ac-a59a652087eb",
+        "particularity_label": null,
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-04-14 14:04:58+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c20-cfaf-2a6884778e05",
+        "name": "Hoger beroep",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6541-37ac-a59a652087eb",
+        "particularity_label": null,
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-04-14 14:04:58+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c21-740e-5b0e14d07757",
+        "name": "VOVO",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6541-37ac-a59a652087eb",
+        "particularity_label": "VOVO",
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-04-14 14:04:58+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c23-d703-956dfba84fc9",
+        "name": "Beroep niet tijdig",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6542-6f16-6c0704f9bde3",
+        "particularity_label": "BNT",
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-04-14 14:04:58+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c26-3b9f-f69e7ef42ec5",
+        "name": "VOVO",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6542-6f16-6c0704f9bde3",
+        "particularity_label": "VOVO",
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-04-14 14:04:58+00"
+    },
+    {
+        "id": "019884a4-8f70-7058-8174-37c56f023000",
+        "name": "Verzet",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6541-37ac-a59a652087eb",
+        "particularity_label": "VER",
+        "created_at": "2025-08-07 13:07:13+00",
+        "updated_at": "2025-08-07 13:07:13+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c24-a96a-16604abee71d",
+        "name": "Inhoudelijk beroep",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6542-6f16-6c0704f9bde3",
+        "particularity_label": "BER",
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-08-12 14:57:45+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c25-49bc-30e3c3f69b94",
+        "name": "Hoger beroep",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6542-6f16-6c0704f9bde3",
+        "particularity_label": "HB",
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-08-12 14:58:00+00"
+    },
+    {
+        "id": "1efe21c0-0e05-6c22-0d63-53f9b2e8bca4",
+        "name": "Bezwaarprocedure",
+        "type": "bezwaar",
+        "department_id": "1f019043-86bd-6542-6f16-6c0704f9bde3",
+        "particularity_label": null,
+        "created_at": "2025-04-14 14:04:58+00",
+        "updated_at": "2025-08-21 12:51:09+00"
+    },
+    {
+        "id": "0199e80a-3aeb-7260-b0ab-0d9d1ff4d0ff",
+        "name": "Herziening bob",
+        "type": "bezwaar",
+        "department_id": "1f019043-86bd-6541-37ac-a59a652087eb",
+        "particularity_label": "HZ",
+        "created_at": "2025-10-15 13:23:28+00",
+        "updated_at": "2025-10-15 13:23:28+00"
+    },
+    {
+        "id": "019a1559-51e1-7396-8491-8d09d92d8393",
+        "name": "WJZ-klacht",
+        "type": "beroep",
+        "department_id": "019a1559-51dc-7374-ba4c-119409f6681b",
+        "particularity_label": null,
+        "created_at": "2025-10-24 08:32:46+00",
+        "updated_at": "2025-10-24 08:32:46+00"
+    },
+    {
+        "id": "019a1559-51f1-7184-8c3b-ab936b58deaf",
+        "name": "Overige VWS-klacht",
+        "type": "beroep",
+        "department_id": "019a1559-51dc-7374-ba4c-119409f6681b",
+        "particularity_label": null,
+        "created_at": "2025-10-24 08:32:46+00",
+        "updated_at": "2025-10-24 08:32:46+00"
+    },
+    {
+        "id": "019a1559-51fe-73da-b7fd-30b297c6379b",
+        "name": "Niet VWS-klacht",
+        "type": "beroep",
+        "department_id": "019a1559-51dc-7374-ba4c-119409f6681b",
+        "particularity_label": null,
+        "created_at": "2025-10-24 08:32:46+00",
+        "updated_at": "2025-10-24 08:32:46+00"
+    },
+    {
+        "id": "019a1559-520b-72d8-b027-71715c213eef",
+        "name": "NO-klacht VWS",
+        "type": "beroep",
+        "department_id": "019a1559-51dc-7374-ba4c-119409f6681b",
+        "particularity_label": null,
+        "created_at": "2025-10-24 08:32:46+00",
+        "updated_at": "2025-10-24 08:32:46+00"
+    },
+    {
+        "id": "019a1559-5216-713a-80fd-96da413f875a",
+        "name": "NO-doorzending",
+        "type": "beroep",
+        "department_id": "019a1559-51dc-7374-ba4c-119409f6681b",
+        "particularity_label": null,
+        "created_at": "2025-10-24 08:32:46+00",
+        "updated_at": "2025-10-24 08:32:46+00"
+    },
+    {
+        "id": "019a1559-5221-7119-857e-968aeb3bb32b",
+        "name": "NO-interventie",
+        "type": "beroep",
+        "department_id": "019a1559-51dc-7374-ba4c-119409f6681b",
+        "particularity_label": null,
+        "created_at": "2025-10-24 08:32:46+00",
+        "updated_at": "2025-10-24 08:32:46+00"
+    },
+    {
+        "id": "019a1559-522b-72c9-9449-13057c131ab6",
+        "name": "Geen klacht",
+        "type": "beroep",
+        "department_id": "019a1559-51dc-7374-ba4c-119409f6681b",
+        "particularity_label": null,
+        "created_at": "2025-10-24 08:32:46+00",
+        "updated_at": "2025-10-24 08:32:46+00"
+    },
+    {
+        "id": "0199b900-6efd-70ba-8bca-d200582e8577",
+        "name": "Herziening bob (inactief)",
+        "type": "bezwaar",
+        "department_id": "1f019043-86bd-6542-6f16-6c0704f9bde3",
+        "particularity_label": "HZ",
+        "created_at": "2025-10-06 10:10:37+00",
+        "updated_at": "2025-10-31 15:18:40+00"
+    },
+    {
+        "id": "019a3ad9-baf5-7129-8243-728ced3de82e",
+        "name": "Herziening bob",
+        "type": "bezwaar",
+        "department_id": "1f019043-86bd-6542-6f16-6c0704f9bde3",
+        "particularity_label": "HZ",
+        "created_at": "2025-10-31 15:18:59+00",
+        "updated_at": "2025-10-31 15:18:59+00"
+    },
+    {
+        "id": "019a7dfa-045c-707e-9715-c35ea5311784",
+        "name": "Verzet",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6542-6f16-6c0704f9bde3",
+        "particularity_label": "VER",
+        "created_at": "2025-11-13 16:08:48+00",
+        "updated_at": "2025-11-13 16:08:48+00"
+    },
+    {
+        "id": "0198849d-5746-71b4-8979-275f98f15cab",
+        "name": "Verzet (inactief)",
+        "type": "beroep",
+        "department_id": "1f019043-86bd-6542-6f16-6c0704f9bde3",
+        "particularity_label": "VER",
+        "created_at": "2025-08-07 12:59:20+00",
+        "updated_at": "2025-12-09 10:42:44+00"
+    }
+]

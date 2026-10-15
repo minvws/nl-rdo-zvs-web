@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Validation\Rules;
 
+use App\Enums\TermType;
 use App\Services\DerivedState;
 use App\Services\ValidationResult;
 use App\ValueObjects\EventCalendarDay;
@@ -11,11 +12,12 @@ use App\ValueObjects\PetitionEventData;
 
 use function __;
 use function in_array;
+use function lcfirst;
 
 class DateMustNotBeInTermRule implements ValidationRuleInterface
 {
     /**
-     * @param array<string> $forbiddenTerms
+     * @param array<TermType> $forbiddenTerms
      */
     public function __construct(
         private readonly array $forbiddenTerms,
@@ -30,11 +32,13 @@ class DateMustNotBeInTermRule implements ValidationRuleInterface
         if (!$day instanceof EventCalendarDay) {
             return null;
         }
-        if (in_array($day->applicableTerm, $this->forbiddenTerms, true)) {
+
+        $term = TermType::tryFrom((string) $day->applicableTerm);
+        if ($term instanceof TermType && in_array($term, $this->forbiddenTerms, true)) {
             return new ValidationResult([
                 'date' => __('term.validation.common.date_not_allowed_in_term', [
                     'event' => $event->type->label(),
-                    'term' => __('term.' . $day->applicableTerm . '.default'),
+                    'term' => lcfirst($term->label()),
                 ]),
             ]);
         }

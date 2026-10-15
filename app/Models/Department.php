@@ -68,6 +68,14 @@ class Department extends EloquentModel
     }
 
     /**
+     * @return HasMany<Tag, $this>
+     */
+    public function tags(): HasMany
+    {
+        return $this->hasMany(Tag::class);
+    }
+
+    /**
      * @return HasMany<PetitionType, $this>
      */
     public function petitionTypes(): HasMany

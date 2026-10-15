@@ -6,6 +6,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 
 use App\Enums\PetitionEventType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -20,11 +21,10 @@ class ObjectionReceiptValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenNoPrimaryDecisionExists(): void
     {
-        $validator = PetitionEventType::RECEIPT_OF_OBJECTION->rule();
         $state = new DerivedState();
         $state->addEvents(collect([]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::RECEIPT_OF_OBJECTION, new PetitionEventData(
             type: PetitionEventType::RECEIPT_OF_OBJECTION,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
@@ -45,7 +45,6 @@ class ObjectionReceiptValidatorTest extends TestCase
     #[Test]
     public function testItAllowsDateIsBeforePrimaryDecision(): void
     {
-        $validator = PetitionEventType::RECEIPT_OF_OBJECTION->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -56,7 +55,7 @@ class ObjectionReceiptValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::RECEIPT_OF_OBJECTION, new PetitionEventData(
             type: PetitionEventType::RECEIPT_OF_OBJECTION,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
@@ -69,7 +68,6 @@ class ObjectionReceiptValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenDateIsAfterPrimaryDecision(): void
     {
-        $validator = PetitionEventType::RECEIPT_OF_OBJECTION->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -80,7 +78,7 @@ class ObjectionReceiptValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::RECEIPT_OF_OBJECTION, new PetitionEventData(
             type: PetitionEventType::RECEIPT_OF_OBJECTION,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),

@@ -6,6 +6,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 
 use App\Enums\PetitionEventType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PenaltyData;
 use App\ValueObjects\PetitionEventData;
@@ -21,7 +22,6 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testReceiptAppealNotTimelyPassesWhenReceiptOfObjectionExists(): void
     {
-        $validator = PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -38,7 +38,7 @@ class BNTValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
@@ -51,7 +51,6 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testReceiptAppealNotTimelyFailsWhenNoStartEventExists(): void
     {
-        $validator = PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -62,7 +61,7 @@ class BNTValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
@@ -73,7 +72,9 @@ class BNTValidatorTest extends TestCase
         $this->assertSame(
             __('term.validation.common.event_requires_dependency_any', [
                 'event' => PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->label(),
-                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label() . ' of ' . PetitionEventType::PETITION_RECEIVED->label(),
+                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label()
+                    . ' ' . __('general.or') . ' '
+                    . PetitionEventType::PETITION_RECEIVED->label(),
             ]),
             $result->getErrors()['general'],
         );
@@ -82,7 +83,6 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenReceiptAppealNotTimelyExistsAndDateIsValid(): void
     {
-        $validator = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -104,7 +104,7 @@ class BNTValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
             date: CalendarDate::create('2025-02-16'),
             createdAt: CarbonImmutable::now(),
@@ -118,7 +118,6 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenNoReceiptAppealNotTimelyExists(): void
     {
-        $validator = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -135,7 +134,7 @@ class BNTValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),
@@ -156,7 +155,6 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenDateIsBeforeLastEvent(): void
     {
-        $validator = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -179,7 +177,7 @@ class BNTValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
             date: CalendarDate::create('2025-02-10'),
             createdAt: CarbonImmutable::now(),
@@ -199,7 +197,6 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenDateIsWithinPenaltyPeriod(): void
     {
-        $validator = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -228,7 +225,7 @@ class BNTValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
             date: CalendarDate::create('2025-02-28'),
             createdAt: CarbonImmutable::now(),
@@ -242,7 +239,6 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenReceiptAppealNotTimelyExistsAndDateIsValidAgain(): void
     {
-        $validator = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -265,7 +261,7 @@ class BNTValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
             date: CalendarDate::create('2025-04-01'),
             createdAt: CarbonImmutable::now(),
@@ -279,10 +275,9 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testAppealDecisionNotTimelyFailsWhenNoOpenReceiptAppealNotTimelyExists(): void
     {
-        $validator = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule();
         $state = $this->createStateWithBntPenaltyPeriod();
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
             date: CalendarDate::create('2025-02-10'),
             createdAt: CarbonImmutable::now(),
@@ -303,10 +298,9 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testReceiptAppealNotTimelyPassesWhenDateOverlapsPenaltyPeriod(): void
     {
-        $validator = PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY->rule();
         $state = $this->createStateWithBntPenaltyPeriod();
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY,
             date: CalendarDate::create('2025-02-08'),
             createdAt: CarbonImmutable::now(),
@@ -319,7 +313,6 @@ class BNTValidatorTest extends TestCase
     #[Test]
     public function testAppealDecisionNotTimelyPassesWhenDateOverlapsPenaltyPeriod(): void
     {
-        $validator = PetitionEventType::APPEAL_DECISION_NOT_TIMELY->rule();
         $state = $this->createStateWithBntPenaltyPeriod();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -329,7 +322,7 @@ class BNTValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::APPEAL_DECISION_NOT_TIMELY, new PetitionEventData(
             type: PetitionEventType::APPEAL_DECISION_NOT_TIMELY,
             date: CalendarDate::create('2025-02-09'),
             createdAt: CarbonImmutable::now(),

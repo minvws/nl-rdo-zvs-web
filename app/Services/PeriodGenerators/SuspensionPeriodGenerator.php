@@ -10,9 +10,6 @@ use App\ValueObjects\EventCalendarDay;
 use App\ValueObjects\PetitionEventData;
 use Illuminate\Support\Collection;
 
-use function collect;
-use function range;
-
 class SuspensionPeriodGenerator implements PeriodGeneratorInterface
 {
     /**
@@ -36,20 +33,16 @@ class SuspensionPeriodGenerator implements PeriodGeneratorInterface
 
             $matchingEnd = $ends->first(static fn(PetitionEventData $end): bool => $end->date->greaterThanOrEqualTo($firstDay));
 
+            // The end day itself is no longer suspended, so an end on the first day suspends nothing
             $lastDay = $matchingEnd
                 ? $matchingEnd->date->subDay()
-                : $firstDay->addDays($start->duration - 1);
+                : $firstDay->addDays(($start->duration ?? 0) - 1);
 
-            $days = $firstDay->diffInDays($lastDay);
-
-            collect(range(0, $days))->each(static function (int $i) use ($firstDay, $calendar, $start): void {
-                $calendar->addDay(EventCalendarDay::new(
-                    $firstDay->addDays($i),
-                    [
-                        'suspensionType' => $start->suspensionType,
-                    ],
-                ));
-            });
+            for ($date = $firstDay; $date->lessThanOrEqualTo($lastDay); $date = $date->addDay()) {
+                $calendar->addDay(EventCalendarDay::new($date, [
+                    'suspensionType' => $start->suspensionType,
+                ]));
+            }
         });
     }
 }

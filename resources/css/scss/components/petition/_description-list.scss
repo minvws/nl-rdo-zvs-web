@@ -3,7 +3,14 @@
   flex-direction: column;
   gap: 1rem;
 
+  > div {
+    flex-direction: column;
+  }
+
   dt {
+    width: auto;
+    min-width: 0;
+    max-width: none;
     font-weight: 700;
   }
 

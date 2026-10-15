@@ -25,14 +25,14 @@
 
 .petition-property__edit,
 .petition-property__edit:visited {
-  --link-text-color: var(--oc-gray-6);
-  --link-visited-text-color: var(--oc-gray-6);
-  --link-visited-hover-text-color: var(--link-hover-text-color);
+  color: var(--oc-gray-6);
+
+  &:hover {
+    color: var(--oc-blue-9);
+  }
 
   .petition-property__block--active & {
-    --link-text-color: var(--oc-blue-8);
-    --link-visited-text-color: var(--oc-blue-8);
-    --link-visited-hover-text-color: var(--oc-blue-8);
+    color: var(--oc-blue-8);
   }
 }
 

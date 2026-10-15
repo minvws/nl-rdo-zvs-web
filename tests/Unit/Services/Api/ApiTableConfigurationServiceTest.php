@@ -78,4 +78,11 @@ class ApiTableConfigurationServiceTest extends TestCase
         $this->assertContains('deadline_override_at', $config['fields']);
         $this->assertContains('deadline_override_reason', $config['fields']);
     }
+
+    public function testPetitionsExposesTheIgsForfeitedField(): void
+    {
+        $config = $this->service->getTableConfig('petitions');
+
+        $this->assertContains('igs_forfeited', $config['fields']);
+    }
 }

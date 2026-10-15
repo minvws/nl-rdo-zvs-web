@@ -14,6 +14,8 @@ use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+use function __;
+
 class DateMustNotBeInTheFutureRuleTest extends TestCase
 {
     private DateMustNotBeInTheFutureRule $rule;
@@ -43,7 +45,10 @@ class DateMustNotBeInTheFutureRuleTest extends TestCase
         $result = $this->validateOn(CalendarDate::today()->addDay());
 
         $this->assertNotNull($result);
-        $this->assertArrayHasKey('date', $result->getErrors());
+        $this->assertSame(
+            __('term.validation.common.date_must_not_be_in_the_future', ['event' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->label()]),
+            $result->getErrors()['date'],
+        );
     }
 
     private function validateOn(CalendarDate $date): ?ValidationResult

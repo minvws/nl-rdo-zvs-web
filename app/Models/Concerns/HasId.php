@@ -26,11 +26,9 @@ trait HasId
 
     /**
      * @param Model $model
-     *
-     * @return bool
      */
     // phpcs:ignore
-    public function is($model)
+    public function is($model): bool
     {
         // @codeCoverageIgnoreStart
         if (!$model instanceof self) {

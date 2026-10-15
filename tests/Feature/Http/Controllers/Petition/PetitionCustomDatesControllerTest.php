@@ -13,6 +13,7 @@ use App\Models\PetitionType;
 use App\Models\User;
 use App\ValueObjects\CalendarDate;
 use Tests\Feature\FeatureTestCase;
+use Tests\Helpers\ConfigHelper;
 
 use function __;
 use function array_column;
@@ -233,6 +234,8 @@ class PetitionCustomDatesControllerTest extends FeatureTestCase
 
     public function testCustomDatesSetsDateOfCloseWhenNull(): void
     {
+        ConfigHelper::set('app.features.term_engine_v2', false);
+
         $department = Department::factory()->create();
         $interval = $this->faker->numberBetween(1, 30);
         $date = $this->faker->calendarDate();
@@ -273,6 +276,8 @@ class PetitionCustomDatesControllerTest extends FeatureTestCase
 
     public function testCustomDatesSetsDateOfCloseWhenNotNull(): void
     {
+        ConfigHelper::set('app.features.term_engine_v2', false);
+
         $department = Department::factory()->create();
         $interval = $this->faker->numberBetween(1, 30);
         $date = $this->faker->calendarDate();
@@ -313,6 +318,8 @@ class PetitionCustomDatesControllerTest extends FeatureTestCase
 
     public function testCustomDatesSetsDateOfCloseWhenMaxDateIsGreater(): void
     {
+        ConfigHelper::set('app.features.term_engine_v2', false);
+
         $department = Department::factory()->create();
         $interval = $this->faker->numberBetween(1, 30);
         $date = $this->faker->calendarDate();

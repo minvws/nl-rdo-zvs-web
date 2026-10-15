@@ -273,7 +273,7 @@ class PetitionParticularityCollectorTest extends FeatureTestCase
             'duration' => 14,
         ]);
 
-        $this->assertEquals(['BNT'], $this->collectFor($petition));
+        $this->assertEquals(['Uitspraak BNT'], $this->collectFor($petition));
     }
 
     #[Test]
@@ -307,6 +307,16 @@ class PetitionParticularityCollectorTest extends FeatureTestCase
         ]);
 
         $this->assertEquals(['Verdaging'], $this->collectFor($petition));
+    }
+
+    #[Test]
+    public function testLabelsWithTev2ReceiptAppealNotTimely(): void
+    {
+        $petition = $this->petitionWithEvent(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, [
+            'date' => CalendarDate::today(),
+        ]);
+
+        $this->assertEquals(['Ontvangst BNT'], $this->collectFor($petition));
     }
 
     /**
@@ -354,8 +364,9 @@ class PetitionParticularityCollectorTest extends FeatureTestCase
                 ['Aanhouding'],
             ],
             'unspecified adjournment' => [PetitionEventType::UNSPECIFIED_ADJOURNMENT, [], 3, ['Aanhouding']],
-            'appeal not timely' => [PetitionEventType::APPEAL_DECISION_NOT_TIMELY, ['duration' => 14], 2, ['BNT']],
+            'appeal not timely' => [PetitionEventType::APPEAL_DECISION_NOT_TIMELY, ['duration' => 14], 2, ['Uitspraak BNT']],
             'adjournment letter' => [PetitionEventType::ADJOURNMENT, ['duration' => 42], 30, ['Verdaging']],
+            'receipt appeal not timely' => [PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY, [], 0, ['Ontvangst BNT']],
         ];
     }
 

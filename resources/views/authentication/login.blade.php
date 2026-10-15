@@ -67,11 +67,11 @@
             </div>
         </fieldset>
 
-        <div>
-            <a href="{{ route(RouteName::FORGOT_PASSWORD_REQUEST) }}">
-                {{ __('authentication.forgot_password.title') }}
-            </a>
+        <a href="{{ route(RouteName::FORGOT_PASSWORD_REQUEST) }}">
+            {{ __('authentication.forgot_password.title') }}
+        </a>
 
+        <div class="button-container">
             <x-primary-button>
                 {{ __('authentication.login') }}
             </x-primary-button>

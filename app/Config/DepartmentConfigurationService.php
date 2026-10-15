@@ -54,7 +54,7 @@ readonly class DepartmentConfigurationService
     }
 
     /**
-     * @return Collection<string, string>
+     * @return Collection<int, string>
      */
     public function processingStepOptions(Department $department, DecisionType $type): Collection
     {
@@ -64,13 +64,15 @@ readonly class DepartmentConfigurationService
         );
         Assert::allString($steps);
 
-        $options = new Collection();
+        $options = [];
 
         foreach ($steps as $step) {
-            $options->add(__('processing-step.' . $step));
+            $label = __('processing-step.' . $step);
+            Assert::string($label);
+            $options[] = $label;
         }
 
-        return $options;
+        return new Collection($options);
     }
 
     public function resultTypeLabel(Department $department, ResultType $resultType): string

@@ -43,6 +43,7 @@ return [
     'on' => 'op',
     'at' => 'om',
     'by' => 'door',
+    'or' => 'of',
     'after' => 'na',
     'days' => 'dag|dagen',
     'page-navigation' => 'Pagina navigatie',

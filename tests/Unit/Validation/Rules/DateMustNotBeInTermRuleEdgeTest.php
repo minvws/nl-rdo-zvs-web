@@ -16,12 +16,16 @@ use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+use function __;
+use function collect;
+use function lcfirst;
+
 class DateMustNotBeInTermRuleEdgeTest extends TestCase
 {
     #[Test]
     public function testReturnsNullWhenDayNotFound(): void
     {
-        $rule = new DateMustNotBeInTermRule([TermType::OBJECTION_PERIOD->value]);
+        $rule = new DateMustNotBeInTermRule([TermType::OBJECTION_PERIOD]);
         $event = $this->makeEvent();
         $state = $this->fakeState(null);
 
@@ -32,7 +36,7 @@ class DateMustNotBeInTermRuleEdgeTest extends TestCase
     #[Test]
     public function testReturnsNullWhenTermIsAllowed(): void
     {
-        $rule = new DateMustNotBeInTermRule([TermType::OBJECTION_PERIOD->value]);
+        $rule = new DateMustNotBeInTermRule([TermType::OBJECTION_PERIOD]);
         $event = $this->makeEvent();
         $day = EventCalendarDay::new(CalendarDate::create('2024-01-10'), [
             'applicableTerm' => TermType::DECISION_PERIOD->value,
@@ -46,7 +50,7 @@ class DateMustNotBeInTermRuleEdgeTest extends TestCase
     #[Test]
     public function testReturnsValidationResultWhenTermForbidden(): void
     {
-        $rule = new DateMustNotBeInTermRule([TermType::OBJECTION_PERIOD->value, TermType::DECISION_PERIOD->value]);
+        $rule = new DateMustNotBeInTermRule([TermType::OBJECTION_PERIOD, TermType::DECISION_PERIOD]);
         $event = $this->makeEvent(date: '2024-01-10', type: PetitionEventType::ADJOURNMENT);
         $day = EventCalendarDay::new(CalendarDate::create('2024-01-10'), [
             'applicableTerm' => TermType::DECISION_PERIOD->value,
@@ -55,7 +59,30 @@ class DateMustNotBeInTermRuleEdgeTest extends TestCase
 
         $result = $rule->validate($event, $state);
         $this->assertInstanceOf(ValidationResult::class, $result);
-        $this->assertArrayHasKey('date', $result->getErrors());
+        $this->assertSame(
+            __('term.validation.common.date_not_allowed_in_term', [
+                'event' => PetitionEventType::ADJOURNMENT->label(),
+                'term' => lcfirst(TermType::DECISION_PERIOD->label()),
+            ]),
+            $result->getErrors()['date'],
+        );
+    }
+
+    #[Test]
+    public function testBuildsTheCalendarWhenTheStateHasNotBuiltItYet(): void
+    {
+        $state = new DerivedState()->addEvents(collect([
+            new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2024-01-01'),
+                createdAt: CarbonImmutable::now(),
+                duration: 42,
+            ),
+        ]));
+
+        $result = new DateMustNotBeInTermRule([TermType::OBJECTION_PERIOD])->validate($this->makeEvent(), $state);
+
+        $this->assertInstanceOf(ValidationResult::class, $result);
     }
 
     private function makeEvent(string $date = '2024-01-10', PetitionEventType $type = PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED): PetitionEventData

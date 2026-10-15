@@ -1,0 +1,21 @@
+info:
+  name: tags
+  type: http
+  seq: 31
+
+http:
+  method: GET
+  url: "{{host}}/api/v1/tags/"
+  headers:
+    - name: ""
+      value: ""
+      disabled: true
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

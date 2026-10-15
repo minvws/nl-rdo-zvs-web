@@ -5,6 +5,7 @@
 
 <x-form-layout>
     <x-slot name="header">
+        <x-status-badge badge_type="info">{{ $petitionType->name }}</x-status-badge>
         <div class="action-bar">
             <h1>{{ __('petition.create') }}</h1>
         </div>

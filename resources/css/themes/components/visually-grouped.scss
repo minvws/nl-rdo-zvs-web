@@ -1,0 +1,19 @@
+@use "@minvws/manon-themes/icore-open/core/spacing";
+
+.visually-grouped {
+  width: 100%;
+  padding: spacing.$spacing-150;
+  background-color: var(--oc-white);
+  display: flex;
+  flex-direction: column;
+
+  &.visually-grouped--horizontal {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  form {
+    max-width: none;
+  }
+}

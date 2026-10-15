@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Exports;
 
 use App\Enums\ExportType;
+use App\Exports\ExcelDate;
 use App\Exports\ExportCriteria;
 use App\Exports\PetitionBezwaarExcelExport;
 use App\Models\Petition;
 use App\Models\PetitionType;
+use App\ValueObjects\CalendarDate;
 use App\ValueObjects\DateRange;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
@@ -32,9 +34,9 @@ class PetitionBezwaarExcelExportTest extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             null,
-            '2022-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2022-01-01')),
             'Binnen wettelijke termijn, Binnen afgesproken termijn',
             'Deels gegrond, Niet gegrond',
         ];
@@ -54,9 +56,9 @@ class PetitionBezwaarExcelExportTest extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             null,
-            '2022-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2022-01-01')),
             null,
             null,
         ];
@@ -76,7 +78,7 @@ class PetitionBezwaarExcelExportTest extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             null,
             null,
             null,
@@ -101,6 +103,15 @@ class PetitionBezwaarExcelExportTest extends FeatureTestCase
         ];
 
         $this->assertEquals($expectedResult, $petitionBezwaarExcelExport->headings());
+    }
+
+    public function testColumnFormats(): void
+    {
+        $this->assertSame([
+            'C' => ExcelDate::DATE_FORMAT,
+            'D' => ExcelDate::DATE_FORMAT,
+            'E' => ExcelDate::DATE_FORMAT,
+        ], $this->makePetitionBezwaarExcelExport()->columnFormats());
     }
 
     public function makePetitionBezwaarExcelExport(): PetitionBezwaarExcelExport

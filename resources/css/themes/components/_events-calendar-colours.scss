@@ -1,0 +1,149 @@
+// Background and text colour of every event and term in the terms calendar, as (background, text).
+//
+// Each label in the calendar has its own entry: `default` for the event or term itself, plus one
+// entry per variant that shows a different label, such as a suspension type or a result type.
+// A variant without an entry shows the `default` colour. To give an event the colour of the term
+// it starts, point both entries at the same variable.
+
+$primary-decision: (var(--oc-blue-9), #fff);
+$receipt: (var(--oc-green-9), #fff);
+$term-changing-event: (var(--oc-green-9), #fff);
+$suspension-event: (var(--oc-green-7), #fff);
+$notice-of-default-event: (var(--oc-yellow-9), #fff);
+$appeal-not-timely-event: (var(--oc-orange-9), #fff);
+$hearing-event: (var(--oc-cyan-9), #fff);
+$partial-decision-event: (var(--oc-indigo-9), #fff);
+$referral-event: (var(--oc-grape-9), #fff);
+$result-event: (var(--oc-cyan-9), #fff);
+
+$objection-period: (var(--oc-blue-2), var(--oc-blue-9));
+$decision-period: (#d5f5de, #157b31);
+$decision-period-extended: (#ebfaef, #157b31);
+$decision-period-adjournment: (#94e6ab, #116629);
+$decision-period-meeting-scheduled: (#4ad571, #116629);
+$decision-period-committee-hearing: (#20bd4c, #134421);
+$decision-period-event: (var(--oc-lime-3), var(--oc-lime-9));
+$decision-period-withdrawal: (var(--oc-lime-1), var(--oc-lime-8));
+$decision-period-suspended: (var(--oc-lime-2), var(--oc-lime-9));
+$notice-of-default: (var(--oc-yellow-2), var(--oc-yellow-9));
+$appeal-not-timely: (var(--oc-orange-2), var(--oc-orange-9));
+$penalty-period: (var(--oc-red-1), var(--oc-red-9));
+
+$calendar-colours: (
+  "event": (
+    "primary_decision": (
+      "default": $primary-decision,
+    ),
+    "receipt_of_objection": (
+      "default": $receipt,
+    ),
+    "receipt_of_complaint": (
+      "default": $receipt,
+    ),
+    "petition_received": (
+      "default": $receipt,
+    ),
+    "adjournment": (
+      "default": $term-changing-event,
+    ),
+    "meeting_scheduled": (
+      "default": $term-changing-event,
+    ),
+    "committee_hearing_determined": (
+      "default": $term-changing-event,
+    ),
+    "letter_of_suspension_sent": (
+      "default": $suspension-event,
+      "specified_adjournment": $suspension-event,
+      "suspension": $suspension-event,
+      "specification": $suspension-event,
+      "consultation": $suspension-event,
+    ),
+    "suspension_end": (
+      "default": $suspension-event,
+    ),
+    "unspecified_adjournment": (
+      "default": $suspension-event,
+    ),
+    "unspecified_adjournment_end": (
+      "default": $suspension-event,
+      "withdrawal": $suspension-event,
+    ),
+    "notice_of_default_received": (
+      "default": $notice-of-default-event,
+    ),
+    "notice_of_default_withdrawn": (
+      "default": $notice-of-default-event,
+    ),
+    "receipt_appeal_not_timely": (
+      "default": $appeal-not-timely-event,
+    ),
+    "appeal_decision_not_timely": (
+      "default": $appeal-not-timely-event,
+    ),
+    "hearing_date": (
+      "default": $hearing-event,
+    ),
+    "sent_partial_decision": (
+      "default": $partial-decision-event,
+    ),
+    "opinion_outside_term": (
+      "default": $partial-decision-event,
+    ),
+    "referred_to_department": (
+      "default": $referral-event,
+    ),
+    "answer_received": (
+      "default": $referral-event,
+    ),
+    "final_result": (
+      "default": $result-event,
+      "final_decision": $result-event,
+      "final_decision_55_request": $result-event,
+      "withdrawn": $result-event,
+      "forwarded": $result-event,
+      "rejected": $result-event,
+      "dismissed": $result-event,
+      "reconsidered": $result-event,
+      "already_public": $result-event,
+      "other": $result-event,
+    ),
+    "actual_disclosure": (
+      "default": $result-event,
+    ),
+    "publication_date": (
+      "default": $result-event,
+    ),
+  ),
+  "term": (
+    "objection_period": (
+      "default": $objection-period,
+      "specified_adjournment": $objection-period,
+      "suspension": $objection-period,
+      "specification": $objection-period,
+      "consultation": $objection-period,
+    ),
+    "decision_period": (
+      "default": $decision-period,
+      "extended": $decision-period-extended,
+      "adjournment": $decision-period-adjournment,
+      "meeting_scheduled": $decision-period-meeting-scheduled,
+      "committee_hearing": $decision-period-committee-hearing,
+      "event": $decision-period-event,
+      "withdrawal": $decision-period-withdrawal,
+      "specified_adjournment": $decision-period-suspended,
+      "suspension": $decision-period-suspended,
+      "specification": $decision-period-suspended,
+      "consultation": $decision-period-suspended,
+    ),
+    "notice_of_default": (
+      "default": $notice-of-default,
+    ),
+    "appeal_not_timely": (
+      "default": $appeal-not-timely,
+    ),
+    "penalty_period": (
+      "default": $penalty-period,
+    ),
+  ),
+);

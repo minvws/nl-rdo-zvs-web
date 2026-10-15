@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Exports;
 
 use App\Enums\ExportType;
+use App\Exports\ExcelDate;
 use App\Exports\ExportCriteria;
 use App\Exports\PetitionWooVerzoekExcelExport;
 use App\Models\Petition;
 use App\Models\PetitionType;
+use App\ValueObjects\CalendarDate;
 use App\ValueObjects\DateRange;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
@@ -32,10 +34,10 @@ class PetitionWooVerzoekExcelExportTest extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             'Verzoek betrof bij nader inzien burgervraag',
             null,
-            '2023-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2023-01-01')),
             0,
             __('exports.false'),
             null,
@@ -57,13 +59,13 @@ class PetitionWooVerzoekExcelExportTest extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             null,
             null,
             null,
             0,
             __('exports.true'),
-            '2023-01-02',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2023-01-02')),
             __('exports.false'),
         ];
 
@@ -88,6 +90,16 @@ class PetitionWooVerzoekExcelExportTest extends FeatureTestCase
         ];
 
         $this->assertEquals($expectedResult, $petitionWooVerzoekExcelExport->headings());
+    }
+
+    public function testColumnFormats(): void
+    {
+        $this->assertSame([
+            'C' => ExcelDate::DATE_FORMAT,
+            'E' => ExcelDate::DATE_FORMAT,
+            'F' => ExcelDate::DATE_FORMAT,
+            'I' => ExcelDate::DATE_FORMAT,
+        ], $this->makePetitionWooVerzoekExcelExport()->columnFormats());
     }
 
     public function makePetitionWooVerzoekExcelExport(): PetitionWooVerzoekExcelExport

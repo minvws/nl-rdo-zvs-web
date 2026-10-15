@@ -9,6 +9,7 @@ use App\Enums\PetitionEventType;
 use App\Enums\SuspensionType;
 use App\Enums\TermType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -17,6 +18,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 use function __;
+use function lcfirst;
 
 class UnspecifiedAdjournmentValidatorTest extends TestCase
 {
@@ -46,8 +48,7 @@ class UnspecifiedAdjournmentValidatorTest extends TestCase
             date: CalendarDate::create($decisionDay->toDateString()),
             createdAt: CarbonImmutable::now(),
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $event, $state);
         $this->assertTrue($result->isValid());
     }
 
@@ -100,8 +101,7 @@ class UnspecifiedAdjournmentValidatorTest extends TestCase
             date: $decisionDay,
             createdAt: CarbonImmutable::now(),
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $event, $state);
 
         $this->assertTrue($result->isValid());
     }
@@ -122,14 +122,15 @@ class UnspecifiedAdjournmentValidatorTest extends TestCase
             date: CalendarDate::create('2025-01-02'),
             createdAt: CarbonImmutable::now(),
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $event, $state);
         $this->assertFalse($result->isValid());
         $this->assertArrayHasKey('general', $result->getErrors());
         $this->assertSame(
             __('term.validation.common.event_requires_dependency_any', [
                 'event' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->label(),
-                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label() . ' of ' . PetitionEventType::PETITION_RECEIVED->label(),
+                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label()
+                    . ' ' . __('general.or') . ' '
+                    . PetitionEventType::PETITION_RECEIVED->label(),
             ]),
             $result->getErrors()['general'],
         );
@@ -156,8 +157,7 @@ class UnspecifiedAdjournmentValidatorTest extends TestCase
             date: CalendarDate::create('2025-01-03'),
             createdAt: CarbonImmutable::now(),
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $event, $state);
         $this->assertFalse($result->isValid());
         $this->assertArrayHasKey('date', $result->getErrors());
         $this->assertStringContainsString(
@@ -202,8 +202,7 @@ class UnspecifiedAdjournmentValidatorTest extends TestCase
             date: $objectionDay,
             createdAt: CarbonImmutable::now(),
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $event, $state);
 
         $this->assertTrue($result->isValid());
     }
@@ -242,14 +241,18 @@ class UnspecifiedAdjournmentValidatorTest extends TestCase
             date: $lastDecisionDay->addDay(),
             createdAt: CarbonImmutable::now(),
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $event, $state);
 
         $this->assertFalse($result->isValid());
         $errors = $result->getErrors();
         $this->assertArrayHasKey('date', $errors);
         $this->assertStringContainsString(
-            __('term.validation.common.date_must_be_in_term', ['event' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->label()]),
+            __('term.validation.common.date_must_be_in_term', [
+                'event' => PetitionEventType::UNSPECIFIED_ADJOURNMENT->label(),
+                'term' => lcfirst(__('term.objection_period.default'))
+                    . ' ' . __('general.or') . ' '
+                    . lcfirst(__('term.decision_period.default')),
+            ]),
             $errors['date'],
         );
     }
@@ -301,8 +304,7 @@ class UnspecifiedAdjournmentValidatorTest extends TestCase
             date: CalendarDate::create($suspensionDay->toDateString()),
             createdAt: CarbonImmutable::now(),
         );
-        $validator = PetitionEventType::UNSPECIFIED_ADJOURNMENT->rule();
-        $result = $validator->validate($event, $state);
+        $result = PetitionEventRules::validate(PetitionEventType::UNSPECIFIED_ADJOURNMENT, $event, $state);
 
         $this->assertFalse($result->isValid());
         $errors = $result->getErrors();

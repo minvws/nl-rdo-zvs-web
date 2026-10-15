@@ -17,13 +17,13 @@ config:
 request:
   variables:
     - name: host
-      value: ************
+      value: "http://localhost"
     - name: api_key
-      value: *************
+      value: ""
     - name: api_secret
-      value: ************
+      value: ""
     - name: access_token
-      value: ************
+      value: ""
 
 docs:
   content: |-

@@ -23,7 +23,8 @@ class PetitionParticularityCollector
     public const string LABEL_NOTICE_OF_DEFAULT = 'IGS';
     public const string LABEL_SUSPENSION = 'Opschorting';
     public const string LABEL_ADJOURNMENT = 'Aanhouding';
-    public const string LABEL_APPEAL_NOT_TIMELY = 'BNT';
+    public const string LABEL_APPEAL_NOT_TIMELY = 'Uitspraak BNT';
+    public const string LABEL_RECEIPT_APPEAL_NOT_TIMELY = 'Ontvangst BNT';
     public const string LABEL_ADJOURNMENT_LETTER = 'Verdaging';
 
     public const array SUSPENSION_TYPES = [
@@ -96,6 +97,10 @@ class PetitionParticularityCollector
 
         if ($this->hasRunningAppealNotTimelyTerm($events, $today)) {
             $labels[] = self::LABEL_APPEAL_NOT_TIMELY;
+        }
+
+        if ($this->hasEventOfType($events, PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY)) {
+            $labels[] = self::LABEL_RECEIPT_APPEAL_NOT_TIMELY;
         }
 
         if ($this->hasEventOfType($events, PetitionEventType::ADJOURNMENT)) {

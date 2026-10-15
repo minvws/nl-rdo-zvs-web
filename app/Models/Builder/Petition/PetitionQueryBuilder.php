@@ -17,6 +17,7 @@ use App\Models\Builder\Petition\Filters\PetitionStatusGroupFilter;
 use App\Models\Builder\Petition\Filters\PetitionTypeFilter;
 use App\Models\Builder\Petition\Filters\PolicyDepartmentFilter;
 use App\Models\Builder\Petition\Filters\SearchFilter;
+use App\Models\Builder\Petition\Filters\TagFilter;
 use App\Models\Builder\Petition\Filters\TeamFilter;
 use App\Models\Builder\Petition\Sorts\ApplicantSort;
 use App\Models\Builder\Petition\Sorts\AssignedUserSort;
@@ -49,6 +50,7 @@ readonly class PetitionQueryBuilder
                 'petitionType',
                 'applicant',
                 'policyDepartments:id,name',
+                'tags:id,name,color',
                 'firstAssignee.user:id,name',
                 'petitionStatus',
                 'petitionCategory:id,name',
@@ -82,6 +84,7 @@ readonly class PetitionQueryBuilder
             AllowedFilter::custom(PetitionCriteria::SEARCH->value, new SearchFilter()),
             AllowedFilter::custom(PetitionCriteria::STATUS->value, new PetitionStatusFilter()),
             AllowedFilter::custom(PetitionCriteria::STATUS_GROUP->value, new PetitionStatusGroupFilter()),
+            AllowedFilter::custom(PetitionCriteria::TAG->value, new TagFilter()),
             AllowedFilter::custom(PetitionCriteria::TEAM->value, new TeamFilter()),
         ];
     }

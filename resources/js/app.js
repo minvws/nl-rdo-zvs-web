@@ -351,8 +351,8 @@ function addTodayClass() {
 }
 
 /**
- * Collapses table rows by hiding rows that have the same `data-objection-events-calendar` value
- * as the previous row, creating a more compact view.
+ * Collapses table rows that only continue the term of the row above them: the same text in the
+ * "Termijn" column (`data-term`) and no event or "bijzonderheid" of their own (`data-has-details`).
  *
  * @param {HTMLElement} table - The table element to collapse rows in.
  * @param {NodeList<Element>} tableRows - All rows of the table with `data-objection-events-calendar` attribute.
@@ -361,21 +361,29 @@ function addTodayClass() {
 function collapseTable(table, tableRows, showLastInGroup = false) {
   if (!table || !tableRows) return;
 
-  let dateFirstInGroup = null; // FIXME: Currently unused variable
-  let dateLastInGroup = null; // FIXME: Currently unused variable
-
   for (let i = 1; i < tableRows.length - 1; i++) {
     const previousRow = tableRows[i - 1];
     const currentRow = tableRows[i];
     const nextRow = tableRows[i + 1];
-    const isEqualToNext = currentRow.dataset.objectionEventsCalendar === nextRow.dataset.objectionEventsCalendar;
-    const isEqualToPrevious =
-      currentRow.dataset.objectionEventsCalendar === previousRow.dataset.objectionEventsCalendar;
-    const shouldCollapse = showLastInGroup ? isEqualToNext && isEqualToPrevious : isEqualToPrevious;
+    const continuesPrevious = continuesTermOf(currentRow, previousRow);
+    const shouldCollapse = showLastInGroup
+      ? continuesPrevious && continuesTermOf(nextRow, currentRow)
+      : continuesPrevious;
     if (shouldCollapse) currentRow.classList.add('no-change-row');
   }
 
   table.classList.remove('hidden');
+}
+
+/**
+ * Checks whether a row only continues the term of the row above it.
+ *
+ * @param {HTMLElement} row - The row to check.
+ * @param {HTMLElement} previousRow - The row above it.
+ * @returns {boolean} - True when the row has no event or "bijzonderheid" and shows the same term.
+ */
+function continuesTermOf(row, previousRow) {
+  return row.dataset.hasDetails === 'false' && row.dataset.term === previousRow.dataset.term;
 }
 
 /**

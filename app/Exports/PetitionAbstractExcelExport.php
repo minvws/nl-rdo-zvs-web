@@ -7,6 +7,7 @@ namespace App\Exports;
 use App\Collections\CustomPetitionPropertyCollection;
 use App\Collections\PetitionCustomDateCollection;
 use App\Enums\CustomDateLabel;
+use App\Enums\ResultType;
 use App\Models\Builder\Petition\Filters\PetitionStatusHistoryDateRangeFilter;
 use App\Models\Builder\Petition\Filters\PetitionTypeFilter;
 use App\Models\CustomPetitionProperty;
@@ -23,7 +24,7 @@ use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Webmozart\Assert\Assert;
 
-use function array_key_exists;
+use function collect;
 
 /**
  * @implements WithMapping<mixed>
@@ -74,28 +75,67 @@ abstract class PetitionAbstractExcelExport implements WithTitle, WithMapping, Wi
      */
     protected function formatMatchingCustomOptions(CustomPetitionPropertyCollection $customPetitionProperties, array $options): string
     {
-        return $customPetitionProperties
-            ->filter(static fn(CustomPetitionProperty $value, string $key): bool => array_key_exists($value->name, $options))
-            ->map(static fn(CustomPetitionProperty $value, string $key): string => $options[$value->name])
+        $names = $customPetitionProperties->map(static fn(CustomPetitionProperty $value): string => $value->name);
+
+        return collect($options)
+            ->only($names->all())
             ->join(', ');
     }
 
     protected function formatCustomDateValueByLabel(
         PetitionCustomDateCollection $customDates,
         CustomDateLabel $customDateLabel,
-    ): ?string {
-        $customDate = $customDates->getByLabel($customDateLabel);
-
-        return $customDate?->date?->format('Y-m-d');
+    ): ?float {
+        return ExcelDate::fromCalendarDate($customDates->getByLabel($customDateLabel)?->date);
     }
 
-    protected function getDateFromCalendarDateToDate(?CalendarDate $date): ?string
+    protected function formatDate(?CalendarDate $date): ?float
     {
-        return $date?->format('Y-m-d');
+        return ExcelDate::fromCalendarDate($date);
     }
 
-    protected function formatDate(?CalendarDate $date): ?string
+    protected function dateWithdrawn(Petition $petition, bool $termEngineConverted): ?float
     {
-        return $this->getDateFromCalendarDateToDate($date);
+        if ($termEngineConverted) {
+            return $this->formatDate($petition->petitionEvents->finalResult(ResultType::WITHDRAWN)?->date);
+        }
+
+        return $this->formatCustomDateValueByLabel($petition->customDates, CustomDateLabel::DATE_WITHDRAWN);
+    }
+
+    protected function dateDecisionOnAppeal(Petition $petition, bool $termEngineConverted): ?float
+    {
+        if ($termEngineConverted) {
+            return $this->formatDate($petition->petitionEvents->finalResult(ResultType::FINAL_DECISION)?->date);
+        }
+
+        return $this->formatCustomDateValueByLabel($petition->customDates, CustomDateLabel::DATE_DECISION_ON_APPEAL);
+    }
+
+    protected function dateSettlementWithoutDecision(Petition $petition, bool $termEngineConverted): ?float
+    {
+        $finalResult = $termEngineConverted
+            ? $petition->petitionEvents->finalResultWithoutDecision()
+            : null;
+
+        if ($finalResult !== null) {
+            return $this->formatDate($finalResult->date);
+        }
+
+        return $this->formatCustomDateValueByLabel($petition->customDates, CustomDateLabel::DATE_SETTLEMENT_WITHOUT_DECISION);
+    }
+
+    protected function dateOfDecision(Petition $petition, bool $termEngineConverted): ?float
+    {
+        if ($termEngineConverted) {
+            return $this->formatDate($petition->petitionEvents->finalResult(ResultType::FINAL_DECISION)?->date);
+        }
+
+        return $this->dateOfLatestDecision($petition);
+    }
+
+    protected function dateOfLatestDecision(Petition $petition): ?float
+    {
+        return $this->formatDate($petition->decisions->sortByDesc('date')->first()?->date);
     }
 }

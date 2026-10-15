@@ -32,6 +32,14 @@ Na iedere deployment moeten:
 
 ### DEVELOP
 
+### v1.27.0
+
+- Verwerk migraties in `database/sql` v0.0.52
+
+### v1.26.0
+
+- Verwerk migraties in `database/sql` v0.0.51
+
 ### v1.25.0
 
 - Verwerk migraties in `database/sql` v0.0.50

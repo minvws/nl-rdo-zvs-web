@@ -32,10 +32,12 @@ class DerivedState
     private Collection $events;
     private EventCalendar $calendar;
     private UnspecifiedAdjournmentMode $unspecifiedAdjournmentMode = UnspecifiedAdjournmentMode::FREEZES_TERMS;
+    private bool $isCalendarBuilt = false;
 
     public function withUnspecifiedAdjournmentMode(UnspecifiedAdjournmentMode $mode): self
     {
         $this->unspecifiedAdjournmentMode = $mode;
+        $this->isCalendarBuilt = false;
 
         return $this;
     }
@@ -46,18 +48,28 @@ class DerivedState
     public function addEvents(Collection $events): self
     {
         $this->events = $events;
+        $this->isCalendarBuilt = false;
 
         return $this;
     }
 
+    /**
+     * Builds the calendar once for the events and mode it has; the validation rules of one event
+     * all ask for it on the same state.
+     */
     public function buildCalendar(): self
     {
+        if ($this->isCalendarBuilt) {
+            return $this;
+        }
+
         $this->calendar = new EventCalendar();
         $generators = $this->defaultGenerators();
         foreach ($generators as $generator) {
             $generator->generate($this->events, $this->calendar);
         }
         $this->calendar->sortByDate();
+        $this->isCalendarBuilt = true;
 
         return $this;
     }
@@ -130,11 +142,12 @@ class DerivedState
         // While an unspecified adjournment is still open its end date is "today", so the running
         // term has no fixed last day yet. The petition deadline is therefore today (and keeps
         // moving forward daily), decoupled from the projected last-day marker in the calendar.
-        // Departments that keep their terms running have no deadline at all until it ends.
-        if ($this->hasOpenUnspecifiedAdjournment()) {
-            return $this->unspecifiedAdjournmentMode === UnspecifiedAdjournmentMode::FREEZES_TERMS
-                ? CalendarDate::today()
-                : null;
+        // Departments that keep their terms running keep their original deadline until it ends.
+        if (
+            $this->unspecifiedAdjournmentMode === UnspecifiedAdjournmentMode::FREEZES_TERMS
+            && $this->hasOpenUnspecifiedAdjournment()
+        ) {
+            return CalendarDate::today();
         }
 
         $lastDeadlineDay = $this->calendar

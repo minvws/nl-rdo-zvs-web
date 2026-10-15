@@ -1,15 +1,23 @@
+@use "sass:list";
+@use "sass:map";
+@use "events-calendar-colours" as colours;
+
+@mixin calendar-colour($colour) {
+  background-color: list.nth($colour, 1);
+  color: list.nth($colour, 2);
+}
+
 div.objection-events-calendar-header {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: space-between;
-
-  h2 {
-    margin: 0;
-  }
 }
 
 table.objection-events-calendar-table,
 table.objection-events-events-table {
+  line-height: 1.75;
+
   tr {
     &.deadline {
       font-weight: 600;
@@ -52,6 +60,9 @@ table.objection-events-events-table {
   th,
   td {
     text-align: center;
+  }
+
+  td {
     padding: 0;
   }
 
@@ -68,86 +79,30 @@ table.objection-events-events-table {
 
     & > div.event-type {
       font-weight: 600;
-      color: #fff;
-
-      &--primary_decision {
-        background-color: var(--oc-blue-9);
-      }
-
-      &--adjournment,
-      &--committee_hearing_determined,
-      &--receipt_of_objection,
-      &--meeting_scheduled,
-      &--petition_received {
-        background-color: var(--oc-green-9);
-      }
-
-      &--letter_of_suspension_sent,
-      &--suspension_end,
-      &--unspecified_adjournment,
-      &--unspecified_adjournment_end,
-      &--unspecified_adjournment_end_withdrawal {
-        background-color: var(--oc-green-7);
-      }
-
-      &--notice_of_default_received,
-      &--notice_of_default_withdrawn {
-        background-color: var(--oc-yellow-9);
-      }
-
-      &--receipt_appeal_not_timely,
-      &--appeal_decision_not_timely {
-        background-color: var(--oc-orange-9);
-      }
-
-      &--hearing_date {
-        background-color: var(--oc-cyan-9);
-      }
-
-      &--sent_partial_decision,
-      &--opinion_outside_term {
-        background-color: var(--oc-indigo-9);
-      }
-
-      &--final_result,
-      &--actual_disclosure,
-      &--publication_date {
-        background-color: var(--oc-cyan-9);
-      }
     }
 
-    &.term-type {
-      &--objection_period,
-      &--objection_period__suspended {
-        background-color: var(--oc-blue-2);
-        color: var(--oc-blue-9);
-      }
+  }
+}
 
-      &--decision_period {
-        background-color: var(--oc-green-2);
-        color: var(--oc-green-9);
-      }
-
-      &--decision_period__suspended {
-        background-color: var(--oc-gray-2);
-        color: var(--oc-gray-6);
-      }
-
-      &--notice_of_default {
-        background-color: var(--oc-yellow-2);
-        color: var(--oc-yellow-9);
-      }
-
-      &--appeal_not_timely {
-        background-color: var(--oc-orange-2);
-        color: var(--oc-orange-9);
-      }
-
-      &--penalty_period {
-        background-color: var(--oc-red-1);
-        color: var(--oc-red-9);
+// Base colours first, so the colour of a variant always wins over the colour of its base.
+table.objection-events-calendar-table {
+  @each $group, $items in colours.$calendar-colours {
+    @each $name, $variants in $items {
+      .calendar-colour--#{$group}-#{$name} {
+        @include calendar-colour(map.get($variants, "default"));
       }
     }
+  }
 
+  @each $group, $items in colours.$calendar-colours {
+    @each $name, $variants in $items {
+      @each $variant, $colour in $variants {
+        @if $variant != "default" {
+          .calendar-colour--#{$group}-#{$name}-#{$variant} {
+            @include calendar-colour($colour);
+          }
+        }
+      }
+    }
   }
 }

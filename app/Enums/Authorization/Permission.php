@@ -71,4 +71,10 @@ enum Permission: string
      */
     case TEAM_WRITE = 'team.write';
     case TEAM_READ = 'team.read';
+
+    /**
+     * Tag permissions
+     */
+    case TAG_WRITE = 'tag.write';
+    case TAG_READ = 'tag.read';
 }

@@ -111,6 +111,12 @@
                     </dd>
                 </div>
                 <div class="description-list__item">
+                    <dt>{{ __('petition.igs_forfeited') }}</dt>
+                    <dd>
+                        {{ $petition->igs_forfeited > 0 ? Number::currency($petition->igs_forfeited, 'EUR', 'nl', 0) : '-' }}
+                    </dd>
+                </div>
+                <div class="description-list__item">
                     <dt>{{ __('petition.deadline_appeal_not_timely') }}</dt>
                     <dd>
                         {{ $petition->deadline_appeal_not_timely ? DisplayDate::date($petition->deadline_appeal_not_timely) : '-' }}

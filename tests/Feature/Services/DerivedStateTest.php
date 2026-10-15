@@ -8,6 +8,7 @@ use App;
 use App\Enums\PetitionEventType;
 use App\Enums\SuspensionType;
 use App\Enums\TermType;
+use App\Enums\UnspecifiedAdjournmentMode;
 use App\Services\DerivedState;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PenaltyData;
@@ -694,6 +695,22 @@ class DerivedStateTest extends FeatureTestCase
         $this->assertNull($firstDayBack->suspensionType);
         $this->assertTrue($firstDayBack->isBudgetDay);
         $this->assertSame(TermType::DECISION_PERIOD->value, $firstDayBack->applicableTerm);
+    }
+
+    #[Test]
+    public function testBuildsTheCalendarOnceForTheSameEventsAndMode(): void
+    {
+        $derivedState = new DerivedState()->addEvents($this->suspensionWithAdjournment())->buildCalendar();
+        $calendar = $derivedState->getCalendar();
+
+        $this->assertSame($calendar, $derivedState->buildCalendar()->getCalendar());
+
+        $derivedState->withUnspecifiedAdjournmentMode(UnspecifiedAdjournmentMode::CONTINUES_TERMS)->buildCalendar();
+        $this->assertNotSame($calendar, $derivedState->getCalendar());
+
+        $calendar = $derivedState->getCalendar();
+        $derivedState->addEvents($this->suspensionWithAdjournment())->buildCalendar();
+        $this->assertNotSame($calendar, $derivedState->getCalendar());
     }
 
     /**

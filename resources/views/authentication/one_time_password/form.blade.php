@@ -21,7 +21,7 @@
                 autofocus />
         </div>
 
-        <div>
+        <div class="button-container">
             <x-primary-button>
                 {{ __('general.send') }}
             </x-primary-button>

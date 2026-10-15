@@ -13,7 +13,7 @@ return [
     'hearing_form' => 'Hoorzittingsvorm',
     'adjournment_end_reason' => 'Reden',
     'reasoning' => 'Reden',
-    'result_type_other_reasoning' => 'Toelichting',
+    'reasoning_textarea' => 'Toelichting',
     'result_type_optgroup_with' => 'Met besluit',
     'result_type_optgroup_without' => 'Zonder besluit',
 
@@ -57,7 +57,7 @@ return [
         'meeting_scheduled' => 'Overeengekomen nieuwe uiterste beslisdatum',
     ],
     'fieldset_title' => [
-        'duration' => [
+        'term_deadline' => [
             'appeal_decision_not_timely' => [
                 'title' => 'Aanvang dwangsom',
                 'subtitle' => 'Vul of het aantal dagen of de concrete aanvang datum in.',
@@ -87,13 +87,15 @@ return [
             'receipt_of_objection' => 'Ontvangst bezwaar',
             'receipt_of_complaint' => 'Ontvangst klacht',
             'sent_partial_decision' => 'Verzonden deelbesluit',
-            'suspension_end' => 'Datum einde opschorting',
+            'referred_to_department' => 'Doorgestuurd naar afdeling',
+            'answer_received' => 'Antwoord ontvangen',
+            'suspension_end' => 'Datum einde aanhouding',
             'unspecified_adjournment_end' => 'Einde',
             'unspecified_adjournment' => 'Startdatum opschorting wegens aanhouden van het verzoek',
         ],
         'description' => [
             'actual_disclosure' => 'Dit is de datum waarop de werkelijke verstrekking heeft plaatsgevonden.',
-            'adjournment' => 'Dit is de datum waarop er is verdaagd.',
+            'adjournment' => 'Dit is de datum waarop een ongespecificeerde aanhouding is afgesproken. De ongespecificeerde aanhouding is een aanhouding waarvan de einddatum nog niet bekend is.',
             'appeal_decision_not_timely' => 'Dit is de datum waarop de uitspraak van het BNT is gedaan.',
             'committee_hearing_determined' => 'Dit is de datum waarop gedeeld is dat er een commissiezitting gehouden zal worden.',
             'final_result' => 'Dit is de datum waarop het definitieve besluit is genomen, de zaak is ingetrokken of is doorgezonden. Alle termijnen en dwangsommen zijn hiermee beëindigd.',
@@ -110,6 +112,8 @@ return [
             'receipt_of_objection' => 'Dit is de datum waarop het bezwaar is ontvangen. Dit kan buiten de bezwaartermijn liggen.',
             'receipt_of_complaint' => 'Dit is de datum waarop de klacht is ontvangen.',
             'sent_partial_decision' => 'Dit is de datum waarop een deelbesluit is verzonden.',
+            'referred_to_department' => 'Dit is de datum waarop het verzoek is doorgestuurd naar een andere afdeling of organisatie.',
+            'answer_received' => 'Dit is de datum waarop het antwoord van de andere afdeling of organisatie is ontvangen.',
             'suspension_end' => 'Dit is de datum waarop de aanhouding of opschorting is beëindigd en termijnen worden hersteld.',
             'unspecified_adjournment_end' => 'Dit is de datum waarop de aanhouding is beëindigd.',
             'unspecified_adjournment' => 'Dit is de datum overeenstemming met de indiener is bereikt.',
@@ -131,7 +135,7 @@ return [
             'letter_of_suspension_sent' => 'Dit is de datum waarop de aanhouding- of opschortingsbrief is verzonden. Opschortingen zijn niet van toepassing op de bezwaartermijn, wel op de beslistermijn.',
             'meeting_scheduled' => 'Dit is de datum waarop gedeeld is dat er een commissiezitting gehouden zal worden.',
             'suspension_end' => 'Dit is de datum waarop de aanhouding/opschorting is beëindigd en termijnen worden hersteld.',
-            'unspecified_adjournment_end' => 'Dit is de datum waarop de ongespecificeerde aanhouding is beëindigd.',
+            'unspecified_adjournment_end' => 'Dit is de datum waarop de ongespecificeerde aanhouding is beëindigd met een gebeurtenis of intrekking van akkoord.',
             'unspecified_adjournment' => 'Dit is de datum waarop de ongespecificeerde aanhouding is verzonden.',
         ],
     ],

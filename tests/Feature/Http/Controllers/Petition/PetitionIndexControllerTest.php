@@ -7,14 +7,23 @@ namespace Tests\Feature\Http\Controllers\Petition;
 use App\Enums\AssignmentRole;
 use App\Enums\Authorization\Permission;
 use App\Enums\RouteName;
+use App\Enums\TagColor;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\FeatureTestCase;
 
 use function __;
+use function preg_match;
+use function preg_match_all;
+use function preg_quote;
+use function sprintf;
+use function strtolower;
+use function trans_choice;
+use function trim;
 
 class PetitionIndexControllerTest extends FeatureTestCase
 {
@@ -195,5 +204,121 @@ class PetitionIndexControllerTest extends FeatureTestCase
             ->assertOk()
             ->assertSee('01-03-2026')
             ->assertDontSee(__('petition.deadline_override_legend'));
+    }
+
+    public function testIndexShowsTheTagsOfAPetitionAsColouredChips(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $tags = $this->createTags($department, ['Alfa' => TagColor::RED, 'Bravo' => TagColor::GREEN]);
+        $petition->tags()->attach($tags);
+
+        $cell = $this->tagCellOfPetitionIndex($department);
+
+        $this->assertStringContainsString('<span class="tag tag--color-red">Alfa</span>', $cell);
+        $this->assertStringContainsString('<span class="tag tag--color-green">Bravo</span>', $cell);
+    }
+
+    public function testIndexShowsThreeTagsWithoutACounter(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $petition->tags()->attach($this->createTags($department, [
+            'Alfa' => TagColor::BLUE,
+            'Bravo' => TagColor::BLUE,
+            'Charlie' => TagColor::BLUE,
+        ]));
+
+        $cell = $this->tagCellOfPetitionIndex($department);
+
+        $this->assertStringContainsString('>Alfa</span>', $cell);
+        $this->assertStringContainsString('>Bravo</span>', $cell);
+        $this->assertStringContainsString('>Charlie</span>', $cell);
+        $this->assertStringNotContainsString('+', $cell);
+    }
+
+    public function testIndexShowsThreeTagsAndACounterForTheRest(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $petition->tags()->attach($this->createTags($department, [
+            'Echo' => TagColor::BLUE,
+            'Delta' => TagColor::BLUE,
+            'Charlie' => TagColor::BLUE,
+            'Bravo' => TagColor::BLUE,
+            'Alfa' => TagColor::BLUE,
+        ]));
+
+        $cell = $this->tagCellOfPetitionIndex($department);
+
+        $this->assertStringContainsString('<span class="tag tag--color-blue">Alfa</span>', $cell);
+        $this->assertStringContainsString('<span class="tag tag--color-blue">Bravo</span>', $cell);
+        $this->assertStringContainsString('<span class="tag tag--color-blue">Charlie</span>', $cell);
+        $this->assertStringNotContainsString('>Delta</span>', $cell);
+        $this->assertStringNotContainsString('>Echo</span>', $cell);
+        $this->assertMatchesRegularExpression(
+            sprintf(
+                '/<span\s+class="tag tag--color-gray"\s+title="Delta, Echo">\s*<span aria-hidden="true">\+2<\/span>\s*<span class="visually-hidden">\s*%s\s*<\/span>/',
+                preg_quote(trans_choice('tag.more', 2, ['names' => 'Delta, Echo']), '/'),
+            ),
+            $cell,
+        );
+    }
+
+    public function testIndexShowsADashForAPetitionWithoutTags(): void
+    {
+        $department = Department::factory()->create();
+        Petition::factory()->recycle($department)->create();
+
+        $this->assertSame('-', $this->tagCellOfPetitionIndex($department));
+    }
+
+    public function testIndexEmptyStateSpansAllColumns(): void
+    {
+        $department = Department::factory()->create();
+
+        $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_READ)->fullyVerified()->create();
+        $content = (string) $this->beUser($authUser, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_INDEX, [
+                'department' => $department->slug,
+            ])
+            ->assertOk()
+            ->getContent();
+
+        $this->assertSame(1, preg_match('/<thead>(.*?)<\/thead>/s', $content, $head));
+        $columnCount = preg_match_all('/<th\b/', $head[1]);
+        $this->assertSame(1, preg_match('/colspan="(\d+)"\s+class="no-results"/', $content, $colspan));
+        $this->assertSame($columnCount, (int) $colspan[1]);
+    }
+
+    /**
+     * @param array<string, TagColor> $colorsByName
+     *
+     * @return array<int, Tag>
+     */
+    private function createTags(Department $department, array $colorsByName): array
+    {
+        $tags = [];
+        foreach ($colorsByName as $name => $color) {
+            $tags[] = Tag::factory()->for($department)->create(['name' => $name, 'color' => $color]);
+        }
+
+        return $tags;
+    }
+
+    private function tagCellOfPetitionIndex(Department $department): string
+    {
+        $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_READ)->fullyVerified()->create();
+        $content = (string) $this->beUser($authUser, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_INDEX, [
+                'department' => $department->slug,
+            ])
+            ->assertOk()
+            ->getContent();
+
+        $pattern = sprintf('/<td\s+data-hide-table-column-content="%s">(.*?)<\/td>/s', strtolower(__('tag.model_plural')));
+        $this->assertSame(1, preg_match($pattern, $content, $matches));
+
+        return trim($matches[1]);
     }
 }

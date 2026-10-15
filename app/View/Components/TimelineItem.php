@@ -29,6 +29,7 @@ use Webmozart\Assert\Assert;
 use function __;
 use function array_key_exists;
 use function array_map;
+use function implode;
 use function is_int;
 use function sprintf;
 
@@ -57,6 +58,7 @@ class TimelineItem extends Component
                 TimelineType::REFERENCED_OCCURRENCE => $this->renderView('petition.timeline.referenced_occurrence'),
                 TimelineType::STATUS_OCCURRENCE => $this->renderStatusOccurence(),
                 TimelineType::POLICY_DEPARTMENT_CHANGED => $this->renderPolicyDepartmentChanged(),
+                TimelineType::TAGS_CHANGED => $this->renderTagsChanged(),
                 TimelineType::TEAM_CHANGED => $this->renderView('petition.timeline.team_changed'),
                 TimelineType::FINAL_DECISION_SET => $this->renderView('petition.timeline.final_decision_set'),
                 TimelineType::PETITION_CUSTOM_PROPERTIES_CHANGED => $this->renderPetitionCustomPropertiesChanged(),
@@ -93,6 +95,9 @@ class TimelineItem extends Component
         }
     }
 
+    /**
+     * @param view-string $view
+     */
     private function renderView(string $view): View
     {
         return $this->view
@@ -217,6 +222,21 @@ class TimelineItem extends Component
             ]);
     }
 
+    private function renderTagsChanged(): View
+    {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'tag_names');
+        Assert::isArray($data['tag_names']);
+        Assert::allString($data['tag_names']);
+
+        return $this->view
+            ->make('petition.timeline.tags_changed')
+            ->with([
+                'timelineItem' => $this->timelineItem,
+                'tagNames' => implode(', ', $data['tag_names']),
+            ]);
+    }
+
     private function renderPetitionCustomPropertiesChanged(): View
     {
         $data = (array) $this->timelineItem->data;
@@ -320,6 +340,9 @@ class TimelineItem extends Component
             ]);
     }
 
+    /**
+     * @param view-string $view
+     */
     private function renderProcessingStepView(string $view): View
     {
         $data = (array) $this->timelineItem->data;

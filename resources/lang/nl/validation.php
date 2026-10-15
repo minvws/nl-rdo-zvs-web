@@ -8,6 +8,7 @@ return [
     'calendar_date' => 'Vul een datum in',
     'encrypted_string' => 'Ongeldige versleutelde string',
     'unique_custom_petition_property_grouping' => 'Er mogen niet meerdere eigenschappen uit dezelfde groepering geselecteerd worden.',
+    'unique_tag_name' => 'Er bestaat al een tag met deze naam binnen deze afdeling.',
 
     'confirmed' => 'De wachtwoordbevestiging is mislukt',
     'max' => [
@@ -177,6 +178,13 @@ return [
         ],
         'petition_status_date' => [
             'before_or_equal' => 'Vul een datum in die vandaag of eerder is',
+        ],
+        'tag_ids' => [
+            'array' => 'Kies de tags uit de lijst',
+        ],
+        'tag_ids.*' => [
+            'string' => 'Kies de tags uit de lijst',
+            'in' => 'Deze tag kan niet aan de zaak worden toegevoegd',
         ],
     ],
     'secure_file_upload' => [

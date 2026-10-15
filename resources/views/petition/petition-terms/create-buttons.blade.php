@@ -5,6 +5,7 @@
     <div class="button-container button-container--wrap">
         @foreach ($termTypes as $termType)
             <a
+                class="button secondary"
                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_TERMS_CREATE, ['department' => $petition->department, 'petition' => $petition, 'termType' => $termType]) }}">
                 {{ __('term.term_type.' . $termType->value) }}
             </a>
@@ -12,6 +13,7 @@
 
         @if ($draftTermButton)
             <a
+                class="button secondary"
                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_DRAFT_TERM_CREATE, ['department' => $petition->department, 'petition' => $petition]) }}">
                 {{ __('draft_term.create') }}
             </a>
@@ -19,6 +21,7 @@
 
         @if (Config::get('app.features.term_engine_v2'))
             <a
+                class="button secondary"
                 href="{{ route(RouteName::PETITION_EVENTS_WIZARD_RESET, ['department' => $petition->department, 'petition' => $petition]) }}">
                 <strong>{{ __('term.manage_terms') }} v2</strong>
             </a>

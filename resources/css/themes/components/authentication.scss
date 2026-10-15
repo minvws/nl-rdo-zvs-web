@@ -1,5 +1,29 @@
 /* Authentication */
 
+@use "@minvws/manon-themes/icore-open/core/spacing";
+
+$layout-authentication-max-width: 40rem;
+
 .authentication {
   justify-content: center;
+}
+
+.layout-authentication {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: $layout-authentication-max-width;
+  margin: 0 auto;
+  padding: spacing.$spacing-150;
+  background-color: var(--oc-white);
+  color: inherit;
+}
+
+main.authentication {
+  > .confirmation,
+  > .explanation,
+  > .error,
+  > .warning,
+  > .system {
+    max-width: $layout-authentication-max-width;
+  }
 }

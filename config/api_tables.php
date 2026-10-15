@@ -51,13 +51,13 @@ return [
                 'petition_category_id',
                 'petition_type_id',
                 'petition_status_id',
-                'department_id',
                 'date_appealed_decision',
                 'decision_date',
                 'decision_reference',
                 'archived_at',
                 'created_at',
                 'updated_at',
+                'igs_forfeited',
             ],
             'filterable_fields' => [
                 'created_at',
@@ -139,6 +139,24 @@ return [
                 'id',
                 'name',
                 'department_id',
+                'active',
+                'created_at',
+                'updated_at',
+            ],
+            'filterable_fields' => [
+                'created_at',
+                'updated_at',
+            ],
+        ],
+
+        'tags' => [
+            'table' => 'tags',
+            'fields' => [
+                'id',
+                'department_id',
+                'name',
+                'color',
+                'description',
                 'active',
                 'created_at',
                 'updated_at',
@@ -409,6 +427,18 @@ return [
                 'policy_department_id',
             ],
             'filterable_fields' => [],
+        ],
+
+        'petition_tag' => [
+            'table' => 'petition_tag',
+            'fields' => [
+                'petition_id',
+                'tag_id',
+            ],
+            'filterable_fields' => [
+                'petition_id',
+                'tag_id',
+            ],
         ],
 
         'petition_querysnapshots' => [

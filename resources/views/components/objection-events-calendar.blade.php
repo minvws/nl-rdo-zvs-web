@@ -2,7 +2,7 @@
     <h2 class="mb-3">{{ __('term.objection_events_calendar') }}</h2>
     <button
         id="toggle-event-calendar"
-        class="mb-3"
+        class="button secondary"
         type="button">
         Klap uit
     </button>
@@ -21,6 +21,8 @@
             <tr
                 class="{{ $day->isDeadline ? 'deadline' : '' }}"
                 data-objection-events-calendar="{{ $day->summary() }}"
+                data-term="{{ $termText($day) }}"
+                data-has-details="{{ $hasEventsOrParticularities($day) ? 'true' : 'false' }}"
                 data-applicable-term="{{ $day->applicableTerm ?? '' }}"
                 data-events-calendar-date="{{ $day->date->toDateString() }}"
                 data-penalty-today-in-euros="{{ $day->penaltyTodayInEuros ?? 0 }}">
@@ -29,28 +31,25 @@
                 </td>
                 <td>
                     @foreach ($day->petitionEvents as $event)
-                        @php
-                            $isUnspecifiedAdjournmentWithdrawal = $event->type === App\Enums\PetitionEventType::UNSPECIFIED_ADJOURNMENT_END && $event->reasoning === App\Enums\AdjournmentEndReason::Withdrawal->value;
-                            $eventTypeClass = $isUnspecifiedAdjournmentWithdrawal ? 'unspecified_adjournment_end_withdrawal' : $event->type->value;
-                            $eventLabel = $isUnspecifiedAdjournmentWithdrawal ? __('term.unspecified_adjournment_end_withdrawal') : __('term.' . $event->type->value . ($event->suspensionType ? '.' . $event->suspensionType->value : '') . ($event->resultType ? '.' . $event->resultType->value : ''));
-                        @endphp
-
-                        <div class="event-type event-type--{{ $eventTypeClass }}">
+                        <div class="{{ $eventClass($event) }}">
                             <span>
-                                {{ $eventLabel }}
+                                {{ $eventLabel($event) }}
                             </span>
                         </div>
                     @endforeach
                 </td>
-                <td
-                    class="term-type {{ $day->applicableTerm ? ' term-type--' . $day->applicableTerm : '' }}{{ $day->suspensionType ? '__suspended' : '' }}">
+                <td class="{{ $termClass($day) }}">
                     <span>
-                        {{ $day->applicableTerm ? __('term.' . $day->applicableTerm . '.' . ($day->suspensionType ? $day->suspensionType->value : 'default')) : '' }}{{ $day->penaltyTodayInEuros ? ': €' . $day->penaltyTodayInEuros : '' }}
+                        {{ $termText($day) }}
                     </span>
                 </td>
                 <td class="particularities">
                     <span>{{ $day->isATW ? __('term.is_atw') : '' }}</span>
                     <span>{{ $day->isDeadline ? __('term.is_deadline-' . $day->applicableTerm) : '' }}</span>
+                    <span>{{ $day->isOriginalDeadline ? __('term.is_original_deadline-decision_period') : '' }}</span>
+                    <span>
+                        {{ $day->isOpenUnspecifiedAdjournment ? __('term.is_open_unspecified_adjournment') : '' }}
+                    </span>
                     <span class="today-penalty"></span>
                 </td>
             </tr>

@@ -6,16 +6,24 @@ namespace Tests\Feature\Exports;
 
 use App\Collections\CustomPetitionPropertyCollection;
 use App\Collections\PetitionCustomDateCollection;
+use App\Collections\PetitionEventCollection;
+use App\Enums\AdjournmentEndReason;
+use App\Enums\CustomDateLabel;
 use App\Enums\ExportType;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
+use App\Enums\SuspensionType;
+use App\Exports\ExcelDate;
 use App\Exports\ExportCriteria;
 use App\Exports\PetitionWooVerzoekExcelExport;
+use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionCustomDate;
 use App\Models\PetitionEvent;
 use App\Models\PetitionType;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\DateRange;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -38,9 +46,9 @@ class PetitionWooVerzoekExcelExportV2Test extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             __('exports.woo_verzoek.withdrawn'),
-            '2021-06-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-06-01')),
             null,
             0,
             __('exports.false'),
@@ -63,10 +71,10 @@ class PetitionWooVerzoekExcelExportV2Test extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             null,
             null,
-            '2022-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2022-01-01')),
             0,
             __('exports.false'),
             null,
@@ -88,17 +96,197 @@ class PetitionWooVerzoekExcelExportV2Test extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             null,
             null,
             null,
             0,
             __('exports.true'),
-            '2023-01-02',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2023-01-02')),
             __('exports.false'),
         ];
 
         $this->assertEquals($expectedResult, $petitionWooVerzoekExcelExport->map($row));
+    }
+
+    public function testMapFallsBackToTheSettlementDateFromBeforeTheConversion(): void
+    {
+        $row = $this->buildPetitionWithTermEngineEvents(['number' => 'number', 'name' => 'name'], collect([]));
+        $row->setRelation('customDates', new PetitionCustomDateCollection([
+            PetitionCustomDate::factory()->make([
+                'date_label' => CustomDateLabel::DATE_SETTLEMENT_WITHOUT_DECISION,
+                'date' => CalendarDate::create('2023-03-04'),
+            ]),
+        ]));
+
+        $map = $this->makePetitionWooVerzoekExcelExport()->map($row);
+
+        $this->assertEquals(ExcelDate::fromCalendarDate(CalendarDate::create('2023-03-04')), $map[4]);
+    }
+
+    public function testMapCountsAnOpenUnspecifiedAdjournmentUpToToday(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::create(2025, 2, 1));
+
+        $row = $this->buildPetitionWithTermEngineEvents(
+            ['number' => 'number', 'name' => 'name'],
+            collect([
+                $this->petitionReceived(),
+                new PetitionEvent([
+                    'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                    'date' => CalendarDate::create('2025-01-10'),
+                    'created_at' => CalendarDate::create('2025-01-10'),
+                ]),
+            ]),
+        );
+
+        $export = $this->makePetitionWooVerzoekExcelExport(
+            new DateRange(CalendarDate::create('2025-01-01'), CalendarDate::create('2025-02-01')),
+        );
+
+        // 2025-01-10 through 2025-01-31, the day the adjournment started counts, today does not yet.
+        $this->assertSame(22, $export->map($row)[6]);
+    }
+
+    public function testMapDoesNotCountAdjournedDaysForADepartmentWhoseTermsKeepRunning(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::create(2025, 2, 1));
+
+        $row = $this->buildPetitionWithTermEngineEvents(
+            ['number' => 'number', 'name' => 'name'],
+            collect([
+                $this->petitionReceived(),
+                new PetitionEvent([
+                    'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                    'date' => CalendarDate::create('2025-01-10'),
+                    'created_at' => CalendarDate::create('2025-01-10'),
+                ]),
+            ]),
+            'team-c',
+        );
+
+        $export = $this->makePetitionWooVerzoekExcelExport(
+            new DateRange(CalendarDate::create('2025-01-01'), CalendarDate::create('2025-02-01')),
+        );
+
+        $this->assertSame(0, $export->map($row)[6]);
+    }
+
+    public function testMapStopsCountingAnOpenUnspecifiedAdjournmentAtTheEndOfTheExportPeriod(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::create(2025, 2, 1));
+
+        $row = $this->buildPetitionWithTermEngineEvents(
+            ['number' => 'number', 'name' => 'name'],
+            collect([
+                $this->petitionReceived(),
+                new PetitionEvent([
+                    'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                    'date' => CalendarDate::create('2025-01-10'),
+                    'created_at' => CalendarDate::create('2025-01-10'),
+                ]),
+            ]),
+        );
+
+        $export = $this->makePetitionWooVerzoekExcelExport(
+            new DateRange(CalendarDate::create('2025-01-01'), CalendarDate::create('2025-01-20')),
+        );
+
+        // 2025-01-10 through 2025-01-20, the rest of the adjournment falls outside the period.
+        $this->assertSame(11, $export->map($row)[6]);
+    }
+
+    public function testMapCountsAnEndedUnspecifiedAdjournmentUpToItsEndDate(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::create(2025, 2, 1));
+
+        $row = $this->buildPetitionWithTermEngineEvents(
+            ['number' => 'number', 'name' => 'name'],
+            collect([
+                $this->petitionReceived(),
+                new PetitionEvent([
+                    'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                    'date' => CalendarDate::create('2025-01-10'),
+                    'created_at' => CalendarDate::create('2025-01-10'),
+                ]),
+                new PetitionEvent([
+                    'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
+                    'date' => CalendarDate::create('2025-01-21'),
+                    'created_at' => CalendarDate::create('2025-01-21'),
+                    'reasoning' => AdjournmentEndReason::Event->value,
+                ]),
+            ]),
+        );
+
+        $export = $this->makePetitionWooVerzoekExcelExport(
+            new DateRange(CalendarDate::create('2025-01-01'), CalendarDate::create('2025-02-01')),
+        );
+
+        // 2025-01-10 through 2025-01-20, the day the adjournment ends counts towards the term again.
+        $this->assertSame(11, $export->map($row)[6]);
+    }
+
+    public function testMapAddsSpecificationConsultationAndAdjournmentDaysTogether(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::create(2025, 2, 1));
+
+        $row = $this->buildPetitionWithTermEngineEvents(
+            ['number' => 'number', 'name' => 'name'],
+            collect([
+                $this->petitionReceived(),
+                $this->letterOfSuspension('2025-01-05', SuspensionType::SPECIFICATION, 5),
+                $this->letterOfSuspension('2025-01-12', SuspensionType::CONSULTATION, 4),
+                new PetitionEvent([
+                    'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                    'date' => CalendarDate::create('2025-01-20'),
+                    'created_at' => CalendarDate::create('2025-01-20'),
+                ]),
+                new PetitionEvent([
+                    'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
+                    'date' => CalendarDate::create('2025-01-25'),
+                    'created_at' => CalendarDate::create('2025-01-25'),
+                    'reasoning' => AdjournmentEndReason::Event->value,
+                ]),
+            ]),
+        );
+
+        $export = $this->makePetitionWooVerzoekExcelExport(
+            new DateRange(CalendarDate::create('2025-01-01'), CalendarDate::create('2025-02-01')),
+        );
+
+        // 5 days of "preciseren" plus 4 days of "zienswijze" plus 5 days of adjournment.
+        $this->assertSame(14, $export->map($row)[6]);
+    }
+
+    public function testMapDoesNotCountAdjournedDaysThatAreAlreadySuspended(): void
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::create(2025, 2, 1));
+
+        $row = $this->buildPetitionWithTermEngineEvents(
+            ['number' => 'number', 'name' => 'name'],
+            collect([
+                $this->petitionReceived(),
+                $this->letterOfSuspension('2025-01-05', SuspensionType::SPECIFICATION, 10),
+                new PetitionEvent([
+                    'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT,
+                    'date' => CalendarDate::create('2025-01-10'),
+                    'created_at' => CalendarDate::create('2025-01-10'),
+                ]),
+                new PetitionEvent([
+                    'type' => PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
+                    'date' => CalendarDate::create('2025-01-13'),
+                    'created_at' => CalendarDate::create('2025-01-13'),
+                    'reasoning' => AdjournmentEndReason::Event->value,
+                ]),
+            ]),
+        );
+
+        $export = $this->makePetitionWooVerzoekExcelExport(
+            new DateRange(CalendarDate::create('2025-01-01'), CalendarDate::create('2025-02-01')),
+        );
+
+        // The adjournment runs inside the suspension, so those days are only counted once.
+        $this->assertSame(10, $export->map($row)[6]);
     }
 
     public function testHeadings(): void
@@ -121,17 +309,19 @@ class PetitionWooVerzoekExcelExportV2Test extends FeatureTestCase
         $this->assertEquals($expectedResult, $petitionWooVerzoekExcelExport->headings());
     }
 
-    public function makePetitionWooVerzoekExcelExport(): PetitionWooVerzoekExcelExport
+    public function makePetitionWooVerzoekExcelExport(?DateRange $dateRange = null): PetitionWooVerzoekExcelExport
     {
-        $startDate = $this->faker()->calendarDate();
-        $endDate = $startDate->addDays(30);
+        if (!$dateRange instanceof DateRange) {
+            $startDate = $this->faker()->calendarDate();
+            $dateRange = new DateRange($startDate, $startDate->addDays(30));
+        }
 
         return new PetitionWooVerzoekExcelExport(
             'worksheet',
             new ExportCriteria(
                 new PetitionType(),
                 $this->faker()->randomElement(ExportType::cases()),
-                new DateRange($startDate, $endDate),
+                $dateRange,
             ),
         );
     }
@@ -216,21 +406,47 @@ class PetitionWooVerzoekExcelExportV2Test extends FeatureTestCase
         return $this->buildPetitionWithTermEngineEvents($data, $events);
     }
 
+    private function petitionReceived(): PetitionEvent
+    {
+        return new PetitionEvent([
+            'type' => PetitionEventType::PETITION_RECEIVED,
+            'date' => CalendarDate::create('2025-01-01'),
+            'created_at' => CalendarDate::create('2025-01-01'),
+            'duration' => 28,
+        ]);
+    }
+
+    private function letterOfSuspension(string $date, SuspensionType $suspensionType, int $duration): PetitionEvent
+    {
+        return new PetitionEvent([
+            'type' => PetitionEventType::LETTER_OF_SUSPENSION_SENT,
+            'date' => CalendarDate::create($date),
+            'created_at' => CalendarDate::create($date),
+            'duration' => $duration,
+            'suspension_type' => $suspensionType,
+        ]);
+    }
+
     /**
      * @param array<mixed> $data
      * @param Collection<int, PetitionEvent> $events
      */
-    private function buildPetitionWithTermEngineEvents(array $data, Collection $events): Petition
-    {
+    private function buildPetitionWithTermEngineEvents(
+        array $data,
+        Collection $events,
+        string $departmentSlug = 'team-a',
+    ): Petition {
         $petition = new Petition([
             'number' => $data['number'],
             'name' => $data['name'],
         ]);
 
+        $petition->setRelation('department', new Department(['slug' => $departmentSlug]));
+
         $properties = new CustomPetitionPropertyCollection([]);
         $customDates = new PetitionCustomDateCollection([]);
 
-        $petition->setRelation('petitionEvents', $events);
+        $petition->setRelation('petitionEvents', new PetitionEventCollection($events->all()));
         $petition->setRelation('customPetitionProperties', $properties);
         $petition->setRelation('customDates', $customDates);
 

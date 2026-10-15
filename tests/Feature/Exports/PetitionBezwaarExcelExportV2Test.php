@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Exports;
 
 use App\Collections\CustomPetitionPropertyCollection;
+use App\Collections\PetitionEventCollection;
 use App\Enums\ExportType;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
+use App\Exports\ExcelDate;
 use App\Exports\ExportCriteria;
 use App\Exports\PetitionBezwaarExcelExport;
 use App\Models\CustomPetitionProperty;
@@ -38,9 +40,9 @@ class PetitionBezwaarExcelExportV2Test extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
-            '2021-06-01',
-            '2022-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-06-01')),
+            ExcelDate::fromCalendarDate(CalendarDate::create('2022-01-01')),
             'Binnen wettelijke termijn, Binnen afgesproken termijn',
             'Deels gegrond, Niet gegrond',
         ];
@@ -60,9 +62,9 @@ class PetitionBezwaarExcelExportV2Test extends FeatureTestCase
         $expectedResult = [
             'number',
             'name',
-            '2021-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2021-01-01')),
             null,
-            '2022-01-01',
+            ExcelDate::fromCalendarDate(CalendarDate::create('2022-01-01')),
             'Binnen wettelijke termijn, Binnen afgesproken termijn',
             'Deels gegrond, Niet gegrond',
         ];
@@ -213,7 +215,7 @@ class PetitionBezwaarExcelExportV2Test extends FeatureTestCase
             'name' => $data['name'],
         ]);
 
-        $petition->setRelation('petitionEvents', $events);
+        $petition->setRelation('petitionEvents', new PetitionEventCollection($events->all()));
         $petition->setRelation('customPetitionProperties', $properties);
         $petition->setRelation('customDates', collect());
 

@@ -86,13 +86,6 @@ class ResultTypeTest extends TestCase
     }
 
     #[Test]
-    public function testRequiresReasoningIsTrueOnlyForOther(): void
-    {
-        $this->assertTrue(ResultType::OTHER->requiresReasoning());
-        $this->assertFalse(ResultType::FINAL_DECISION->requiresReasoning());
-    }
-
-    #[Test]
     public function testAllCasesHaveLabels(): void
     {
         foreach (ResultType::cases() as $type) {

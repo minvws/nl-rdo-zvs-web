@@ -88,6 +88,7 @@ class AdminPanelControllerTest extends FeatureTestCase
             [Permission::USER_WRITE, 'user.model_plural'],
             [Permission::PUBLIC_HOLIDAY_WRITE, 'public_holiday.model_plural'],
             [Permission::PETITION_TYPE_WRITE, 'petition_type.model_plural'],
+            [Permission::TAG_WRITE, 'tag.model_plural'],
         ];
     }
 }

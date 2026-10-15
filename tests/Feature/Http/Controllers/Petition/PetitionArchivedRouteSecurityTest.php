@@ -106,6 +106,12 @@ class PetitionArchivedRouteSecurityTest extends FeatureTestCase
             'petition' => $petition,
         ])->assertForbidden();
 
+        // Test tags edit
+        $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_TAGS_EDIT, [
+            'department' => $department,
+            'petition' => $petition,
+        ])->assertForbidden();
+
         // Test status change edit
         $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_CHANGE_STATUS_EDIT, [
             'department' => $department,
@@ -144,6 +150,12 @@ class PetitionArchivedRouteSecurityTest extends FeatureTestCase
 
         // Test policy department edit
         $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_POLICY_DEPARTMENT_EDIT, [
+            'department' => $department,
+            'petition' => $petition,
+        ])->assertOk();
+
+        // Test tags edit
+        $user->getByRoute(RouteName::DEPARTMENTS_PETITIONS_TAGS_EDIT, [
             'department' => $department,
             'petition' => $petition,
         ])->assertOk();

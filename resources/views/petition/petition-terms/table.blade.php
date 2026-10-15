@@ -183,12 +183,7 @@
                 </tr>
             @endif
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="6">
-                    <x-petition.petition-terms.create-buttons :petition="$petition" />
-                </td>
-            </tr>
-        </tfoot>
     </table>
+
+    <x-petition.petition-terms.create-buttons :petition="$petition" />
 </section>

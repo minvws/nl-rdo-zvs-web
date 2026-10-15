@@ -4,20 +4,15 @@ declare(strict_types=1);
 
 namespace App\Exports;
 
-use App\Enums\CustomDateLabel;
-use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
-use App\Facades\DisplayDate;
-use App\Models\Decision;
 use App\Models\Petition;
-use App\ValueObjects\CalendarDate;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Override;
 
 use function __;
 
-class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExport
+class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExport implements WithColumnFormatting
 {
     public function __construct(ExportCriteria $criteria)
     {
@@ -40,6 +35,8 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
      */
     public function map(mixed $row): array
     {
+        $termEngineConverted = $row->isTermEngineConverted();
+
         return [
             $row->number,
             $row->name ?? '-',
@@ -49,15 +46,15 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
             $row->petitionType->name,
             $row->petitionCategory?->name,
             $row->team->name ?? '-',
-            DisplayDate::date($row->date_of_entry),
-            $row->date_appealed_decision ? DisplayDate::date($row->date_appealed_decision) : '-',
-            $row->effective_deadline_at ? DisplayDate::date($row->effective_deadline_at) : '-',
-            DisplayDate::datetime($row->created_at),
-            $row->petitionTerms->penaltyToDate(CalendarDate::today()),
-            $row->petitionTerms->totalPenalty(),
+            ExcelDate::fromCalendarDate($row->date_of_entry),
+            ExcelDate::fromCalendarDate($row->date_appealed_decision),
+            ExcelDate::fromCalendarDate($row->effective_deadline_at),
+            ExcelDate::fromDateTime($row->created_at),
+            $row->legacy_term_penalty_today + $row->igs_penalty_today + $row->bnt_penalty_today,
+            $row->legacy_term_forfeited + $row->igs_forfeited + $row->bnt_forfeited,
             $row->relatedPetitions->toString(),
-            $this->formatCustomDateValueByLabel($row->customDates, CustomDateLabel::DATE_WITHDRAWN),
-            $this->formatCustomDateValueByLabel($row->customDates, CustomDateLabel::DATE_DECISION_ON_APPEAL),
+            $this->dateWithdrawn($row, $termEngineConverted),
+            $this->dateDecisionOnAppeal($row, $termEngineConverted),
             $row->daysPending,
             __('petition_status.' . $row->petitionStatus->status_group->value),
             $row->petitionStatus->status,
@@ -66,7 +63,7 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
                 'Binnen afgesproken termijn' => 'Binnen afgesproken termijn',
                 'Buiten wettelijke/afgesproken termijn' => 'Buiten wettelijke/afgesproken termijn',
             ]),
-            $this->forwarding($row),
+            $this->forwarding($row, $termEngineConverted),
             $this->formatMatchingCustomOptions($row->customPetitionProperties, [
                 'Herziening – herstel bezwaar' => 'Herziening - herstel bezwaar', // watch it: dashes are different
                 'Herziening – herstel primair besluit' => 'Herziening - herstel primair besluit', // watch it: dashes are different
@@ -89,8 +86,8 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
                 'Kennelijk gegrond' => 'Kennelijk gegrond',
                 'Kennelijk ongegrond' => 'Kennelijk ongegrond',
             ]),
-            $this->formatCustomDateValueByLabel($row->customDates, CustomDateLabel::DATE_SETTLEMENT_WITHOUT_DECISION),
-            $this->getDateOfDecision($row->decisions),
+            $this->dateSettlementWithoutDecision($row, $termEngineConverted),
+            $this->dateOfLatestDecision($row),
         ];
     }
 
@@ -131,24 +128,26 @@ class PetitionInternalExcelExportPetitionSheet extends PetitionAbstractExcelExpo
     }
 
     /**
-     * @param Collection<int, Decision> $decisions
+     * @return array<string, string>
      */
-    private function getDateOfDecision(Collection $decisions): ?string
+    public function columnFormats(): array
     {
-        $latestDecision = $decisions->sortByDesc('date')->first();
-
-        return $latestDecision?->date?->format('Y-m-d');
+        return [
+            'I' => ExcelDate::DATE_FORMAT,
+            'J' => ExcelDate::DATE_FORMAT,
+            'K' => ExcelDate::DATE_FORMAT,
+            'L' => ExcelDate::DATETIME_FORMAT,
+            'P' => ExcelDate::DATE_FORMAT,
+            'Q' => ExcelDate::DATE_FORMAT,
+            'Z' => ExcelDate::DATE_FORMAT,
+            'AA' => ExcelDate::DATE_FORMAT,
+        ];
     }
 
-    private function forwarding(Petition $row): string
+    private function forwarding(Petition $row, bool $termEngineConverted): string
     {
-        if ($row->isTermEngineConverted()) {
-            $forwardedEvent = $row->petitionEvents
-                ->where('type', PetitionEventType::FINAL_RESULT)
-                ->where('result_type', ResultType::FORWARDED)
-                ->first();
-
-            return $forwardedEvent ? 'Doorzending' : '';
+        if ($termEngineConverted) {
+            return $row->petitionEvents->finalResult(ResultType::FORWARDED) !== null ? 'Doorzending' : '';
         }
 
         return $this->formatMatchingCustomOptions($row->customPetitionProperties, ['Doorzending' => 'Doorzending']);

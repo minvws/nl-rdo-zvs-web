@@ -72,7 +72,7 @@
                 autocomplete="new-password" />
         </div>
 
-        <div>
+        <div class="button-container">
             <x-primary-button>{{ __('general.save') }}</x-primary-button>
         </div>
     </form>

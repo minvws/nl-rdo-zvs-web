@@ -9,17 +9,18 @@ use App\Config\Config;
 use App\Enums\CustomDateLabel;
 use App\Enums\PetitionVariant;
 use App\Models\Petition;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Webmozart\Assert\Assert;
 
 use function __;
 use function sprintf;
 
-class PetitionBeroepExcelExport extends PetitionAbstractExcelExport
+class PetitionBeroepExcelExport extends PetitionAbstractExcelExport implements WithColumnFormatting
 {
     /**
      * @param Petition $row
      *
-     * @return array<string|null>
+     * @return array<string|float|null>
      */
     public function map(mixed $row): array
     {
@@ -45,6 +46,18 @@ class PetitionBeroepExcelExport extends PetitionAbstractExcelExport
             __('exports.date_withdrawn'),
             __('exports.date_ruling'),
             __('exports.decision'),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'C' => ExcelDate::DATE_FORMAT,
+            'D' => ExcelDate::DATE_FORMAT,
+            'E' => ExcelDate::DATE_FORMAT,
         ];
     }
 

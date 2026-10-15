@@ -22,6 +22,7 @@ use App\Models\PetitionEvent;
 use App\Models\PetitionStatus;
 use App\Models\PetitionType;
 use App\Models\PolicyDepartment;
+use App\Models\Tag;
 use App\Models\Team;
 use App\Models\User;
 use App\ValueObjects\CalendarDate;
@@ -176,6 +177,19 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
         $this->assertEquals($filterPetition->id->toString(), $results->first()->id->toString());
     }
 
+    public function testParticularitiesFilterMatchesRelationCreatedFromTheRelatedPetition(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        $this->attachParticularityFromRelatedPetition($filterPetition, 'Alpha');
+
+        $otherPetition = Petition::factory()->recycle($department)->create();
+        $this->attachParticularityFromRelatedPetition($otherPetition, 'Beta');
+
+        $this->assertParticularityFilterMatches($department, 'Alpha', $filterPetition);
+    }
+
     public function testParticularitiesFilterIgssMatchesNoticeOfDefault(): void
     {
         $department = Department::factory()->create();
@@ -318,7 +332,22 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
             ->withType(PetitionEventType::APPEAL_DECISION_NOT_TIMELY)
             ->create(['date' => CalendarDate::today()->subDays(20), 'duration' => 14]);
 
-        $this->assertParticularityFilterMatches($department, 'BNT', $filterPetition);
+        $this->assertParticularityFilterMatches($department, 'Uitspraak BNT', $filterPetition);
+    }
+
+    public function testParticularitiesFilterOntvangstBntMatchesReceiptAppealNotTimelyEvent(): void
+    {
+        $department = Department::factory()->create();
+
+        $filterPetition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()
+            ->recycle($filterPetition)
+            ->withType(PetitionEventType::RECEIPT_APPEAL_NOT_TIMELY)
+            ->create(['date' => CalendarDate::today()]);
+
+        Petition::factory()->recycle($department)->create();
+
+        $this->assertParticularityFilterMatches($department, 'Ontvangst BNT', $filterPetition);
     }
 
     public function testParticularitiesFilterVerdagingMatchesAdjournmentEvent(): void
@@ -468,6 +497,43 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
         $this->assertEquals(1, PetitionQueryBuilder::make($request)->count());
     }
 
+    public function testTagFilter(): void
+    {
+        $tag = Tag::factory()->create();
+        Petition::factory()->hasAttached($tag)->create();
+
+        $this->assertSingleFilterResult(PetitionCriteria::TAG, $tag->id->toString());
+    }
+
+    public function testTagFilterDoesNotMatchPetitionsWithOtherOrNoTags(): void
+    {
+        $tag = Tag::factory()->create();
+        $otherTag = Tag::factory()->create();
+        Petition::factory()->count(2)->hasAttached($otherTag)->create();
+        Petition::factory()->create();
+
+        $request = new Request([
+            'filter' => [PetitionCriteria::TAG->value => $tag->id->toString()],
+        ]);
+
+        $this->assertEquals(0, PetitionQueryBuilder::make($request)->count());
+    }
+
+    public function testTagFilterMatchesPetitionWithSeveralTags(): void
+    {
+        $tag1 = Tag::factory()->create();
+        $tag2 = Tag::factory()->create();
+        Tag::factory()->create();
+
+        Petition::factory()
+            ->hasAttached($tag1)
+            ->hasAttached($tag2)
+            ->create();
+
+        $this->assertSingleFilterResult(PetitionCriteria::TAG, $tag1->id->toString());
+        $this->assertSingleFilterResult(PetitionCriteria::TAG, $tag2->id->toString());
+    }
+
     #[Test]
     public function testTeamFilter(): void
     {
@@ -521,6 +587,18 @@ class PetitionQueryBuilderFilterTest extends FeatureTestCase
         $relatedPetition = Petition::factory()->recycle($relatedDepartment)->recycle($relatedPetitionType)->create();
 
         $petition->relatedPetitions()->attach($relatedPetition);
+    }
+
+    private function attachParticularityFromRelatedPetition(Petition $petition, string $label): void
+    {
+        $relatedDepartment = Department::factory()->create();
+        $relatedPetitionType = PetitionType::factory()->recycle($relatedDepartment)->create([
+            'particularity_label' => $label,
+        ]);
+
+        $relatedPetition = Petition::factory()->recycle($relatedDepartment)->recycle($relatedPetitionType)->create();
+
+        $relatedPetition->relatedPetitions()->attach($petition);
     }
 
     private function assertParticularityFilterMatches(

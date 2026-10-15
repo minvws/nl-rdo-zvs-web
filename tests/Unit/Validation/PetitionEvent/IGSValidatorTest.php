@@ -6,6 +6,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 
 use App\Enums\PetitionEventType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -20,7 +21,6 @@ class IGSValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenNoReceiptOfObjectionExists(): void
     {
-        $validator = PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -31,7 +31,7 @@ class IGSValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, new PetitionEventData(
             type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
             date: CalendarDate::create('2025-02-15'),
             createdAt: CarbonImmutable::now(),
@@ -43,7 +43,9 @@ class IGSValidatorTest extends TestCase
         $this->assertSame(
             __('term.validation.common.event_requires_dependency_any', [
                 'event' => PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->label(),
-                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label() . ' of ' . PetitionEventType::PETITION_RECEIVED->label(),
+                'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label()
+                    . ' ' . __('general.or') . ' '
+                    . PetitionEventType::PETITION_RECEIVED->label(),
             ]),
             $result->getErrors()['general'],
         );
@@ -52,7 +54,6 @@ class IGSValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenDateIsBeforeLastEvent(): void
     {
-        $validator = PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -69,7 +70,7 @@ class IGSValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, new PetitionEventData(
             type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
@@ -89,7 +90,6 @@ class IGSValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenDateIsWithinObjectionOrDecisionPeriod(): void
     {
-        $validator = PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -106,7 +106,7 @@ class IGSValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, new PetitionEventData(
             type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
@@ -120,7 +120,6 @@ class IGSValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenReceiptOfObjectionExistsAndDateIsValid(): void
     {
-        $validator = PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -137,7 +136,7 @@ class IGSValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED, new PetitionEventData(
             type: PetitionEventType::NOTICE_OF_DEFAULT_RECEIVED,
             date: CalendarDate::create('2025-03-15'),
             createdAt: CarbonImmutable::now(),
@@ -151,7 +150,6 @@ class IGSValidatorTest extends TestCase
     #[Test]
     public function testWithdrawnValidatorPassesWhenLastEventIsReceived(): void
     {
-        $validator = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -162,7 +160,7 @@ class IGSValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, new PetitionEventData(
             type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
             date: CalendarDate::create('2025-03-15'),
             createdAt: CarbonImmutable::now(),
@@ -175,11 +173,10 @@ class IGSValidatorTest extends TestCase
     #[Test]
     public function testWithdrawnValidatorFailsWhenNoEventsExist(): void
     {
-        $validator = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->rule();
         $state = new DerivedState();
         $state->addEvents(collect([]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, new PetitionEventData(
             type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
             date: CalendarDate::create('2025-03-15'),
             createdAt: CarbonImmutable::now(),
@@ -192,7 +189,6 @@ class IGSValidatorTest extends TestCase
     #[Test]
     public function testWithdrawnValidatorFailsWhenLastEventIsNotReceived(): void
     {
-        $validator = PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -203,7 +199,7 @@ class IGSValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN, new PetitionEventData(
             type: PetitionEventType::NOTICE_OF_DEFAULT_WITHDRAWN,
             date: CalendarDate::create('2025-03-15'),
             createdAt: CarbonImmutable::now(),

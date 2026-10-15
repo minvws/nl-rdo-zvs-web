@@ -19,6 +19,7 @@ use App\Http\Controllers\Petition\PetitionIndexController;
 use App\Http\Controllers\Petition\PetitionShowController;
 use App\Http\Controllers\Petition\PetitionStoreController;
 use App\Http\Controllers\Petition\PetitionTypeController;
+use App\Http\Controllers\Petition\TagController;
 use App\Http\Controllers\Petition\TeamController;
 use App\Http\Controllers\ProcessingStepController;
 use App\Http\Controllers\TimelineableNoteController;
@@ -84,6 +85,30 @@ Route::prefix('/admin')->group(static function (): void {
             Route::post('/', [TeamController::class, 'update'])
                 ->middleware('can:' . Permission::TEAM_WRITE->value);
         });
+    });
+
+    Route::prefix('/tags')->group(static function (): void {
+        Route::get('/', [TagController::class, 'index'])
+            ->middleware('can:' . Permission::TAG_READ->value)
+            ->name(RouteName::DEPARTMENTS_ADMIN_TAGS_INDEX);
+        Route::prefix('/create')->group(static function (): void {
+            Route::get('/', [TagController::class, 'create'])
+                ->middleware('can:' . Permission::TAG_WRITE->value)
+                ->name(RouteName::DEPARTMENTS_ADMIN_TAGS_CREATE);
+            Route::post('/', [TagController::class, 'store'])
+                ->middleware('can:' . Permission::TAG_WRITE->value);
+        });
+        Route::prefix('/{tag}/edit')->scopeBindings()->group(static function (): void {
+            Route::get('/', [TagController::class, 'edit'])
+                ->middleware('can:' . Permission::TAG_WRITE->value)
+                ->name(RouteName::DEPARTMENTS_ADMIN_TAGS_EDIT);
+            Route::post('/', [TagController::class, 'update'])
+                ->middleware('can:' . Permission::TAG_WRITE->value);
+        });
+        Route::delete('/{tag}', [TagController::class, 'delete'])
+            ->scopeBindings()
+            ->middleware('can:' . Permission::TAG_WRITE->value)
+            ->name(RouteName::DEPARTMENTS_ADMIN_TAGS_DELETE);
     });
 });
 

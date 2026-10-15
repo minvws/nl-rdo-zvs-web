@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Petition;
 
 use App\Enums\Authorization\Permission;
+use App\Enums\PetitionCriteria;
 use App\Enums\RouteName;
 use App\Models\Department;
+use App\Models\Petition;
+use App\Models\PetitionType;
 use App\Models\User;
 use App\Models\UserDepartmentFilter;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Tests\Feature\FeatureTestCase;
 
 use function route;
+use function str_contains;
 
 class PetitionFilterTest extends FeatureTestCase
 {
@@ -198,5 +204,72 @@ class PetitionFilterTest extends FeatureTestCase
 
         $response->assertOk();
         $response->assertViewIs('petition.index');
+    }
+
+    public function testIgnoresParticularityFilterThatNoLongerOccursInTheDepartment(): void
+    {
+        $department = Department::factory()->create(['hide_column_defaults' => '']);
+        $petition = Petition::factory()->recycle($department)->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_READ)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::DEPARTMENTS_PETITIONS_INDEX, [
+                'department' => $department,
+                'filter' => [
+                    PetitionCriteria::PARTICULARITIES->value => 'IB',
+                    PetitionCriteria::SEARCH->value => $petition->number,
+                ],
+            ]));
+
+        $response->assertOk();
+        $response->assertViewHas(
+            'petitions',
+            static fn(Collection $petitions): bool => $petitions->pluck('id')->map->toString()->all()
+                === [$petition->id->toString()],
+        );
+        $response->assertViewHas(
+            'paginator',
+            static fn(LengthAwarePaginator $paginator): bool => !str_contains(
+                $paginator->url(1),
+                PetitionCriteria::PARTICULARITIES->value,
+            ),
+        );
+    }
+
+    public function testAppliesParticularityFilterThatOccursInTheDepartment(): void
+    {
+        $department = Department::factory()->create(['hide_column_defaults' => '']);
+        $matchingPetition = Petition::factory()->recycle($department)->create();
+        Petition::factory()->recycle($department)->create();
+
+        $relatedDepartment = Department::factory()->create();
+        $relatedPetitionType = PetitionType::factory()->recycle($relatedDepartment)->create([
+            'particularity_label' => 'IB',
+        ]);
+        $matchingPetition->relatedPetitions()->attach(
+            Petition::factory()->recycle($relatedDepartment)->recycle($relatedPetitionType)->create(),
+        );
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_READ)
+            ->fullyVerified()
+            ->create();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::DEPARTMENTS_PETITIONS_INDEX, [
+                'department' => $department,
+                'filter' => [PetitionCriteria::PARTICULARITIES->value => 'IB'],
+            ]));
+
+        $response->assertOk();
+        $response->assertViewHas(
+            'petitions',
+            static fn(Collection $petitions): bool => $petitions->pluck('id')->map->toString()->all()
+                === [$matchingPetition->id->toString()],
+        );
     }
 }

@@ -22,6 +22,7 @@ readonly class HtmxHelper
     }
 
     /**
+     * @param view-string $viewName
      * @param array<string, mixed> $viewData
      */
     public function makeFormViewResponse(Request $request, string $viewName, array $viewData = []): Response

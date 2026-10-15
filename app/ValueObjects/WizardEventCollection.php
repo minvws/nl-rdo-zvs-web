@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\ValueObjects;
 
+use App\Enums\PetitionEventType;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -63,6 +64,21 @@ class WizardEventCollection
     public function last(): ?PetitionEventData
     {
         return $this->events->last();
+    }
+
+    /**
+     * An opening event is open as long as it has no closing event of its own yet.
+     */
+    public function hasOpen(PetitionEventType $opening, PetitionEventType $closing): bool
+    {
+        return $this->countOfType($opening) > $this->countOfType($closing);
+    }
+
+    private function countOfType(PetitionEventType $type): int
+    {
+        return $this->events->filter(
+            static fn(PetitionEventData $event): bool => $event->type === $type,
+        )->count();
     }
 
     /**

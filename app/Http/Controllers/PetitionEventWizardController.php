@@ -16,6 +16,7 @@ use App\Http\Requests\PetitionEvent\AddPetitionEventRequest;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Services\PetitionEvent\PetitionEventsStorage;
+use App\Services\PetitionEvent\PetitionEventTermService;
 use App\Services\PetitionEventAvailabilityService;
 use App\ValueObjects\WizardEventCollection;
 use Illuminate\Contracts\View\Factory;
@@ -37,6 +38,7 @@ final readonly class PetitionEventWizardController
         private Factory $view,
         private PetitionEventAvailabilityService $availabilityService,
         private DepartmentConfigurationService $configurationService,
+        private PetitionEventTermService $termService,
     ) {
     }
 
@@ -59,6 +61,10 @@ final readonly class PetitionEventWizardController
         $viewData = [
             'petition' => $petition,
             'events' => $events,
+            'termTexts' => $this->termService->termTexts(
+                $events,
+                $this->configurationService->unspecifiedAdjournmentMode($department),
+            ),
             'availableTypes' => $availableTypes,
         ];
 
@@ -182,7 +188,7 @@ final readonly class PetitionEventWizardController
 
     private function loadExistingEventsFromDatabase(Petition $petition): WizardEventCollection
     {
-        $existingEvents = $petition->petitionEvents()->oldest()->get();
+        $existingEvents = $petition->petitionEvents()->get();
 
         return WizardEventCollectionFactory::fromModels($existingEvents);
     }

@@ -6,10 +6,8 @@ namespace App\View\Components;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Notifications\DatabaseNotification;
-use Illuminate\Support\Facades\Log;
 use Illuminate\View\Component;
 use Illuminate\View\Factory;
-use Throwable;
 
 class NotificationContent extends Component
 {
@@ -21,23 +19,16 @@ class NotificationContent extends Component
 
     public function render(): View
     {
-        try {
-            /** @var string $notificationType */
-            $notificationType = $this->notification->type;
+        /** @var string $notificationType */
+        $notificationType = $this->notification->type;
 
-            return $this->view->make(
-                'components.notification.types.' . $notificationType,
-                ['notification' => $this->notification],
-            );
-        } catch (Throwable $e) {
-            Log::warning('Failed to render notification content', [
-                'notification_id' => $this->notification->id,
-                'notification_type' => $this->notification->type,
-                'error' => $e->getMessage(),
-            ]);
+        $viewName = 'components.notification.types.' . $notificationType;
 
-            return $this->renderFallback($e->getMessage());
+        if (!$this->view->exists($viewName)) {
+            return $this->renderFallback('View not found: ' . $viewName);
         }
+
+        return $this->view->make($viewName, ['notification' => $this->notification]);
     }
 
     private function renderFallback(string $reason): View

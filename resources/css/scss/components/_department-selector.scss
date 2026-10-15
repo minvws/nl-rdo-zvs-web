@@ -59,6 +59,9 @@
   &--team-c {
     background-color: var(--oc-grape-8);
   }
+  &--team-i {
+    background-color: var(--oc-blue-8);
+  }
   &--team-wjz-klachten {
     background-color: var(--oc-grape-8);
   }
@@ -73,7 +76,7 @@
   gap: 0.5rem;
   text-decoration: none;
   padding: 0.625rem 0.5rem;
-  color: var(--application-base-text-color);
+  color: var(--oc-black);
   background-color: var(--oc-white);
   border-radius: 8px;
 
@@ -109,7 +112,7 @@
     box-shadow: none;
     border-radius: 0;
     justify-content: flex-start;
-    color: var(--application-base-color);
+    color: var(--oc-black);
     font-weight: 400;
     padding-block: 0.5rem;
 

@@ -6,6 +6,7 @@ namespace Tests\Unit\Validation\PetitionEvent;
 
 use App\Enums\PetitionEventType;
 use App\Services\DerivedState;
+use App\Validation\PetitionEvent\PetitionEventRules;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
@@ -14,13 +15,13 @@ use Tests\TestCase;
 
 use function __;
 use function collect;
+use function lcfirst;
 
 class CommitteeHearingScheduledValidatorTest extends TestCase
 {
     #[Test]
     public function testItFailsWhenDateIsBeforeLastEvent(): void
     {
-        $validator = PetitionEventType::MEETING_SCHEDULED->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -31,7 +32,7 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::MEETING_SCHEDULED, new PetitionEventData(
             type: PetitionEventType::MEETING_SCHEDULED,
             date: CalendarDate::create('2025-01-10'),
             createdAt: CarbonImmutable::now(),
@@ -50,7 +51,6 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenCommitteeHearingAlreadyScheduled(): void
     {
-        $validator = PetitionEventType::MEETING_SCHEDULED->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -72,7 +72,7 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::MEETING_SCHEDULED, new PetitionEventData(
             type: PetitionEventType::MEETING_SCHEDULED,
             date: CalendarDate::create('2025-01-20'),
             createdAt: CarbonImmutable::now(),
@@ -91,7 +91,6 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenDateIsValidEvenWithoutReceiptOfObjection(): void
     {
-        $validator = PetitionEventType::MEETING_SCHEDULED->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -102,7 +101,7 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::MEETING_SCHEDULED, new PetitionEventData(
             type: PetitionEventType::MEETING_SCHEDULED,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
@@ -115,7 +114,6 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
     #[Test]
     public function testItPassesWhenDateIsAfterLastEventAndNoOtherHearingScheduled(): void
     {
-        $validator = PetitionEventType::MEETING_SCHEDULED->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -132,7 +130,7 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::MEETING_SCHEDULED, new PetitionEventData(
             type: PetitionEventType::MEETING_SCHEDULED,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
@@ -145,7 +143,6 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
     #[Test]
     public function testItFailsWhenDateIsNotInObjectionOrDecisionPeriod(): void
     {
-        $validator = PetitionEventType::MEETING_SCHEDULED->rule();
         $state = new DerivedState();
         $state->addEvents(collect([
             new PetitionEventData(
@@ -156,7 +153,7 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
             ),
         ]));
 
-        $result = $validator->validate(new PetitionEventData(
+        $result = PetitionEventRules::validate(PetitionEventType::MEETING_SCHEDULED, new PetitionEventData(
             type: PetitionEventType::MEETING_SCHEDULED,
             date: CalendarDate::create('2025-01-15'),
             createdAt: CarbonImmutable::now(),
@@ -167,6 +164,9 @@ class CommitteeHearingScheduledValidatorTest extends TestCase
         $this->assertStringContainsString(
             __('term.validation.common.date_must_be_in_term', [
                 'event' => PetitionEventType::MEETING_SCHEDULED->label(),
+                'term' => lcfirst(__('term.objection_period.default'))
+                    . ' ' . __('general.or') . ' '
+                    . lcfirst(__('term.decision_period.default')),
             ]),
             $result->getErrors()['date'],
         );

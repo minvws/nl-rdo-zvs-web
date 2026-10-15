@@ -6,8 +6,40 @@
 .filters__form {
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.filters__actions {
+  width: auto;
+  align-self: flex-end;
+}
+
+.filters__form--stacked {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.filters__top {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.filters__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(max(12rem, calc((100% - 4rem) / 5)), 1fr));
+  gap: 0.75rem 1rem;
+  align-items: end;
+
+  .form-filter-group > .form-select,
+  .form-filter-group > .form-control {
+    width: 100%;
+    max-width: none;
+  }
 }
 
 .filter__label {
@@ -18,20 +50,12 @@
 button,
 .button {
   .filters & {
-    align-self: flex-end;
     margin-block-start: 0;
-    padding-block: 0.5rem;
     white-space: nowrap;
 
-    &[aria-disabled="true"] {
-      cursor: not-allowed;
-      color: var(--oc-gray-6);
-
-      &:hover,
-      &:focus {
-        color: var(--oc-gray-6);
-        border-color: var(--oc-gray-3);
-      }
+    &:not(.icon-only) {
+      align-self: flex-end;
+      min-height: 3rem;
     }
   }
 }

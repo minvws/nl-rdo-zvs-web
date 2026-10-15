@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\PeriodGenerators;
 
 use App\Enums\AdjournmentEndReason;
+use App\Enums\DecisionPeriodType;
 use App\Enums\PetitionEventType;
 use App\Enums\TermType;
 use App\Facades\LegalTermDeadlineCalculator;
@@ -14,20 +15,19 @@ use App\ValueObjects\EventCalendarDay;
 use App\ValueObjects\PetitionEventData;
 use Illuminate\Support\Collection;
 
-use function max;
-
 /**
  * An unspecified adjournment ("ongespecificeerde aanhouding") for departments on
  * UnspecifiedAdjournmentMode::CONTINUES_TERMS. It leaves the running terms alone: both the
  * objection and the decision period keep spending their budget while it is open, which is why
  * this generator runs after them instead of before.
  *
- * What it does change is the decision period deadline. While the adjournment is open there is
- * no deadline at all. Ending it starts a fresh decision term on the day it ends, so that day
- * counts as the first day of the new term. The length of that term comes from the two day
- * counts registered at the start: the "gebeurtenis" one, or the "intrekking" one when the
- * adjournment was withdrawn. If the original decision term is still running and has more days
- * left than the registered term, the longer of the two wins and the other is ignored.
+ * While the adjournment is open nothing about the terms changes, because it is not known yet
+ * whether it ends with a "gebeurtenis" or an "intrekking". Once the original decision term has
+ * run out, the days the adjournment is still waiting are shown as their own period.
+ *
+ * Ending it may extend the decision term. A new term starts on the day it ends, using the day
+ * count registered for how it ended. It only replaces the original term when its last day falls
+ * after the original one; the original term and its last day are then kept visible as such.
  */
 class ContinuingUnspecifiedAdjournmentPeriodGenerator implements PeriodGeneratorInterface
 {
@@ -63,11 +63,12 @@ class ContinuingUnspecifiedAdjournmentPeriodGenerator implements PeriodGenerator
         ?PetitionEventData $end,
     ): void {
         $originalDeadline = $this->decisionPeriodDeadline($calendar);
+        $lastAdjournedDay = $end instanceof PetitionEventData ? $end->date->subDay() : CalendarDate::today();
 
-        $this->markAdjournmentDays($calendar, $start->date, $end?->date);
+        $this->addWaitingDays($calendar, $start->date, $lastAdjournedDay, $originalDeadline);
 
         if (!$end instanceof PetitionEventData) {
-            $this->clearDecisionPeriodDeadlines($calendar);
+            $calendar->upsertDay(CalendarDate::today(), ['isOpenUnspecifiedAdjournment' => true]);
 
             return;
         }
@@ -76,63 +77,81 @@ class ContinuingUnspecifiedAdjournmentPeriodGenerator implements PeriodGenerator
             $calendar->upsertDay($end->date, ['isUnspecifiedAdjournmentWithdrawal' => true]);
         }
 
-        $this->restartDecisionPeriod($calendar, $start, $end, $originalDeadline);
+        $this->extendDecisionPeriod($calendar, $start, $end, $originalDeadline);
     }
 
     /**
-     * Flags the days the adjournment covers and drops any deadline that falls inside them. The
-     * day the adjournment ends is left alone: it belongs to the new decision term.
+     * Days after the original decision term that the adjournment is still waiting on extend the
+     * decision term until it ends. Days that already belong to another term, such as a penalty period, keep that term. The days of the
+     * running terms are not flagged at all: nothing changes there, so they must fold the same way
+     * as they would without the adjournment.
      */
-    private function markAdjournmentDays(
+    private function addWaitingDays(
         EventCalendar $calendar,
         CalendarDate $startDate,
-        ?CalendarDate $endDate,
+        CalendarDate $lastDay,
+        ?CalendarDate $originalDeadline,
     ): void {
-        $lastDay = $endDate instanceof CalendarDate ? $endDate->subDay() : CalendarDate::today();
+        if (!$originalDeadline instanceof CalendarDate) {
+            return;
+        }
 
-        foreach ($this->datesInRange($calendar, $startDate, $lastDay) as $date) {
+        $date = $startDate->greaterThan($originalDeadline) ? $startDate : $originalDeadline->addDay();
+
+        for (; $date->lessThanOrEqualTo($lastDay); $date = $date->addDay()) {
+            if ($calendar->findDay($date)?->applicableTerm !== null) {
+                continue;
+            }
+
             $calendar->upsertDay($date, [
+                'applicableTerm' => TermType::DECISION_PERIOD->value,
+                'decisionPeriodType' => DecisionPeriodType::EXTENDED,
                 'isUnspecifiedAdjournment' => true,
-                'isDeadline' => false,
             ]);
         }
     }
 
-    /**
-     * @return array<int, CalendarDate>
-     */
-    private function datesInRange(EventCalendar $calendar, CalendarDate $from, CalendarDate $until): array
-    {
-        $dates = [];
-
-        foreach ($calendar as $day) {
-            if ($day->date->isBefore($from)) {
-                continue;
-            }
-            if ($day->date->greaterThan($until)) {
-                continue;
-            }
-            $dates[] = $day->date;
-        }
-
-        return $dates;
-    }
-
-    private function restartDecisionPeriod(
+    private function extendDecisionPeriod(
         EventCalendar $calendar,
         PetitionEventData $start,
         PetitionEventData $end,
         ?CalendarDate $originalDeadline,
     ): void {
-        $startDate = $this->newTermStartDate($calendar, $end->date);
-        $term = $this->resolveTerm($start, $end, $startDate, $originalDeadline);
+        $term = $this->registeredTerm($start, $end);
 
         if ($term <= 0) {
             return;
         }
 
+        $startDate = $this->newTermStartDate($calendar, $end->date);
+        $newDeadline = LegalTermDeadlineCalculator::calculate($startDate->addDays($term - 1));
+
+        if ($originalDeadline instanceof CalendarDate && !$newDeadline->greaterThan($originalDeadline)) {
+            return;
+        }
+
+        $isStatutoryDeadline = $this->isStatutoryDeadline($calendar, $originalDeadline);
+
         $this->clearDecisionPeriodDeadlines($calendar);
-        $this->generateDecisionPeriodDays($calendar, $startDate, $term);
+        $this->generateDecisionPeriodDays($calendar, $startDate, $term, $this->newTermType($end));
+        $calendar->upsertDay($end->date, ['appliedUnspecifiedAdjournmentTerm' => $term]);
+
+        if ($isStatutoryDeadline && $originalDeadline instanceof CalendarDate) {
+            $calendar->upsertDay($originalDeadline, ['isOriginalDeadline' => true]);
+        }
+    }
+
+    /**
+     * A last day set by an extending event or an earlier adjournment is not the statutory one, so
+     * an adjournment that extends the term again leaves it unlabelled.
+     */
+    private function isStatutoryDeadline(EventCalendar $calendar, ?CalendarDate $deadline): bool
+    {
+        if (!$deadline instanceof CalendarDate) {
+            return false;
+        }
+
+        return $calendar->findDay($deadline)?->decisionPeriodType === DecisionPeriodType::STATUTORY;
     }
 
     /**
@@ -153,30 +172,18 @@ class ContinuingUnspecifiedAdjournmentPeriodGenerator implements PeriodGenerator
         return $lastObjectionDay->date->addDay();
     }
 
-    private function resolveTerm(
-        PetitionEventData $start,
-        PetitionEventData $end,
-        CalendarDate $startDate,
-        ?CalendarDate $originalDeadline,
-    ): int {
-        $registeredTerm = $end->reasoning === AdjournmentEndReason::Withdrawal->value
+    private function registeredTerm(PetitionEventData $start, PetitionEventData $end): int
+    {
+        return $end->reasoning === AdjournmentEndReason::Withdrawal->value
             ? ($start->withdrawalDuration ?? 0)
             : ($start->duration ?? 0);
-
-        return max($registeredTerm, $this->remainingOriginalTerm($startDate, $originalDeadline));
     }
 
-    /**
-     * An original decision term that has not expired yet keeps the days it has left, counted
-     * from the first day of the new term. An expired one contributes nothing.
-     */
-    private function remainingOriginalTerm(CalendarDate $startDate, ?CalendarDate $originalDeadline): int
+    private function newTermType(PetitionEventData $end): DecisionPeriodType
     {
-        if (!$originalDeadline instanceof CalendarDate || $originalDeadline->isBefore($startDate)) {
-            return 0;
-        }
-
-        return $startDate->diffInDays($originalDeadline) + 1;
+        return $end->reasoning === AdjournmentEndReason::Withdrawal->value
+            ? DecisionPeriodType::WITHDRAWAL
+            : DecisionPeriodType::EVENT;
     }
 
     private function decisionPeriodDeadline(EventCalendar $calendar): ?CalendarDate
@@ -202,23 +209,29 @@ class ContinuingUnspecifiedAdjournmentPeriodGenerator implements PeriodGenerator
         }
     }
 
-    private function generateDecisionPeriodDays(EventCalendar $calendar, CalendarDate $startDate, int $term): void
-    {
+    private function generateDecisionPeriodDays(
+        EventCalendar $calendar,
+        CalendarDate $startDate,
+        int $term,
+        DecisionPeriodType $type,
+    ): void {
         for ($dayIndex = 0; $dayIndex < $term; $dayIndex++) {
             $calendar->upsertDay($startDate->addDays($dayIndex), [
                 'applicableTerm' => TermType::DECISION_PERIOD->value,
+                'decisionPeriodType' => $type,
                 'isUnspecifiedAdjournment' => false,
                 'isBudgetDay' => true,
+                'isATW' => false,
                 'isFirstDayOfBudget' => $dayIndex === 0,
                 'isLastDayOfBudget' => $dayIndex === $term - 1,
                 'isDeadline' => false,
             ]);
         }
 
-        $this->markDeadline($calendar, $startDate->addDays($term - 1));
+        $this->markDeadline($calendar, $startDate->addDays($term - 1), $type);
     }
 
-    private function markDeadline(EventCalendar $calendar, CalendarDate $proposedDeadline): void
+    private function markDeadline(EventCalendar $calendar, CalendarDate $proposedDeadline, DecisionPeriodType $type): void
     {
         $actualDeadline = LegalTermDeadlineCalculator::calculate($proposedDeadline);
 
@@ -230,6 +243,7 @@ class ContinuingUnspecifiedAdjournmentPeriodGenerator implements PeriodGenerator
 
         $calendar->upsertDay($proposedDeadline, [
             'applicableTerm' => TermType::DECISION_PERIOD->value,
+            'decisionPeriodType' => $type,
             'isATW' => true,
             'isLastDayOfBudget' => false,
         ]);
@@ -238,6 +252,7 @@ class ContinuingUnspecifiedAdjournmentPeriodGenerator implements PeriodGenerator
         while ($currentDate->isBefore($actualDeadline)) {
             $calendar->upsertDay($currentDate, [
                 'applicableTerm' => TermType::DECISION_PERIOD->value,
+                'decisionPeriodType' => $type,
                 'isBudgetDay' => false,
                 'isATW' => true,
             ]);
@@ -246,6 +261,7 @@ class ContinuingUnspecifiedAdjournmentPeriodGenerator implements PeriodGenerator
 
         $calendar->upsertDay($actualDeadline, [
             'applicableTerm' => TermType::DECISION_PERIOD->value,
+            'decisionPeriodType' => $type,
             'isBudgetDay' => false,
             'isATW' => false,
             'isLastDayOfBudget' => true,

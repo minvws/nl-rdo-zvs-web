@@ -15,11 +15,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\Routing\UrlGenerator;
+use Illuminate\Support\Collection;
 
 use function array_merge;
 use function collect;
 use function in_array;
 use function is_array;
+use function is_string;
 
 abstract readonly class AbstractFilterService
 {
@@ -56,6 +58,33 @@ abstract readonly class AbstractFilterService
                 'archive' => ArchiveFilter::HIDE_ARCHIVED->value,
             ]),
         ]);
+    }
+
+    /**
+     * Removes the value of the given filter from the request when it is not one of the available options, for example
+     * because the last matching record changed. Otherwise the filter would show no results and could not be cleared,
+     * because the selected value is missing from the options.
+     *
+     * @template TValue of string
+     *
+     * @param Collection<int, TValue> $availableValues
+     */
+    public function removeUnavailableFilterValue(Request $request, string $filter, Collection $availableValues): void
+    {
+        $currentFilters = $this->getCurrentFiltersAsArray($request);
+        $value = $currentFilters[$filter] ?? null;
+
+        if (in_array($value, ['', null], true)) {
+            return;
+        }
+
+        if (is_string($value) && $availableValues->containsStrict($value)) {
+            return;
+        }
+
+        unset($currentFilters[$filter]);
+
+        $request->query->set('filter', $currentFilters);
     }
 
     abstract protected function getFilterContext(): string;

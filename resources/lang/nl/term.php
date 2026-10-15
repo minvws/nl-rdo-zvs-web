@@ -29,6 +29,8 @@ return [
     'date_of_message' => 'Ontvangstdatum',
     'sent_partial_decision' => 'Deelbesluit verzonden',
     'opinion_outside_term' => 'Zienswijze buiten termijn',
+    'referred_to_department' => 'Doorgestuurd naar afdeling',
+    'answer_received' => 'Antwoord ontvangen',
     'date_appealed_decision' => 'Datum besluit waartegen bezwaar wordt gemaakt',
     'no_records' => 'Er zijn nog geen termijnen ingevoerd.',
     'manage_terms' => 'Beheer gebeurtenissen en termijnen',
@@ -46,6 +48,7 @@ return [
     // Table columns
     'date' => 'Datum',
     'term' => 'Termijn',
+    'event_and_withdrawal_days' => ':event / :withdrawal dagen',
     'actions' => 'Acties',
     'event' => 'Gebeurtenis',
     'suspended' => 'Opgeschort',
@@ -98,6 +101,14 @@ return [
         'specification' => 'Beslistermijn (opgeschort)',
         'consultation' => 'Beslistermijn (opgeschort)',
     ],
+    'decision_period_type' => [
+        'adjournment' => 'Beslistermijn (verdaging)',
+        'meeting_scheduled' => 'Beslistermijn (afspraak)',
+        'committee_hearing' => 'Beslistermijn (commissiezitting)',
+        'event' => 'Beslistermijn (gebeurtenis)',
+        'withdrawal' => 'Beslistermijn (intrekking)',
+        'extended' => 'Beslistermijn (verlengd)',
+    ],
     'notice_of_default.default' => 'Behandeltermijn IGS',
     'objection_period' => [
         'default' => 'Bezwaartermijn',
@@ -112,6 +123,8 @@ return [
     'is_deadline-decision_period' => 'Laatste dag beslistermijn',
     'is_deadline-notice_of_default' => 'Laatste dag termijn IGS',
     'is_deadline-objection_period' => 'Laatste dag bezwaartermijn',
+    'is_original_deadline-decision_period' => 'Laatste dag wettelijke beslistermijn',
+    'is_open_unspecified_adjournment' => 'Lopende ongespecificeerde aanhouding',
 
     // Term types
     'term_type' => [
@@ -150,9 +163,11 @@ return [
             'event_requires_dependency' => ':event kan alleen worden toegevoegd na :required_event',
             'event_requires_dependency_any' => ':event kan alleen worden toegevoegd als één van de volgende gebeurtenissen bestaat: :required_events',
             'event_requires_open_dependency' => ':event kan alleen worden toegevoegd zolang er een openstaande :required_event is',
+            'event_requires_closing_event' => ':event kan pas opnieuw worden toegevoegd na :required_event',
             'event_not_allowed_in_term_type' => ':event is niet toegestaan in dit termijntype',
             'date_not_allowed_in_term' => ':event is niet toegestaan tijdens :term',
-            'date_must_be_in_term' => ':event kan alleen binnen de termijn',
+            'date_must_be_in_term' => ':event kan alleen worden toegevoegd binnen de :term',
+            'date_after_statutory_term' => ':event kan niet worden toegevoegd na de wettelijke beslistermijn',
             'date_already_in_suspension' => 'Er is al een actieve opschortingsperiode op deze datum',
             'date_must_be_after_dependency' => 'De datum van :event moet na de datum van :dependency liggen',
             'date_must_be_in_suspension' => 'De datum valt niet binnen een actieve opschortingsperiode',

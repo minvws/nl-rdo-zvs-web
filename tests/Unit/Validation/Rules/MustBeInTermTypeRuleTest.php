@@ -14,6 +14,8 @@ use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+use function __;
+
 class MustBeInTermTypeRuleTest extends TestCase
 {
     #[Test]
@@ -59,7 +61,10 @@ class MustBeInTermTypeRuleTest extends TestCase
 
         $this->assertNotNull($result);
         $this->assertFalse($result->isValid());
-        $this->assertArrayHasKey('type', $result->getErrors());
+        $this->assertSame(
+            __('term.validation.common.event_not_allowed_in_term_type', ['event' => PetitionEventType::RECEIPT_OF_OBJECTION->label()]),
+            $result->getErrors()['type'],
+        );
     }
 
     #[Test]

@@ -1,4 +1,15 @@
 @use "./variables" as *;
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
 body {
   font-family: $font-family-base;
   background-color: $body-bg;

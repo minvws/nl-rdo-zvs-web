@@ -21,6 +21,7 @@ use App\Models\Petition;
 use App\Models\PetitionCategory;
 use App\Models\PetitionType;
 use App\Models\PolicyDepartment;
+use App\Models\Tag;
 use App\Models\TimelineItem as TimelineItemModel;
 use App\Models\User;
 use App\View\Components\TimelineItem;
@@ -184,6 +185,49 @@ class TimelineItemTest extends FeatureTestCase
         $this->assertView(TimelineType::POLICY_DEPARTMENT_CHANGED, [
             'policy_department_ids' => $policyDepartmentIds,
         ]);
+    }
+
+    public function testRenderTagsChanged(): void
+    {
+        $tags = Tag::factory()->count(2)->sequence(['name' => 'Veelklager'], ['name' => 'Spoed'])->create();
+
+        $component = $this->renderTimelineItem(TimelineType::TAGS_CHANGED, [
+            'tag_ids' => $tags->map(static fn(Tag $tag): string => $tag->id->toString())->all(),
+            'tag_names' => ['Veelklager', 'Spoed'],
+        ]);
+
+        $component->assertSee(__('timeline.tags_changed', ['tags' => 'Veelklager, Spoed']));
+        $component->assertDontSee('Activiteit kan niet meer gevonden worden');
+    }
+
+    public function testRenderTagsChangedKeepsTheNameOfADeletedTag(): void
+    {
+        $component = $this->renderTimelineItem(TimelineType::TAGS_CHANGED, [
+            'tag_ids' => ['6f1c1d4e-5b8a-4c35-9f65-2b1c0b0f0a11'],
+            'tag_names' => ['Verwijderde tag'],
+        ]);
+
+        $component->assertSee('Verwijderde tag');
+    }
+
+    public function testRenderTagsChangedWithoutTags(): void
+    {
+        $component = $this->renderTimelineItem(TimelineType::TAGS_CHANGED, [
+            'tag_ids' => [],
+            'tag_names' => [],
+        ]);
+
+        $component->assertSee(__('timeline.tags_cleared'));
+        $component->assertDontSee('Activiteit kan niet meer gevonden worden');
+    }
+
+    public function testRenderTagsChangedFallsBackOnInvalidData(): void
+    {
+        $component = $this->renderTimelineItem(TimelineType::TAGS_CHANGED, [
+            'tag_ids' => [],
+        ]);
+
+        $component->assertSee('Activiteit kan niet meer gevonden worden');
     }
 
     public function testRenderPetitionCustomPropertiesChanged(): void
@@ -488,6 +532,26 @@ class TimelineItemTest extends FeatureTestCase
                 'timelineable_id' => Petition::factory()->create()->id,
                 'timelineable_type' => 'petition',
                 'type' => TimelineType::PETITION_UPDATED,
+                'data' => $data,
+            ])
+            ->refresh();
+
+        $component = $this->component(TimelineItem::class, ['timelineItem' => $timelineItem]);
+        Assert::isInstanceOf($component, TestComponent::class);
+
+        return $component;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderTimelineItem(TimelineType $timelineType, array $data): TestComponent
+    {
+        $timelineItem = TimelineItemModel::factory()
+            ->create([
+                'timelineable_id' => Petition::factory()->create()->id,
+                'timelineable_type' => 'petition',
+                'type' => $timelineType,
                 'data' => $data,
             ])
             ->refresh();

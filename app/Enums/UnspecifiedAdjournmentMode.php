@@ -7,8 +7,8 @@ namespace App\Enums;
 /**
  * Decides how an "ongespecificeerde aanhouding" affects the terms that are already running.
  *
- * Team A and B asked for the freezing behaviour; every other team stays on the term based
- * behaviour the application had before that request.
+ * Team A, B and I use the freezing behaviour; every other team stays on the term based
+ * behaviour the application had before.
  */
 enum UnspecifiedAdjournmentMode: string
 {
@@ -19,9 +19,8 @@ enum UnspecifiedAdjournmentMode: string
     case FREEZES_TERMS = 'freezes_terms';
 
     /**
-     * The running terms are left alone. Only the decision period deadline is blanked while the
-     * adjournment is open, and ending it starts a fresh decision term whose length comes from
-     * the two terms registered at the start.
+     * The running terms are left alone while the adjournment is open. Ending it may start a fresh
+     * decision term whose length comes from the two terms registered at the start.
      */
     case CONTINUES_TERMS = 'continues_terms';
 }

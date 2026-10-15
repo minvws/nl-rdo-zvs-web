@@ -9,9 +9,11 @@ use App\Collections\PetitionCategoryCollection;
 use App\Collections\PetitionStatusCollection;
 use App\Collections\PetitionTypeCollection;
 use App\Collections\PolicyDepartmentCollection;
+use App\Collections\TagCollection;
 use App\Collections\TeamCollection;
 use App\Collections\UserCollection;
 use App\Enums\ArchiveFilter;
+use App\Enums\PetitionCriteria;
 use App\Models\Builder\Petition\PetitionQueryBuilder;
 use App\Models\CustomPetitionProperty;
 use App\Models\Department;
@@ -20,6 +22,7 @@ use App\Models\PetitionCategory;
 use App\Models\PetitionStatus;
 use App\Models\PetitionType;
 use App\Models\PolicyDepartment;
+use App\Models\Tag;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Container\Attributes\Config;
@@ -52,6 +55,7 @@ final readonly class PetitionIndexService
      *     usedPetitionParticularities: Collection<int, string>,
      *     usedCustomProperties: Collection<int, CustomPetitionProperty>,
      *     usedTeams: TeamCollection,
+     *     usedTags: TagCollection,
      *     department: Department,
      *     hasSavedFilters: bool,
      *     archiveFilters: array<ArchiveFilter>
@@ -60,6 +64,20 @@ final readonly class PetitionIndexService
     public function getIndexData(Request $request, Department $department, User $user): array
     {
         $this->filterService->ensureArchiveFilterDefault($request);
+
+        $usedPetitionParticularities = $this->getUsedPetitionParticularities($department);
+        $this->filterService->removeUnavailableFilterValue(
+            $request,
+            PetitionCriteria::PARTICULARITIES->value,
+            $usedPetitionParticularities,
+        );
+
+        $usedTags = $this->getUsedTags($department);
+        $this->filterService->removeUnavailableFilterValue(
+            $request,
+            PetitionCriteria::TAG->value,
+            $usedTags->map(static fn(Tag $tag): string => $tag->id->toString()),
+        );
 
         /** @var LengthAwarePaginator<int, Petition> $paginator */
         $paginator = PetitionQueryBuilder::make($request)
@@ -80,9 +98,10 @@ final readonly class PetitionIndexService
             'usedPetitionCategories' => $this->getUsedPetitionCategories($department),
             'usedPetitionTypes' => $this->getUsedPetitionTypes($department),
             'usedPetitionStatuses' => $this->getUsedPetitionStatuses($department),
-            'usedPetitionParticularities' => $this->getUsedPetitionParticularities($department),
+            'usedPetitionParticularities' => $usedPetitionParticularities,
             'usedCustomProperties' => $this->getUsedCustomProperties($department),
             'usedTeams' => $this->getUsedTeams($department),
+            'usedTags' => $usedTags,
             'department' => $department,
             'hasSavedFilters' => $this->hasUserSavedFilters($user, $department),
             'archiveFilters' => ArchiveFilter::cases(),
@@ -116,27 +135,9 @@ final readonly class PetitionIndexService
      */
     public function getUsedPetitionParticularities(Department $department): Collection
     {
-        /** @var Collection<int, string> $labels */
-        $labels = PetitionType::query()
-            ->where('department_id', $department->id)
-            ->isInUse()
-            ->pluck('particularity_label');
-
-        /** @var Collection<int, string> $result */
-        $result = $labels
-            ->merge([
-                PetitionParticularityCollector::LABEL_ADJOURNMENT,
-                PetitionParticularityCollector::LABEL_ADJOURNMENT_LETTER,
-                PetitionParticularityCollector::LABEL_APPEAL_NOT_TIMELY,
-                PetitionParticularityCollector::LABEL_NOTICE_OF_DEFAULT,
-                PetitionParticularityCollector::LABEL_SUSPENSION,
-            ])
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-
-        return $result;
+        return Petition::query()
+            ->whereDepartment($department)
+            ->pluckOccurringParticularities();
     }
 
     private function getPolicyDepartments(Department $department): PolicyDepartmentCollection
@@ -156,6 +157,17 @@ final readonly class PetitionIndexService
             ->whereHas('petitions')
             ->active()
             ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * Inactive tags stay in this list as long as a petition carries them, so older petitions can still be found.
+     */
+    private function getUsedTags(Department $department): TagCollection
+    {
+        return Tag::query()
+            ->forDepartment($department)
+            ->whereHas('petitions')
             ->get();
     }
 

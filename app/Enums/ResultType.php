@@ -37,14 +37,6 @@ enum ResultType: string
         };
     }
 
-    public function requiresReasoning(): bool
-    {
-        return match ($this) {
-            self::OTHER => true,
-            default => false,
-        };
-    }
-
     public function label(): string
     {
         return match ($this) {

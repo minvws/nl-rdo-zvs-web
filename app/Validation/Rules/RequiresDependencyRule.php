@@ -55,7 +55,7 @@ class RequiresDependencyRule implements ValidationRuleInterface
             return new ValidationResult([
                 'general' => __('term.validation.common.event_requires_dependency_any', [
                     'event' => $event->type->label(),
-                    'required_events' => implode(' of ', $requiredLabels),
+                    'required_events' => implode(' ' . __('general.or') . ' ', $requiredLabels),
                 ]),
             ]);
         }
