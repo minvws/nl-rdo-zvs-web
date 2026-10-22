@@ -15,6 +15,7 @@ use App\Collections\PolicyDepartmentCollection;
 use App\Collections\TagCollection;
 use App\Enums\AssignmentRole;
 use App\Enums\ContactRole;
+use App\Enums\PetitionVariant;
 use App\Models\Casts\CalendarDateCast;
 use App\Models\Casts\UuidCast;
 use App\Models\Concerns\HasArchivedAt;
@@ -392,7 +393,9 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
             return false;
         }
 
-        return (bool) Config::get('app.features.term_engine_v2', false);
+        return $this->wasRecentlyCreated
+            && $this->petitionType->type !== PetitionVariant::BEROEP
+            && (bool) Config::get('app.features.term_engine_v2', false);
     }
 
     public function hasDeadlineOverride(): bool

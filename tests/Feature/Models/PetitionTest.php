@@ -6,12 +6,14 @@ namespace Tests\Feature\Models;
 
 use App\Enums\CustomDateLabel;
 use App\Enums\PetitionEventType;
+use App\Enums\PetitionVariant;
 use App\Models\Decision;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionEvent;
 use App\Models\PetitionStatusHistory;
 use App\Models\PetitionTerm;
+use App\Models\PetitionType;
 use App\Models\PolicyDepartment;
 use App\ValueObjects\CalendarDate;
 use Illuminate\Support\Collection;
@@ -168,6 +170,24 @@ class PetitionTest extends FeatureTestCase
         PetitionEvent::factory()->recycle($petition)->create();
 
         $this->assertTrue($petition->isTermEngineConverted());
+    }
+
+    public function testTermsV2OnlyAppliesToNewPetitionsThatAreNoAppeal(): void
+    {
+        ConfigHelper::set('app.features.term_engine_v2', true);
+
+        foreach ([PetitionVariant::BEZWAAR, PetitionVariant::KLACHT, PetitionVariant::WOO_VERZOEK] as $variant) {
+            $petitionType = PetitionType::factory()->create(['type' => $variant]);
+            $newPetition = Petition::factory()->for($petitionType)->create();
+            $this->assertTrue($newPetition->isTermEngineConverted(), $variant->value);
+
+            $existingPetition = Petition::query()->findOrFail($newPetition->id);
+            $this->assertFalse($existingPetition->isTermEngineConverted(), $variant->value);
+        }
+
+        $appealType = PetitionType::factory()->create(['type' => PetitionVariant::BEROEP]);
+        $newAppeal = Petition::factory()->for($appealType)->create();
+        $this->assertFalse($newAppeal->isTermEngineConverted());
     }
 
     #[Test]
