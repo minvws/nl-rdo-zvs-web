@@ -222,6 +222,7 @@ Retrieve the events that drive status transitions, suspensions and deadline calc
 - `penalties` - Penalty amount attached to the event
 - `suspension_type` - Suspension type, for suspension events
 - `result_type` - Result type, for events that close a term
+- `hearing_form` - Form of the hearing (`telephone`, `digital`, `physical` or `committee`), for hearing events
 - `reasoning` - Free-text reasoning (used for unspecified adjournment)
 - `created_at` - Creation timestamp
 - `updated_at` - Update timestamp

@@ -1,9 +1,9 @@
-@section('pageTitle', __('user.model_plural'))
+@section ('pageTitle', __('user.model_plural'))
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
             <h1>{{ __('user.model_plural') }}</h1>
-            @can(Permission::USER_WRITE->value)
+            @can (Permission::USER_WRITE->value)
                 <a
                     class="button"
                     href="{{ route(RouteName::ADMIN_USER_CREATE) }}">

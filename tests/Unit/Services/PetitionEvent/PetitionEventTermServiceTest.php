@@ -41,17 +41,18 @@ class PetitionEventTermServiceTest extends TestCase
         ?int $withdrawalDuration,
         string $expected,
     ): void {
-        $events = WizardEventCollection::make()->add(new PetitionEventData(
+        $event = new PetitionEventData(
             type: $type,
             date: CalendarDate::create('2026-04-01'),
             createdAt: CarbonImmutable::now(),
             duration: $duration,
             withdrawalDuration: $withdrawalDuration,
-        ));
+        );
+        $events = WizardEventCollection::make()->add($event);
 
         $this->assertSame(
-            [$expected],
-            new PetitionEventTermService()->termTexts($events, UnspecifiedAdjournmentMode::CONTINUES_TERMS),
+            $expected,
+            new PetitionEventTermService()->termText($events, $event, UnspecifiedAdjournmentMode::CONTINUES_TERMS),
         );
     }
 
@@ -83,7 +84,14 @@ class PetitionEventTermServiceTest extends TestCase
             ->add($this->event(PetitionEventType::UNSPECIFIED_ADJOURNMENT, '2026-04-01', duration: 14, withdrawalDuration: 28))
             ->add($this->event(PetitionEventType::UNSPECIFIED_ADJOURNMENT_END, $endDate, reasoning: $reason->value));
 
-        $termTexts = new PetitionEventTermService()->termTexts($events, UnspecifiedAdjournmentMode::CONTINUES_TERMS);
+        $service = new PetitionEventTermService();
+        $termTexts = $events->all()
+            ->map(static fn(PetitionEventData $event): string => $service->termText(
+                $events,
+                $event,
+                UnspecifiedAdjournmentMode::CONTINUES_TERMS,
+            ))
+            ->all();
 
         $this->assertSame(['29 dagen', '14 / 28 dagen', $expected], $termTexts);
     }

@@ -1,4 +1,4 @@
-@section('pageTitle', __('term.create', ['term' => __(sprintf('term.term_type.%s', $termType->value))]))
+@section ('pageTitle', __('term.create', ['term' => __(sprintf('term.term_type.%s', $termType->value))]))
 
 <x-form-layout>
     <x-slot name="header">

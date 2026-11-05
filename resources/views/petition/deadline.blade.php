@@ -8,12 +8,10 @@
         id="deadline-error"
         :messages="$errors->get('deadline_at')" />
     <input
-        class="form-control @error("deadline_at") input-error @enderror"
+        class="form-control @error('deadline_at') input-error @enderror"
         id="deadline-at"
         aria-describedby="deadline-error"
-        @error("deadline_at")
-            aria-invalid="true"
-        @enderror
+        @if ($errors->has("deadline_at")) aria-invalid="true" @endif
         type="date"
         name="deadline_at"
         value="{{ Form::old('deadline_at', $deadline_at) }}"

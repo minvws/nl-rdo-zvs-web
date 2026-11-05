@@ -1,9 +1,7 @@
-@section('pageTitle', $user->name . ' ' . __('user.edit'))
+@section ('pageTitle', $user->name . ' ' . __('user.edit'))
 <x-form-layout>
     <x-slot name="header">
-        <h1>
-            {{ $user->name }}
-        </h1>
+        <h1>{{ $user->name }}</h1>
     </x-slot>
 
     <section class="mt-5">
@@ -58,7 +56,7 @@
                             type="checkbox"
                             name="active"
                             value="1"
-                            @checked(old('active', (string) ($user->active ? '1' : '0')) === '1') />
+                            @checked (old('active', (string) ($user->active ? '1' : '0')) === '1') />
                         <x-input-label
                             for="active"
                             :content="__('user.active')" />
@@ -73,7 +71,7 @@
                                 id="global_role-{{ $globalRole->value }}"
                                 name="global_roles[]"
                                 value="{{ $globalRole->value }}"
-                                @checked($errors->any() ? is_array(Form::oldArray('global_roles')) && in_array($globalRole->value, Form::oldArray('global_roles')) : in_array($globalRole, $userGlobalRoles)) />
+                                @checked ($errors->any() ? is_array(Form::oldArray('global_roles')) && in_array($globalRole->value, Form::oldArray('global_roles')) : in_array($globalRole, $userGlobalRoles)) />
                             <x-input-label
                                 for="global_role-{{ $globalRole->value }}"
                                 :content="__('role.global_roles.'.$globalRole->value)" />
@@ -90,7 +88,7 @@
                                     id="department_role-{{ $department->id }}-{{ $departmentRole->value }}"
                                     name="department_roles[{{ $department->id }}][]"
                                     value="{{ $departmentRole->value }}"
-                                    @checked($errors->any() ? is_array(Form::oldArray('department_roles')) && array_key_exists($department->id->toString(), Form::oldArray('department_roles')) && in_array($departmentRole->value, Form::oldArray('department_roles')[$department->id->toString()]) : array_key_exists($department->id->toString(), $userDepartmentRoles) && in_array($departmentRole, $userDepartmentRoles[$department->id->toString()])) />
+                                    @checked ($errors->any() ? is_array(Form::oldArray('department_roles')) && array_key_exists($department->id->toString(), Form::oldArray('department_roles')) && in_array($departmentRole->value, Form::oldArray('department_roles')[$department->id->toString()]) : array_key_exists($department->id->toString(), $userDepartmentRoles) && in_array($departmentRole, $userDepartmentRoles[$department->id->toString()])) />
                                 <x-input-label
                                     for="department_role-{{ $department->id }}-{{ $departmentRole->value }}"
                                     :content="__('role.department_roles.'.$departmentRole->value)" />
@@ -99,9 +97,7 @@
                     @endforeach
                 </fieldset>
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('general.save') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('general.save') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::ADMIN_USER_INDEX) }}">
@@ -117,9 +113,7 @@
                 @csrf
                 <fieldset>
                     <legend>{{ __('user.otp_reset') }}</legend>
-                    <x-primary-button>
-                        {{ __('user.otp_reset') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('user.otp_reset') }}</x-primary-button>
                 </fieldset>
             </form>
         </div>

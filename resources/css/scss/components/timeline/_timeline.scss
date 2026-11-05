@@ -65,6 +65,10 @@
     padding-inline-start: 1rem;
   }
 
+  .timeline-item--note & {
+    flex-basis: 100%;
+  }
+
   p {
     margin: 0;
   }
@@ -125,6 +129,11 @@
   &:hover {
     color: inherit;
   }
+}
+
+.timeline-item__content a.timeline-item__delete {
+  align-self: flex-end;
+  margin-top: 1rem;
 }
 
 .timeline-item__meta {

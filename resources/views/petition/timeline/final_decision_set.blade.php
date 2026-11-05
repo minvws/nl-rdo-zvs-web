@@ -1,4 +1,4 @@
-@use(App\Facades\DisplayDate)
+@use (App\Facades\DisplayDate)
 
 <div class="timeline-item timeline-item--occurrence">
     <div class="timeline-item__wrapper">
@@ -18,9 +18,7 @@
             </x-timeline.timeline-header>
 
             <p class="timeline-item__meta">
-                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }}
-                {{ __('general.by') }}
-                {{ $timelineItem->user->name }}
+                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }} {{ __('general.by') }} {{ $timelineItem->user->name }}
             </p>
         </div>
     </div>

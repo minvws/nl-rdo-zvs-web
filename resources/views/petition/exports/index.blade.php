@@ -1,10 +1,10 @@
-@use(App\Enums\Ability)
-@use(App\Enums\ExportType)
-@use(App\Enums\RouteName)
-@use(App\Facades\DisplayDate)
-@use(App\Facades\Form)
+@use (App\Enums\Ability)
+@use (App\Enums\ExportType)
+@use (App\Enums\RouteName)
+@use (App\Facades\DisplayDate)
+@use (App\Facades\Form)
 
-@section('pageTitle', __('exports.export_overview'))
+@section ('pageTitle', __('exports.export_overview'))
 
 <x-app-layout>
     <x-slot name="header">
@@ -40,7 +40,7 @@
                         @foreach (ExportType::cases() as $exportType)
                             <option
                                 value="{{ $exportType }}"
-                                @selected(Form::old('export_type') === $exportType->value)>
+                                @selected (Form::old('export_type') === $exportType->value)>
                                 {{ __('exports.' . $exportType->value) }}
                             </option>
                         @endforeach
@@ -66,7 +66,7 @@
                         @foreach ($usedPetitionTypes as $petitionType)
                             <option
                                 value="{{ $petitionType->id }}"
-                                @selected(Form::old('petition_type_id') === $petitionType->id->toString())>
+                                @selected (Form::old('petition_type_id') === $petitionType->id->toString())>
                                 {{ $petitionType->name }}
                             </option>
                         @endforeach
@@ -92,7 +92,7 @@
                             @foreach ($petitionCategories as $petitionCategory)
                                 <option
                                     value="{{ $petitionCategory->id }}"
-                                    @selected(Form::old('petition_category_id') === $petitionCategory->id->toString())>
+                                    @selected (Form::old('petition_category_id') === $petitionCategory->id->toString())>
                                     {{ $petitionCategory->name }}
                                 </option>
                             @endforeach
@@ -134,7 +134,7 @@
                         type="date"
                         value="{{ Form::old('date_to') }}" />
                 </div>
-                @can(Ability::CREATE, App\Models\PetitionExport::class)
+                @can (Ability::CREATE, App\Models\PetitionExport::class)
                     <button
                         formaction="{{ route(RouteName::DEPARTMENTS_PETITIONS_EXPORTS_EXPORT, ['department' => $department]) }}"
                         type="submit">
@@ -147,7 +147,9 @@
     <section class="mt-5">
         <div class="visually-grouped">
             <table>
-                <caption class="visually-hidden">{{ __('petition.overview') }}</caption>
+                <caption class="visually-hidden">
+                    {{ __('petition.overview') }}
+                </caption>
                 <thead>
                     <tr>
                         <th scope="col">{{ __('exports.create_date') }}</th>
@@ -157,9 +159,7 @@
                         <th scope="col">{{ __('exports.date_to') }}</th>
                         <th scope="col">{{ __('exports.type') }}</th>
                         <th scope="col">
-                            <span class="visually-hidden">
-                                {{ __('general.actions') }}
-                            </span>
+                            <span class="visually-hidden">{{ __('general.actions') }}</span>
                         </th>
                     </tr>
                 </thead>
@@ -174,7 +174,7 @@
                             <td>{{ __('exports.' . $export->type->value) }}</td>
                             <td>
                                 <div class="actions">
-                                    @can(Ability::VIEW, $export)
+                                    @can (Ability::VIEW, $export)
                                         <a
                                             class="icon-only"
                                             href="{{ route(RouteName::DEPARTMENTS_PETITIONS_EXPORTS_DOWNLOAD, ['department' => $department, 'petitionExport' => $export->id]) }}">
@@ -185,7 +185,7 @@
                                         </a>
                                     @endcan
 
-                                    @can(Ability::DELETE, $export)
+                                    @can (Ability::DELETE, $export)
                                         <a
                                             class="icon-only icon-only--delete"
                                             href="{{ route(RouteName::DEPARTMENTS_PETITIONS_EXPORTS_DELETE, ['department' => $department, 'petitionExport' => $export->id]) }}">

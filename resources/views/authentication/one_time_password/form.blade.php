@@ -22,9 +22,7 @@
         </div>
 
         <div class="button-container">
-            <x-primary-button>
-                {{ __('general.send') }}
-            </x-primary-button>
+            <x-primary-button>{{ __('general.send') }}</x-primary-button>
         </div>
     </form>
 </x-form-layout>

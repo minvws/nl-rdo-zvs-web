@@ -15,7 +15,7 @@ class GenerateApiCredentialsTest extends FeatureTestCase
     {
         $apiUser = ApiUser::factory()->create();
 
-        $result = $this->artisan('api:generate-credentials', ['api_user_id' => $apiUser->id]);
+        $result = $this->artisan('api:generate-credentials', ['api_user_id' => (string) $apiUser->id]);
         $result->expectsConfirmation('This command overwrites the current credentials of the API user. Do you wish to continue?', 'yes');
         $result->assertSuccessful();
         $result->expectsOutputToContain(sprintf('API Credentials generated for API User ID: %s', $apiUser->id));
@@ -25,7 +25,7 @@ class GenerateApiCredentialsTest extends FeatureTestCase
     {
         $apiUser = ApiUser::factory()->create();
 
-        $result = $this->artisan('api:generate-credentials', ['api_user_id' => $apiUser->id]);
+        $result = $this->artisan('api:generate-credentials', ['api_user_id' => (string) $apiUser->id]);
         $result->expectsConfirmation('This command overwrites the current credentials of the API user. Do you wish to continue?', 'no');
         $result->assertSuccessful();
         $result->expectsOutputToContain('Operation cancelled.');
@@ -34,7 +34,7 @@ class GenerateApiCredentialsTest extends FeatureTestCase
     public function testCommandNotFound(): void
     {
         $apiUserId = $this->faker->numberBetween(1, 1000);
-        $result = $this->artisan('api:generate-credentials', ['api_user_id' => $apiUserId]);
+        $result = $this->artisan('api:generate-credentials', ['api_user_id' => (string) $apiUserId]);
         $result->expectsConfirmation('This command overwrites the current credentials of the API user. Do you wish to continue?', 'yes');
         $result->assertFailed();
     }

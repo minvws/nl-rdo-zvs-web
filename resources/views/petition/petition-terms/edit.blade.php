@@ -1,4 +1,4 @@
-@section('pageTitle', __('term.edit'))
+@section ('pageTitle', __('term.edit'))
 
 <x-form-layout>
     <x-slot name="header">

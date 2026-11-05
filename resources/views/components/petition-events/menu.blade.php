@@ -1,26 +1,28 @@
-@use(App\Enums\RouteName)
+@use (App\Enums\RouteName)
 <section class="mb-4">
     <div class="visually-grouped">
         {{-- Options for next step or finish --}}
         @if (count($availableTypes ?? []) > 0)
             <div id="petition-events-buttons">
                 <h2>{{ __('term.add_term') }}</h2>
-                <div id="petition-events-menu">
+                <ul
+                    id="petition-events-menu"
+                    class="tiles">
                     @foreach ($availableTypes as $type)
-                        <div class="petition-events-menu-card">
-                            <p>
-                                <a
-                                    class="button"
-                                    href="{{ route(RouteName::PETITION_EVENTS_WIZARD_CREATE, ['department' => $petition->department, 'petition' => $petition, 'type' => $type->value]) }}">
-                                    {{ $type->label($petition->petitionType->type) }}
-                                </a>
-                            </p>
-                            <p class="mt-2">
-                                {{ $type->description($petition->petitionType->type) }}
-                            </p>
-                        </div>
+                        <li class="tile">
+                            <a
+                                href="{{ route(RouteName::PETITION_EVENTS_WIZARD_CREATE, ['department' => $petition->department, 'petition' => $petition, 'type' => $type->value]) }}">
+                                {{ $type->label($petition->petitionType->type) }}
+                                <x-tabler-plus
+                                    aria-hidden="true"
+                                    focusable="false" />
+                            </a>
+                            <div class="tile-group">
+                                <p>{{ $type->description($petition->petitionType->type) }}</p>
+                            </div>
+                        </li>
                     @endforeach
-                </div>
+                </ul>
             </div>
         @else
             <h2>{{ __('term.add_term') }}</h2>

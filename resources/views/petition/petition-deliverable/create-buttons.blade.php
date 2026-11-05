@@ -1,6 +1,6 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
-@can('update', [$petition])
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
+@can ('update', [$petition])
     <div class="button-container">
         @foreach ($petitionDeliverableTypes as $petitionDeliverableType)
             <a

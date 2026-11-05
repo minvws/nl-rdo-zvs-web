@@ -1,4 +1,4 @@
-@props([
+@props ([
     'tags',
     'limit' => null,
     'empty' => null,

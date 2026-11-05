@@ -1,12 +1,12 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('general.administration'))
+@section ('pageTitle', __('general.administration'))
 <x-form-layout>
     <section class="mt-5">
         <h2>{{ __('general.global') }}</h2>
         <div class="section-container mt-3">
-            @can(Permission::USER_WRITE->value)
+            @can (Permission::USER_WRITE->value)
                 <div>
                     <h3 class="department-overview__title">{{ __('general.access') }}</h3>
                     <a
@@ -17,7 +17,7 @@
                 </div>
             @endcan
 
-            @can(Permission::POLICY_DEPARTMENT_WRITE->value)
+            @can (Permission::POLICY_DEPARTMENT_WRITE->value)
                 <div>
                     <h3 class="department-overview__title">{{ __('general.organization') }}</h3>
                     <a
@@ -28,7 +28,7 @@
                 </div>
             @endcan
 
-            @can(Permission::PUBLIC_HOLIDAY_WRITE->value)
+            @can (Permission::PUBLIC_HOLIDAY_WRITE->value)
                 <div>
                     <h3 class="department-overview__title">{{ __('general.general_term_law') }}</h3>
                     <a
@@ -52,7 +52,7 @@
                             aria-hidden="true"></span>
                         {{ $department->name }}
                     </h3>
-                    @can(Permission::PETITION_TYPE_WRITE->value)
+                    @can (Permission::PETITION_TYPE_WRITE->value)
                         <a
                             class="button secondary mt-2"
                             href="{{
@@ -64,7 +64,7 @@
                         </a>
                     @endcan
 
-                    @can(Permission::PETITION_CATEGORY_WRITE->value)
+                    @can (Permission::PETITION_CATEGORY_WRITE->value)
                         <a
                             class="button secondary mt-2"
                             href="{{
@@ -76,7 +76,7 @@
                         </a>
                     @endcan
 
-                    @can(Permission::TEAM_WRITE->value)
+                    @can (Permission::TEAM_WRITE->value)
                         <a
                             class="button secondary mt-2"
                             href="{{
@@ -88,7 +88,7 @@
                         </a>
                     @endcan
 
-                    @can(Permission::TAG_WRITE->value)
+                    @can (Permission::TAG_WRITE->value)
                         <a
                             class="button secondary mt-2"
                             href="{{

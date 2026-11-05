@@ -1,6 +1,6 @@
-@use(App\Enums\RouteName)
+@use (App\Enums\RouteName)
 
-@section("pageTitle", __("petition.edit_second_assignee"))
+@section ("pageTitle", __("petition.edit_second_assignee"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
@@ -33,9 +33,7 @@
                 type="hidden"
                 name="hx-target"
                 value="assign-secondary-block" />
-            <h3 class="form-section__title form-section__title--border">
-                {{ __("petition.edit_second_assignee") }}
-            </h3>
+            <h3 class="form-section__title form-section__title--border">{{ __("petition.edit_second_assignee") }}</h3>
             <div class="form-input-group">
                 <x-input-label
                     class="visually-hidden"
@@ -49,15 +47,13 @@
                     id="user-id"
                     class="form-select @error("user_id") input-error @enderror"
                     name="user_id"
-                    @error("user_id")
-                        aria-invalid="true"
-                    @enderror>
+                    @if ($errors->has("user_id")) aria-invalid="true" @endif>
                     <option value="">(geen)</option>
                     @foreach ($users as $user)
                         @if ($user->id->toString() !== $petition->firstAssignee?->user_id?->toString())
                             <option
                                 value="{{ $user->id }}"
-                                @selected($user->id->toString() === Form::old("user_id", $petition->secondAssignee?->user_id?->toString()))>
+                                @selected ($user->id->toString() === Form::old("user_id", $petition->secondAssignee?->user_id?->toString()))>
                                 {{ $user->name }}
                             </option>
                         @endif
@@ -66,7 +62,7 @@
             </div>
             @if ($errors->any())
                 <x-notification type="danger">
-                    <p>@lang("validation.global_message")</p>
+                    <p>@lang ("validation.global_message")</p>
                 </x-notification>
             @endif
 
@@ -78,7 +74,7 @@
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_SECONDARY_SHOW, ["department" => $petition->department, "petition" => $petition]) }}"
                         hx-target="#assign-secondary-block"
                         hx-swap="innerHTML"
-                    @else
+                        @else
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ["department" => $petition->department, "petition" => $petition]) }}"
                     @endifHtmx>
                     {{ __("general.cancel") }}

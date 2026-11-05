@@ -1,5 +1,5 @@
-@use(App\Enums\RouteName)
-@section('pageTitle', __('draft_term.edit'))
+@use (App\Enums\RouteName)
+@section ('pageTitle', __('draft_term.edit'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -111,9 +111,7 @@
                 </section>
 
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('general.save') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('general.save') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $petition->department->slug, 'petition' => $petition]) }}">

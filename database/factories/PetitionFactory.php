@@ -50,7 +50,7 @@ class PetitionFactory extends Factory
     public function configure(): static
     {
         $this->afterMaking->push(function (Petition $petition): void {
-            if ($petition->number !== null) {
+            if ($petition->getAttribute('number') !== null) {
                 return;
             }
 

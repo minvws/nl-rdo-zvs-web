@@ -114,7 +114,7 @@ enum RouteName: string
     case PETITION_EVENTS_WIZARD_SELECT_TYPE = 'petition-events.wizard.select-type';
     case PETITION_EVENTS_WIZARD_CREATE = 'petition-events.wizard.create';
     case PETITION_EVENTS_WIZARD_SUBMIT_FORM = 'petition-events.wizard.submit-form';
-    case PETITION_EVENTS_WIZARD_DELETE_LAST = 'petition-events.wizard.delete-last';
+    case PETITION_EVENTS_WIZARD_DELETE = 'petition-events.wizard.delete';
     case PETITION_EVENTS_WIZARD_STORE = 'petition-events.wizard.store';
 
     // departments.decisions.archive
@@ -153,6 +153,8 @@ enum RouteName: string
     // departments.timelineable.notes
     case DEPARTMENTS_TIMELINEABLE_NOTES_CREATE = 'departments.timelineable.notes.create';
     case DEPARTMENTS_TIMELINEABLE_NOTES_STORE = 'departments.timelineable.notes.store';
+    case DEPARTMENTS_TIMELINEABLE_NOTES_CONFIRM_DELETE = 'departments.timelineable.notes.confirm-delete';
+    case DEPARTMENTS_TIMELINEABLE_NOTES_DELETE = 'departments.timelineable.notes.delete';
 
     // departments.petitions.policy-department
     case DEPARTMENTS_PETITIONS_POLICY_DEPARTMENT_EDIT = 'departments.petitions.policy-department.edit';

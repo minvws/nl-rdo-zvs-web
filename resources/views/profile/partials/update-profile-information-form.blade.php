@@ -1,12 +1,8 @@
 <section class="visually-grouped">
     <div class="spacing-0">
-        <h2>
-            {{ __('profile.personal.title') }}
-        </h2>
+        <h2>{{ __('profile.personal.title') }}</h2>
 
-        <p>
-            {{ __('profile.personal.subtitle') }}
-        </p>
+        <p>{{ __('profile.personal.subtitle') }}</p>
     </div>
 
     <form

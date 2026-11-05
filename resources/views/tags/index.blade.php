@@ -1,13 +1,11 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
 
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
-            <h1>
-                {{ __('tag.model_plural') }}
-            </h1>
-            @can(Permission::TAG_WRITE->value)
+            <h1>{{ __('tag.model_plural') }}</h1>
+            @can (Permission::TAG_WRITE->value)
                 <a
                     class="button"
                     href="{{ route(RouteName::DEPARTMENTS_ADMIN_TAGS_CREATE, ['department' => $department]) }}">
@@ -51,7 +49,7 @@
                             <td>{{ $tag->petitions_count }}</td>
                             <td>
                                 <div class="actions">
-                                    @can(Permission::TAG_WRITE->value)
+                                    @can (Permission::TAG_WRITE->value)
                                         <a
                                             class="icon-only"
                                             href="{{ route(RouteName::DEPARTMENTS_ADMIN_TAGS_EDIT, ['department' => $department, 'tag' => $tag->id]) }}"

@@ -1,12 +1,10 @@
-@use(App\Enums\RouteName)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('general.confirm_action'))
+@section ('pageTitle', __('general.confirm_action'))
 
 <x-app-layout>
     <x-slot name="header">
-        <h1>
-            {{ __('general.confirm_action') }}
-        </h1>
+        <h1>{{ __('general.confirm_action') }}</h1>
     </x-slot>
 
     <section class="mt-5">
@@ -18,7 +16,7 @@
                 method="post"
                 action="{{ $confirmUrl }}">
                 @csrf
-                @method($method)
+                @method ($method)
                 <div class="button-container">
                     <button
                         type="submit"

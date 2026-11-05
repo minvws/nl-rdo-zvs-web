@@ -22,11 +22,15 @@ use App\ValueObjects\CalendarDate;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Psr\SimpleCache\InvalidArgumentException;
+use Ramsey\Uuid\UuidInterface;
 use Throwable;
+use Webmozart\Assert\Assert;
 
 use function array_combine;
 use function array_filter;
@@ -39,6 +43,7 @@ use function explode;
 use function file_exists;
 use function in_array;
 use function is_int;
+use function is_scalar;
 use function json_encode;
 use function now;
 use function sprintf;
@@ -72,10 +77,10 @@ class ImportAppealsCommand extends Command
         'zitting' => 'zitting',
     ];
 
-    /** @var array<int, array<string, mixed>> */
+    /** @var array<int, array{row: int, reason: string, petition_number: string}> */
     private array $failedRecords = [];
 
-    /** @var array<string, array<int>> */
+    /** @var array<string, array<int, int|UuidInterface>> */
     private array $importedIds = [];
 
     private string $batchId = '';
@@ -83,10 +88,13 @@ class ImportAppealsCommand extends Command
     /** @var array<string, string> */
     private array $juristEmailMapping = [];
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function handle(): int
     {
         if ($this->option('rollback')) {
-            return $this->handleRollback($this->option('rollback'));
+            return $this->handleRollback(Arr::string($this->options(), 'rollback'));
         }
 
         return $this->handleImport();
@@ -130,10 +138,19 @@ class ImportAppealsCommand extends Command
         }
     }
 
+    private function stringValue(mixed $value): string
+    {
+        return is_scalar($value) ? (string) $value : '';
+    }
+
+    private function dateValue(mixed $value): string|int
+    {
+        return is_int($value) ? $value : $this->stringValue($value);
+    }
+
     private function handleImport(): int
     {
-        /** @var string $filePath */
-        $filePath = $this->argument('file');
+        $filePath = Arr::string($this->arguments(), 'file');
         $isDryRun = !$this->option('commit');
 
         if (!file_exists($filePath)) {
@@ -142,8 +159,8 @@ class ImportAppealsCommand extends Command
             return self::FAILURE;
         }
 
-        $juristFilePath = $this->option('file-jurist');
-        if ($juristFilePath) {
+        if ($this->option('file-jurist')) {
+            $juristFilePath = Arr::string($this->options(), 'file-jurist');
             if (!file_exists($juristFilePath)) {
                 $this->error(sprintf('Jurist file not found: %s', $juristFilePath));
 
@@ -169,7 +186,7 @@ class ImportAppealsCommand extends Command
             }
 
             $headers = array_map(
-                fn ($header): string => $this->transformColumnName((string) $header),
+                fn ($header): string => $this->transformColumnName($this->stringValue($header)),
                 $sheetData[0],
             );
             $rows = array_slice($sheetData, 1);
@@ -201,20 +218,22 @@ class ImportAppealsCommand extends Command
                     continue;
                 }
 
+                $petitionNumber = $this->stringValue($data['number']);
                 $data['department_id'] = $department->id;
 
                 // Get user_id from jurist name
                 if (isset($data['jurist']) && $data['jurist']) {
-                    $user = User::query()->where('name', 'ILIKE', $data['jurist'])->first();
+                    $juristName = $this->stringValue($data['jurist']);
+                    $user = User::query()->where('name', 'ILIKE', $juristName)->first();
 
-                    if (!$user && isset($this->juristEmailMapping[$data['jurist']])) {
-                        $email = $this->juristEmailMapping[$data['jurist']];
+                    if (!$user && isset($this->juristEmailMapping[$juristName])) {
+                        $email = $this->juristEmailMapping[$juristName];
                         $user = User::query()->where('email', $email)->first();
 
                         if ($user) {
                             $this->line(sprintf(
                                 '  Jurist "%s" found by email: %s',
-                                $data['jurist'],
+                                $juristName,
                                 $email,
                             ));
                         }
@@ -223,8 +242,8 @@ class ImportAppealsCommand extends Command
                     if (!$user) {
                         $this->failedRecords[] = [
                             'row' => $rowNumber,
-                            'reason' => sprintf('Jurist not found: %s', $data['jurist']),
-                            'petition_number' => $data['number'],
+                            'reason' => sprintf('Jurist not found: %s', $juristName),
+                            'petition_number' => $petitionNumber,
                         ];
                         continue;
                     }
@@ -241,8 +260,8 @@ class ImportAppealsCommand extends Command
                     if (!$petitionType) {
                         $this->failedRecords[] = [
                             'row' => $rowNumber,
-                            'reason' => sprintf('Petition type not found: %s', $data['petition_type_id']),
-                            'petition_number' => $data['number'],
+                            'reason' => sprintf('Petition type not found: %s', $this->stringValue($data['petition_type_id'])),
+                            'petition_number' => $petitionNumber,
                         ];
                         continue;
                     }
@@ -263,7 +282,7 @@ class ImportAppealsCommand extends Command
                             'uitspraak' => 'Uitspraak',
                         ];
 
-                        $uitspraakLower = strtolower((string) $data['uitspraak']);
+                        $uitspraakLower = strtolower($this->stringValue($data['uitspraak']));
                         $mappedStatus = $uitspraakStatusMapping[$uitspraakLower] ?? null;
 
                         if ($mappedStatus) {
@@ -308,7 +327,7 @@ class ImportAppealsCommand extends Command
                     $petitionData = array_filter([
                         'number' => $data['number'],
                         'date_of_entry' => isset($data['date_of_entry']) ? $this->convertDateFormat(
-                            $data['date_of_entry'],
+                            $this->dateValue($data['date_of_entry']),
                         ) : null,
                         'petition_status_id' => $data['petition_status_id'] ?? null,
                         'petition_type_id' => $data['petition_type_id'] ?? null,
@@ -319,7 +338,7 @@ class ImportAppealsCommand extends Command
                         $this->failedRecords[] = [
                             'row' => $rowNumber,
                             'reason' => 'date_of_entry is required',
-                            'petition_number' => $data['number'],
+                            'petition_number' => $petitionNumber,
                         ];
                         continue;
                     }
@@ -328,7 +347,7 @@ class ImportAppealsCommand extends Command
                         $this->failedRecords[] = [
                             'row' => $rowNumber,
                             'reason' => 'petition_status_id could not be determined (no matching status found for petition type)',
-                            'petition_number' => $data['number'],
+                            'petition_number' => $petitionNumber,
                         ];
                         continue;
                     }
@@ -340,6 +359,7 @@ class ImportAppealsCommand extends Command
                         ));
                         $petition = new Petition($petitionData);
                         $petition->id = Str::uuid();
+                        Assert::isInstanceOf($data['petition_type_id'], UuidInterface::class);
                         $petition->petition_type_id = $data['petition_type_id'];
                         $insertedCount++;
                     } else {
@@ -350,7 +370,7 @@ class ImportAppealsCommand extends Command
                 } else {
                     $petitionUpdateData = array_filter([
                         'date_of_entry' => isset($data['date_of_entry']) ? $this->convertDateFormat(
-                            $data['date_of_entry'],
+                            $this->dateValue($data['date_of_entry']),
                         ) : null,
                         'petition_status_id' => $data['petition_status_id'] ?? null,
                         'petition_type_id' => $data['petition_type_id'] ?? null,
@@ -405,43 +425,35 @@ class ImportAppealsCommand extends Command
                         $this->importedIds['contacts'][] = $contact->id;
                     }
 
-                    if ($contact) {
-                        $contactPetition = ContactPetition::query()
-                            ->where('petition_id', $petition->id)
-                            ->where('contact_id', $contact->id)
-                            ->where('role', 'applicant')
-                            ->first();
+                    $contactPetition = ContactPetition::query()
+                        ->where('petition_id', $petition->id)
+                        ->where('contact_id', $contact->id)
+                        ->where('role', 'applicant')
+                        ->first();
 
-                        if (!$contactPetition) {
-                            if ($isDryRun) {
-                                $this->line(sprintf(
-                                    '  Would link contact "%s" to petition with role=applicant',
-                                    $data['bezwaarde'],
-                                ));
-                            } else {
-                                $created = ContactPetition::query()->create([
-                                    'petition_id' => $petition->id,
-                                    'contact_id' => $contact->id,
-                                    'role' => 'applicant',
-                                    'reference' => '',
-                                ]);
-                                $this->importedIds['contact_petitions'][] = $created->id;
-                            }
+                    if (!$contactPetition) {
+                        if ($isDryRun) {
+                            $this->line(sprintf(
+                                '  Would link contact "%s" to petition with role=applicant',
+                                $this->stringValue($data['bezwaarde']),
+                            ));
+                        } else {
+                            $created = ContactPetition::query()->create([
+                                'petition_id' => $petition->id,
+                                'contact_id' => $contact->id,
+                                'role' => 'applicant',
+                                'reference' => '',
+                            ]);
+                            $this->importedIds['contact_petitions'][] = $created->id;
                         }
-                    } else { // @codeCoverageIgnore
-                        $this->failedRecords[] = [ // @codeCoverageIgnore
-                            'row' => $rowNumber, // @codeCoverageIgnore
-                            'reason' => sprintf('Contact not found: %s', $data['bezwaarde']), // @codeCoverageIgnore
-                            'petition_number' => $data['number'], // @codeCoverageIgnore
-                        ]; // @codeCoverageIgnore
-                    } // @codeCoverageIgnore
+                    }
 
                     unset($data['bezwaarde']);
                 }
 
                 // Handle Beleidsafdeling
                 if (isset($data['beleidsafdeling']) && $data['beleidsafdeling']) {
-                    $policyDepartmentNames = array_map(trim(...), explode(',', (string) $data['beleidsafdeling']));
+                    $policyDepartmentNames = array_map(trim(...), explode(',', $this->stringValue($data['beleidsafdeling'])));
                     $policyDepartmentNames = array_filter($policyDepartmentNames, static fn ($name): bool => $name !== '');
 
                     foreach ($policyDepartmentNames as $policyDepartmentName) {
@@ -471,7 +483,7 @@ class ImportAppealsCommand extends Command
                             $this->failedRecords[] = [
                                 'row' => $rowNumber,
                                 'reason' => sprintf('Policy department not found: %s', $policyDepartmentName),
-                                'petition_number' => $data['number'],
+                                'petition_number' => $petitionNumber,
                             ];
                         }
                     }
@@ -494,7 +506,7 @@ class ImportAppealsCommand extends Command
                 ];
 
                 if (isset($data['uitspraak']) && $data['uitspraak']) {
-                    $uitspraakLower = strtolower((string) $data['uitspraak']);
+                    $uitspraakLower = strtolower($this->stringValue($data['uitspraak']));
                     $data['redenintrekking'] = $uitspraakMapping[$uitspraakLower] ?? $data['uitspraak'];
                 }
 
@@ -520,7 +532,7 @@ class ImportAppealsCommand extends Command
                         } else {
                             $this->line(sprintf(
                                 '  Would add Reden intrekking: %s',
-                                $data['redenintrekking'],
+                                $this->stringValue($data['redenintrekking']),
                             ));
                         }
                     }
@@ -536,7 +548,7 @@ class ImportAppealsCommand extends Command
 
                 foreach ($dateMapping as $excelColumn => $dateLabel) {
                     if (isset($data[$excelColumn]) && $data[$excelColumn]) {
-                        $formattedDate = $this->convertDateFormat($data[$excelColumn]);
+                        $formattedDate = $this->convertDateFormat($this->dateValue($data[$excelColumn]));
 
                         $existingCustomDate = PetitionCustomDate::query()
                             ->where('petition_id', $petition->id)
@@ -561,8 +573,12 @@ class ImportAppealsCommand extends Command
                         } elseif (!$formattedDate && $data[$excelColumn]) {
                             $this->failedRecords[] = [
                                 'row' => $rowNumber,
-                                'reason' => sprintf('Invalid date format for %s: %s', $excelColumn, $data[$excelColumn]),
-                                'petition_number' => $data['number'],
+                                'reason' => sprintf(
+                                    'Invalid date format for %s: %s',
+                                    $excelColumn,
+                                    $this->stringValue($data[$excelColumn]),
+                                ),
+                                'petition_number' => $petitionNumber,
                             ];
                         }
                     }
@@ -596,9 +612,7 @@ class ImportAppealsCommand extends Command
                         $failed['row'],
                         $failed['reason'],
                     ));
-                    if (isset($failed['petition_number'])) {
-                        $this->line(sprintf('    Petition: %s', $failed['petition_number']));
-                    }
+                    $this->line(sprintf('    Petition: %s', $failed['petition_number']));
                 }
             }
 
@@ -610,8 +624,12 @@ class ImportAppealsCommand extends Command
         }
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     private function handleRollback(string $batchId): int
     {
+        /** @var array<string, array<int, int|UuidInterface>>|null $importedIds */
         $importedIds = Cache::get($batchId);
 
         if (!$importedIds) {
@@ -629,24 +647,28 @@ class ImportAppealsCommand extends Command
             $deletedCount = 0;
 
             if (isset($importedIds['petition_custom_dates'])) {
+                /** @var int $count */
                 $count = PetitionCustomDate::query()->whereIn('id', $importedIds['petition_custom_dates'])->delete();
                 $deletedCount += $count;
                 $this->info(sprintf('Deleted %d petition custom dates', $count));
             }
 
             if (isset($importedIds['petition_assignments'])) {
+                /** @var int $count */
                 $count = PetitionAssignment::query()->whereIn('id', $importedIds['petition_assignments'])->delete();
                 $deletedCount += $count;
                 $this->info(sprintf('Deleted %d petition assignments', $count));
             }
 
             if (isset($importedIds['contact_petitions'])) {
+                /** @var int $count */
                 $count = ContactPetition::query()->whereIn('id', $importedIds['contact_petitions'])->delete();
                 $deletedCount += $count;
                 $this->info(sprintf('Deleted %d contact petitions', $count));
             }
 
             if (isset($importedIds['contacts'])) {
+                /** @var int $count */
                 $count = Contact::query()->whereIn('id', $importedIds['contacts'])->delete();
                 $deletedCount += $count;
                 $this->info(sprintf('Deleted %d contacts', $count));
@@ -654,7 +676,7 @@ class ImportAppealsCommand extends Command
 
             if (isset($importedIds['petitions'])) {
                 foreach ($importedIds['petitions'] as $petitionId) {
-                    $petition = Petition::query()->find($petitionId);
+                    $petition = Petition::query()->whereKey($petitionId)->first();
                     if (!$petition) {
                         continue;
                     }
@@ -665,6 +687,7 @@ class ImportAppealsCommand extends Command
             }
 
             if (isset($importedIds['petitions'])) {
+                /** @var int $count */
                 $count = Petition::query()->whereIn('id', $importedIds['petitions'])->delete();
                 $deletedCount += $count;
                 $this->info(sprintf('Deleted %d petitions', $count));
@@ -697,7 +720,7 @@ class ImportAppealsCommand extends Command
             }
 
             $headers = array_map(
-                static fn ($header): string => strtolower(trim((string) $header)),
+                fn ($header): string => strtolower(trim($this->stringValue($header))),
                 $sheetData[0],
             );
 
@@ -716,7 +739,7 @@ class ImportAppealsCommand extends Command
                 $email = $row[$emailIndex] ?? null;
 
                 if ($name && $email) {
-                    $this->juristEmailMapping[(string) $name] = (string) $email;
+                    $this->juristEmailMapping[$this->stringValue($name)] = $this->stringValue($email);
                 }
             }
 

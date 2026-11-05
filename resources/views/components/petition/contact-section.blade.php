@@ -1,6 +1,6 @@
-@use(App\Facades\DisplayDate)
+@use (App\Facades\DisplayDate)
 
-@props([
+@props ([
     'contacts',
     'title',
     'petition',
@@ -15,10 +15,7 @@
                     <dd>
                         <a
                             href="{{ route(RouteName::DEPARTMENTS_CONTACTS_SHOW, ['department' => $petition->department, 'contact' => $contact]) }}">
-                            <p>
-                                {{ $contact->initials }}
-                                {{ $contact->last_name }}
-                            </p>
+                            <p>{{ $contact->initials }} {{ $contact->last_name }}</p>
                             <p>{{ $contact->organisation_name }}</p>
                         </a>
                         @if ($contact->pivot->correspondence_preference || $contact->pivot->reference)
@@ -37,8 +34,7 @@
 
                         @if ($contact->pivot->date_first_phone_contact)
                             <p>
-                                {{ __('contact.date_first_phone_contact') . ':' }}
-                                {{ DisplayDate::date($contact->pivot->date_first_phone_contact) }}
+                                {{ __('contact.date_first_phone_contact') . ':' }} {{ DisplayDate::date($contact->pivot->date_first_phone_contact) }}
                             </p>
                         @endif
                     </dd>

@@ -20,7 +20,7 @@ class NotificationContent extends Component
     public function render(): View
     {
         /** @var string $notificationType */
-        $notificationType = $this->notification->type;
+        $notificationType = $this->notification->getAttribute('type');
 
         $viewName = 'components.notification.types.' . $notificationType;
 

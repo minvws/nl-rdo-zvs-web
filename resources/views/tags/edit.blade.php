@@ -1,7 +1,7 @@
-@use(App\Enums\RouteName)
-@use(App\Enums\TagColor)
+@use (App\Enums\RouteName)
+@use (App\Enums\TagColor)
 
-@section('pageTitle', __('tag.edit'))
+@section ('pageTitle', __('tag.edit'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -47,7 +47,7 @@
                         @foreach (TagColor::cases() as $tagColor)
                             <option
                                 value="{{ $tagColor->value }}"
-                                @selected(old('color', $tag->color->value) === $tagColor->value)>
+                                @selected (old('color', $tag->color->value) === $tagColor->value)>
                                 {{ __('tag_color.' . $tagColor->value) }}
                             </option>
                         @endforeach
@@ -80,15 +80,13 @@
                         type="checkbox"
                         name="active"
                         value="1"
-                        @checked(old('active', $tag->active ? '1' : '0') === '1') />
+                        @checked (old('active', $tag->active ? '1' : '0') === '1') />
                     <x-input-label
                         for="active"
                         :content="__('tag.active')" />
                 </div>
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('general.save') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('general.save') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::DEPARTMENTS_ADMIN_TAGS_INDEX, ['department' => $department]) }}">

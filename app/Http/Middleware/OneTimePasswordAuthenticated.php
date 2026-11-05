@@ -26,6 +26,8 @@ readonly class OneTimePasswordAuthenticated
     }
 
     /**
+     * @param Closure(Request): Response $next
+     *
      * @throws Exception
      */
     public function handle(Request $request, Closure $next): Response

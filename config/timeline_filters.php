@@ -38,6 +38,7 @@ return [
 
         TimelineFilterGroup::NOTES->value => [
             TimelineType::NOTE->value,
+            TimelineType::NOTE_DELETED->value,
         ],
 
         TimelineFilterGroup::STATUS_CHANGES->value => [

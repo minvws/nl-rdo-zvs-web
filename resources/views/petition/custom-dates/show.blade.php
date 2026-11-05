@@ -1,12 +1,12 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
-@use(App\Facades\DisplayDate)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
+@use (App\Facades\DisplayDate)
 
 <div class="petition-property__block">
     <header class="petition-property__header">
         <h2 class="petition-property__title">{{ __('petition.custom_date') }}</h2>
 
-        @can('update', [$petition])
+        @can ('update', [$petition])
             <a
                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_CUSTOM_DATES_EDIT, ['department' => $petition->department->slug, 'petition' => $petition]) }}"
                 class="icon-only petition-property__edit"

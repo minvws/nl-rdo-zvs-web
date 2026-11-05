@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Enums\ContactRole;
+use App\Enums\HearingForm;
+use App\Enums\PetitionEventType;
 use App\Enums\TagColor;
 use App\Models\ApiUser;
 use App\Models\Contact;
@@ -16,6 +18,7 @@ use App\Models\PetitionAssignment;
 use App\Models\PetitionCustomDate;
 use App\Models\PetitionDeliverable;
 use App\Models\PetitionDraftTerm;
+use App\Models\PetitionEvent;
 use App\Models\PetitionExternalUrl;
 use App\Models\PetitionQuerysnapshot;
 use App\Models\PetitionStatus;
@@ -241,6 +244,18 @@ class GenericApiControllerTest extends FeatureTestCase
         $this->assertSame(1500, $response->json('data.0.igs_forfeited'));
     }
 
+    public function testPetitionEventsEndpointReturnsTheHearingForm(): void
+    {
+        PetitionEvent::factory()->create([
+            'type' => PetitionEventType::HEARING_DATE,
+            'hearing_form' => HearingForm::TELEPHONE,
+        ]);
+
+        $response = $this->getJson('/api/v1/petition_events?fields=id,type,hearing_form')->assertOk();
+
+        $this->assertSame(HearingForm::TELEPHONE->value, $response->json('data.0.hearing_form'));
+    }
+
     public function testTagsEndpointReturnsActiveAndInactiveTags(): void
     {
         $tag = Tag::factory()->create(['color' => TagColor::ORANGE, 'description' => 'Komt steeds terug']);
@@ -327,6 +342,7 @@ class GenericApiControllerTest extends FeatureTestCase
             ['/api/v1/petition_custom_costs', CustomCost::class],
             ['/api/v1/petition_custom_dates', PetitionCustomDate::class],
             ['/api/v1/petition_assignments', PetitionAssignment::class],
+            ['/api/v1/petition_events', PetitionEvent::class],
             ['/api/v1/decision_petition'],
             ['/api/v1/public_holidays', PublicHoliday::class],
             ['/api/v1/processing_steps', ProcessingStep::class],

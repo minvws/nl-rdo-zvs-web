@@ -30,6 +30,7 @@ use function __;
 use function array_key_exists;
 use function array_map;
 use function implode;
+use function is_array;
 use function is_int;
 use function sprintf;
 
@@ -51,6 +52,7 @@ class TimelineItem extends Component
                 TimelineType::CONTACT_FIRST_PHONE_CONTACT => $this->renderContactFirstPhoneContact(),
                 TimelineType::CONTACT_PIVOT_UPDATED => $this->renderContactPivotUpdated(),
                 TimelineType::NOTE => $this->renderNote(),
+                TimelineType::NOTE_DELETED => $this->renderView('petition.timeline.note_deleted'),
                 TimelineType::TIMELINEABLE_CREATED => $this->renderView('petition.timeline.timelineable_created'),
                 TimelineType::TERM_CREATED => $this->renderView('petition.timeline.term_created'),
                 TimelineType::TERM_UPDATED => $this->renderView('petition.timeline.term_updated'),
@@ -201,6 +203,7 @@ class TimelineItem extends Component
             ->make('petition.timeline.note')
             ->with([
                 'timelineItem' => $this->timelineItem,
+                'timelineable' => $this->timelineItem->timelineable,
                 'attachments' => Attachment::query()->whereIn('id', $data['attachmentIds'])->get(),
             ]);
     }
@@ -265,7 +268,7 @@ class TimelineItem extends Component
         Assert::isArray($data['custom_dates']);
 
         $customDatesCollection = new Collection($data['custom_dates']);
-        $customDatesCollection->filter(static fn(mixed $item): bool => $item['date'] !== null);
+        $customDatesCollection->filter(static fn(mixed $item): bool => is_array($item) && ($item['date'] ?? null) !== null);
 
         return $this->view
             ->make('petition.timeline.petition_custom_dates_changed')

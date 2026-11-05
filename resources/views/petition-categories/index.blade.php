@@ -1,13 +1,11 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
 
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
-            <h1>
-                {{ __('petition_category.model_plural') }}
-            </h1>
-            @can(Permission::PETITION_CATEGORY_WRITE->value)
+            <h1>{{ __('petition_category.model_plural') }}</h1>
+            @can (Permission::PETITION_CATEGORY_WRITE->value)
                 <a
                     class="button"
                     href="{{ route(RouteName::DEPARTMENTS_ADMIN_PETITION_CATEGORIES_CREATE, ['department' => $department]) }}">
@@ -45,7 +43,7 @@
                             </td>
                             <td>
                                 <div class="actions">
-                                    @can(Permission::PETITION_CATEGORY_WRITE->value)
+                                    @can (Permission::PETITION_CATEGORY_WRITE->value)
                                         <a
                                             class="icon-only"
                                             href="{{ route(RouteName::DEPARTMENTS_ADMIN_PETITION_CATEGORIES_EDIT, ['department' => $department, 'petitionCategory' => $petitionCategory->id]) }}"

@@ -113,11 +113,7 @@ class SuffixWooObjectionsCommand extends Command
             $timelineReferencesUpdated += $this->updateTimelineReferences($petition, $oldNumber, $newNumber);
         }
 
-        if ($isDryRun) {
-            DB::rollBack();
-        } else {
-            DB::commit();
-        }
+        $isDryRun ? DB::rollBack() : DB::commit();
 
         $this->info(sprintf(
             '%s %d petition(s), %d already had the suffix, %d skipped because the new number exists',

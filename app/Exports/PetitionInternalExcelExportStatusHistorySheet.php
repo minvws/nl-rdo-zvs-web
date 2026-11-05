@@ -9,6 +9,7 @@ use App\Models\Builder\Petition\Filters\PetitionTypeFilter;
 use App\Models\Petition;
 use App\Models\PetitionCategory;
 use App\Models\PetitionStatusHistory;
+use App\QueryBuilders\PetitionQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
@@ -84,6 +85,7 @@ class PetitionInternalExcelExportStatusHistorySheet implements
      */
     public function query(): Builder
     {
+        /** @var PetitionQueryBuilder $petitionQuery */
         $petitionQuery = QueryBuilder::for(Petition::class)
             ->allowedFilters(
                 AllowedFilter::custom('dateRange', new PetitionStatusHistoryDateRangeFilter())
@@ -91,11 +93,13 @@ class PetitionInternalExcelExportStatusHistorySheet implements
                 AllowedFilter::custom('petitionType', new PetitionTypeFilter())
                     ->default($this->criteria->petitionType->id),
             )
+            ->getEloquentBuilder();
+
+        $petitionQuery
             ->when($this->criteria->petitionCategory instanceof PetitionCategory, function (Builder $query): void {
                 Assert::isInstanceOf($this->criteria->petitionCategory, PetitionCategory::class);
                 $query->where('petition_category_id', $this->criteria->petitionCategory->id);
             })
-            ->getEloquentBuilder()
             ->notArchived();
 
         return PetitionStatusHistory::query()

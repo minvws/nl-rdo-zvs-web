@@ -1,4 +1,4 @@
-@section('pageTitle', __('team.edit'))
+@section ('pageTitle', __('team.edit'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -38,15 +38,13 @@
                         type="checkbox"
                         name="active"
                         value="1"
-                        @checked(old('active', $team->active) === true || old('active') === '1') />
+                        @checked (old('active', $team->active) === true || old('active') === '1') />
                     <x-input-label
                         for="active"
                         :content="__('team.active')" />
                 </div>
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('team.edit') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('team.edit') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::DEPARTMENTS_ADMIN_TEAMS_INDEX, ['department' => $department]) }}">

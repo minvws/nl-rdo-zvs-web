@@ -1,6 +1,6 @@
-@use(App\Enums\RouteName)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', Str::title(__('notification.model_singular') . ' ' . __('general.detail')))
+@section ('pageTitle', Str::title(__('notification.model_singular') . ' ' . __('general.detail')))
 
 <x-app-layout>
     <x-slot name="header">

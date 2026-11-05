@@ -1,4 +1,4 @@
-@section('pageTitle', __('public_holiday.create'))
+@section ('pageTitle', __('public_holiday.create'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -46,9 +46,7 @@
                         step="1" />
                 </div>
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('public_holiday.create') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('public_holiday.create') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::ADMIN_PUBLIC_HOLIDAY_INDEX) }}">

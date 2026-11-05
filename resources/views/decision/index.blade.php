@@ -1,16 +1,16 @@
-@use(App\Enums\Ability)
-@use(App\Enums\ArchiveFilter)
-@use(App\Enums\DecisionCriteria)
-@use(App\Enums\RouteName)
-@use(App\Models\Decision)
+@use (App\Enums\Ability)
+@use (App\Enums\ArchiveFilter)
+@use (App\Enums\DecisionCriteria)
+@use (App\Enums\RouteName)
+@use (App\Models\Decision)
 
-@section('pageTitle', __('decision.all_decisions') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
+@section ('pageTitle', __('decision.all_decisions') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
 
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
             <h1>{{ __('decision.model_plural') }}</h1>
-            @can(Ability::CREATE, Decision::class)
+            @can (Ability::CREATE, Decision::class)
                 <a
                     class="button"
                     href="{{ route(RouteName::DEPARTMENTS_DECISIONS_CREATE, ['department' => $department]) }}">
@@ -72,7 +72,7 @@
                         @foreach ($archiveFilters as $archiveFilter)
                             <option
                                 value="{{ $archiveFilter->value }}"
-                                @selected(
+                                @selected (
                                     request(sprintf('filter.%s', DecisionCriteria::ARCHIVE->value)) === $archiveFilter->value ||
                                     (! request()->has(sprintf('filter.%s', DecisionCriteria::ARCHIVE->value)) &&
                                         $archiveFilter === ArchiveFilter::HIDE_ARCHIVED)
@@ -99,7 +99,7 @@
                         @foreach ($decisionTypes as $decisionType)
                             <option
                                 value="{{ $decisionType->value }}"
-                                @selected(request(sprintf('filter.%s', DecisionCriteria::TYPE->value)) === $decisionType->value)>
+                                @selected (request(sprintf('filter.%s', DecisionCriteria::TYPE->value)) === $decisionType->value)>
                                 {{ $decisionType->label() }}
                             </option>
                         @endforeach
@@ -122,7 +122,7 @@
                         @foreach ($usedTeams as $team)
                             <option
                                 value="{{ $team->id }}"
-                                @selected(request(sprintf('filter.%s', DecisionCriteria::TEAM->value)) === $team->id->toString())>
+                                @selected (request(sprintf('filter.%s', DecisionCriteria::TEAM->value)) === $team->id->toString())>
                                 {{ $team->name }}
                             </option>
                         @endforeach
@@ -145,7 +145,7 @@
                         @foreach ($processingStepsInProgress as $stepName)
                             <option
                                 value="{{ $stepName }}"
-                                @selected(request(sprintf('filter.%s', DecisionCriteria::PROCESSING_STEPS_IN_PROGRESS->value)) === $stepName)>
+                                @selected (request(sprintf('filter.%s', DecisionCriteria::PROCESSING_STEPS_IN_PROGRESS->value)) === $stepName)>
                                 {{ $stepName }}
                             </option>
                         @endforeach
@@ -173,7 +173,9 @@
                 <div class="shadow shadow-right"></div>
                 <div class="x-scrollable">
                     <table>
-                        <caption class="visually-hidden">{{ __('decision.overview') }}</caption>
+                        <caption class="visually-hidden">
+                            {{ __('decision.overview') }}
+                        </caption>
                         <thead>
                             <tr>
                                 <th
@@ -236,9 +238,7 @@
                                     </a>
                                 </th>
 
-                                <th scope="col">
-                                    {{ __('decision.processing_steps_in_progress') }}
-                                </th>
+                                <th scope="col">{{ __('decision.processing_steps_in_progress') }}</th>
 
                                 <th scope="col">&nbsp;</th>
                             </tr>
@@ -246,18 +246,10 @@
                         <tbody>
                             @forelse ($decisions as $decision)
                                 <tr class="table-row-clickable">
-                                    <td>
-                                        {{ $decision->name }}
-                                    </td>
-                                    <td>
-                                        {{ $decision->date?->format('d-m-Y') ?? '-' }}
-                                    </td>
-                                    <td>
-                                        {{ $decision->reference ?? '-' }}
-                                    </td>
-                                    <td>
-                                        {{ $decision->processingSteps->deadline()?->format('d-m-Y') ?? '-' }}
-                                    </td>
+                                    <td>{{ $decision->name }}</td>
+                                    <td>{{ $decision->date?->format('d-m-Y') ?? '-' }}</td>
+                                    <td>{{ $decision->reference ?? '-' }}</td>
+                                    <td>{{ $decision->processingSteps->deadline()?->format('d-m-Y') ?? '-' }}</td>
                                     <td>
                                         @if ($decision->processingSteps->isNotEmpty())
                                             {{ $decision->processingSteps->countCompleted() }}

@@ -1,4 +1,4 @@
-@section('pageTitle', $publicHoliday->name . ' ' . strtolower(__('general.edit')))
+@section ('pageTitle', $publicHoliday->name . ' ' . strtolower(__('general.edit')))
 
 <x-form-layout>
     <x-slot name="header">
@@ -46,9 +46,7 @@
                         step="1" />
                 </div>
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('public_holiday.edit') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('public_holiday.edit') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::ADMIN_PUBLIC_HOLIDAY_INDEX) }}">

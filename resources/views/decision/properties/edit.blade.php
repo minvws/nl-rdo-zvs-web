@@ -1,4 +1,4 @@
-@section("pageTitle", __("petition.edit_properties"))
+@section ("pageTitle", __("petition.edit_properties"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
@@ -16,7 +16,7 @@
                 <span class="visually-hidden">{{ __("general.edit") }}</span>
             </a>
         </header>
-    @else
+        @else
         <h1>{{ __("petition.edit_properties") }}</h1>
     @endifHtmx
 
@@ -128,7 +128,7 @@
                     @foreach ($teams as $team)
                         <option
                             value="{{ $team->id }}"
-                            @selected($team->id->toString() === Form::old("team_id", $decision->team_id?->toString()))>
+                            @selected ($team->id->toString() === Form::old("team_id", $decision->team_id?->toString()))>
                             {{ $team->name }}
                         </option>
                     @endforeach
@@ -137,21 +137,19 @@
 
             @if ($errors->any())
                 <x-notification type="danger">
-                    <p>@lang("validation.global_message")</p>
+                    <p>@lang ("validation.global_message")</p>
                 </x-notification>
             @endif
 
             <div class="button-container">
-                <x-primary-button>
-                    {{ __("general.save") }}
-                </x-primary-button>
+                <x-primary-button>{{ __("general.save") }}</x-primary-button>
                 <a
                     class="button"
                     @ifHtmx
                         href="{{ route(RouteName::DEPARTMENTS_DECISIONS_PROPERTIES, ["department" => $decision->department->slug, "decision" => $decision]) }}"
                         hx-target="#properties-block"
                         hx-swap="innerHTML"
-                    @else
+                        @else
                         href="{{ route(RouteName::DEPARTMENTS_DECISIONS_SHOW, ["department" => $decision->department->slug, "decision" => $decision]) }}"
                     @endifHtmx>
                     {{ __("general.cancel") }}

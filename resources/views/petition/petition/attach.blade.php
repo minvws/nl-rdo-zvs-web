@@ -1,4 +1,4 @@
-@section('pageTitle', __('petition.attach'))
+@section ('pageTitle', __('petition.attach'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -30,9 +30,7 @@
                 </div>
 
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('petition.attach') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('petition.attach') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition]) }}">

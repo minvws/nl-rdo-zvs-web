@@ -1,7 +1,7 @@
-@use(App\Models\Petition)
-@use(App\ValueObjects\CalendarDate)
+@use (App\Models\Petition)
+@use (App\ValueObjects\CalendarDate)
 
-@props([
+@props ([
     'petition' => Petition::class,
 ])
 

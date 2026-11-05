@@ -1,6 +1,6 @@
-@use(Illuminate\Support\Arr)
+@use (Illuminate\Support\Arr)
 
-@section("pageTitle", __("tag.edit_on_petition"))
+@section ("pageTitle", __("tag.edit_on_petition"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
@@ -29,9 +29,7 @@
             hx-swap="innerHTML"
             hx-target="#tags-block">
             @csrf
-            <h3 class="form-section__title form-section__title--border">
-                {{ __("tag.edit_on_petition") }}
-            </h3>
+            <h3 class="form-section__title form-section__title--border">{{ __("tag.edit_on_petition") }}</h3>
             <div class="form-input-group">
                 <x-input-error
                     id="tags-error"
@@ -53,7 +51,7 @@
                             @if ($hints !== [])
                                 aria-describedby="{{ implode(" ", array_keys($hints)) }}"
                             @endif
-                            @checked($petition->tags->contains("id", $tag->id)) />
+                            @checked ($petition->tags->contains("id", $tag->id)) />
                         <x-input-label
                             for="tag-{{ $tag->id }}"
                             :content="$tag->name" />
@@ -87,7 +85,7 @@
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_TAGS_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                         hx-target="#tags-block"
                         hx-swap="innerHTML"
-                    @else
+                        @else
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                     @endifHtmx>
                     {{ __("general.cancel") }}

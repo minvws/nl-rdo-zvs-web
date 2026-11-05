@@ -1,5 +1,5 @@
-@use(App\Enums\RouteName)
-@section("pageTitle", __("petition.edit_querysnapshots"))
+@use (App\Enums\RouteName)
+@section ("pageTitle", __("petition.edit_querysnapshots"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx

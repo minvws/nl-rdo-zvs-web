@@ -21,11 +21,9 @@ use App\Models\CustomPetitionProperty;
 use App\Models\Department;
 use App\Models\DepartmentTermTypeSetting;
 use App\Models\DepartmentUser;
-use App\Models\Petition;
 use App\Models\PetitionCategory;
 use App\Models\PetitionExport;
 use App\Models\PetitionStatus;
-use App\Models\PetitionStatusHistory;
 use App\Models\PetitionType;
 use App\Models\PetitionTypeCustomDateLabel;
 use App\Models\PolicyDepartment;
@@ -61,25 +59,25 @@ class DatabaseSeeder extends Seeder
 
         $this->createAdminUserWithAllRoles($departments);
         $this->createPublicHolidays();
-        $policyDepartments = $this->creatPolicyDepartments();
+        $this->creatPolicyDepartments();
 
         foreach ($departments as $department) {
-            $users = $this->createUsers($department);
+            $this->createUsers($department);
             $petitionTypes = $this->createPetitionTypes($department);
-            $petitionStatuses = $this->createPetitionStatuses($petitionTypes);
-            $contacts = $this->createContacts($department);
+            $this->createPetitionStatuses($petitionTypes);
+            $this->createContacts($department);
             $this->createTeams($department);
             $this->createExports($department, $petitionTypes);
             $this->createTermTypeSettings($department);
             $this->createCustomDateLabelsPerPetitionType($petitionTypes);
-            $petitionCategories = $this->createPetitionCategories($department);
-
-            $this->createPetitions($department, $users, $contacts, $petitionStatuses, $petitionCategories, $policyDepartments);
+            $this->createPetitionCategories($department);
         }
 
         $this->createWooCustomPetitionProperties();
         $this->createBeroepCustomPetitionProperties();
         $this->createBezwaarCustomPetitionProperties();
+
+        $this->call(TermEngineV2PetitionSeeder::class);
     }
 
     /**
@@ -195,9 +193,17 @@ class DatabaseSeeder extends Seeder
 
     private function createWooCustomPetitionProperties(): void
     {
-        $wooPetitionTypes = PetitionType::where(['type' => PetitionVariant::WOO_VERZOEK->value])->get();
+        $wooPetitionTypes = PetitionType::with('department')
+            ->where(['type' => PetitionVariant::WOO_VERZOEK->value])
+            ->get();
 
         foreach ($wooPetitionTypes as $wooPetitionType) {
+            if ($wooPetitionType->department->slug === 'team-i') {
+                $this->createTeamICustomPetitionProperties($wooPetitionType);
+
+                continue;
+            }
+
             CustomPetitionProperty::factory()
                 ->count(20)
                 ->state(new Sequence(
@@ -223,6 +229,49 @@ class DatabaseSeeder extends Seeder
                     ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 20, 'name' => 'E', 'grouping' => 2],
                 ))
                 ->create(['petition_type_id' => $wooPetitionType->id]);
+        }
+    }
+
+    private function createTeamICustomPetitionProperties(PetitionType $petitionType): void
+    {
+        $properties = [
+            [CustomPetitionPropertyType::NAME, 'Eigenschappen', null],
+            [CustomPetitionPropertyType::TITLE, 'Eigenschappen doorgeven', null],
+            [CustomPetitionPropertyType::SUBTITLE, 'Doel verzoek', null],
+            [CustomPetitionPropertyType::OPTION, 'Documenten opvragen', 1],
+            [CustomPetitionPropertyType::OPTION, '(Hulp-) vraag stellen', 1],
+            [CustomPetitionPropertyType::OPTION, 'Informatie opvragen', 1],
+            [CustomPetitionPropertyType::OPTION, 'Informeren', 1],
+            [CustomPetitionPropertyType::OPTION, 'In gebreke stellen', 1],
+            [CustomPetitionPropertyType::OPTION, 'Intrekken', 1],
+            [CustomPetitionPropertyType::OPTION, 'Klacht indienen', 1],
+            [CustomPetitionPropertyType::OPTION, 'Reageren', 1],
+            [CustomPetitionPropertyType::OPTION, 'Zienswijze opvragen', 1],
+            [CustomPetitionPropertyType::OPTION, 'Anders', 1],
+            [CustomPetitionPropertyType::SUBTITLE, 'Complexiteit', null],
+            [CustomPetitionPropertyType::OPTION, 'Eerstelijns', 2],
+            [CustomPetitionPropertyType::OPTION, 'Standaard', 2],
+            [CustomPetitionPropertyType::OPTION, 'Complex', 2],
+            [CustomPetitionPropertyType::SUBTITLE, 'Betrokken organisaties', null],
+            [CustomPetitionPropertyType::OPTION, 'Directielijst', null],
+            [CustomPetitionPropertyType::OPTION, 'Opties departementenlijst', null],
+            [CustomPetitionPropertyType::OPTION, 'Lagere overheden', null],
+            [CustomPetitionPropertyType::OPTION, 'Anders', null],
+            [CustomPetitionPropertyType::SUBTITLE, 'Bestemd voor', null],
+            [CustomPetitionPropertyType::OPTION, 'Directielijst', 3],
+            [CustomPetitionPropertyType::OPTION, 'Opties departementenlijst', 3],
+            [CustomPetitionPropertyType::OPTION, 'Lagere overheden', 3],
+            [CustomPetitionPropertyType::OPTION, 'Anders', 3],
+        ];
+
+        foreach ($properties as $index => [$type, $name, $grouping]) {
+            CustomPetitionProperty::factory()->create([
+                'petition_type_id' => $petitionType->id,
+                'type' => $type,
+                'ordering' => $index + 1,
+                'name' => $name,
+                'grouping' => $grouping,
+            ]);
         }
     }
 
@@ -507,44 +556,6 @@ class DatabaseSeeder extends Seeder
             ->count(10)
             ->recycle([$department, $petitionTypes])
             ->create();
-    }
-
-    /**
-     * @param Collection<int, Contact> $contacts
-     */
-    public function createPetitions(
-        Department $department,
-        UserCollection $users,
-        Collection $contacts,
-        PetitionStatusCollection $petitionStatuses,
-        PetitionCategoryCollection $petitionCategories,
-        PolicyDepartmentCollection $policyDepartments,
-    ): void {
-        $petitionStatusesPerType = $petitionStatuses->groupBy(
-            static fn (PetitionStatus $petitionStatus): string => $petitionStatus->petition_type_id->toString(),
-        );
-
-        Petition::factory()
-            ->count(21)
-            ->recycle([$department, $users, $contacts, $petitionCategories])
-            ->state(function () use ($petitionStatusesPerType): array {
-                $petitionStatus = $petitionStatusesPerType->random()->random();
-
-                return [
-                    'petition_type_id' => $petitionStatus->petition_type_id,
-                    'petition_status_id' => $petitionStatus->id,
-                ];
-            })
-            ->withFirstAssignee()
-            ->create()
-            ->each(static function (Petition $petition) use ($policyDepartments, $petitionStatusesPerType): void {
-                $petitionPolicyDepartments = $policyDepartments->random(rand(0, 3));
-                $petition->policyDepartments()->attach($petitionPolicyDepartments);
-                PetitionStatusHistory::factory()
-                    ->recycle([$petition, $petitionStatusesPerType->get($petition->petition_type_id->toString())])
-                    ->count(rand(1, 11))
-                    ->create();
-            });
     }
 
     private function createCustomDateLabelsPerPetitionType(PetitionTypeCollection $petitionTypes): void

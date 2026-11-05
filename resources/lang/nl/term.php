@@ -34,7 +34,8 @@ return [
     'date_appealed_decision' => 'Datum besluit waartegen bezwaar wordt gemaakt',
     'no_records' => 'Er zijn nog geen termijnen ingevoerd.',
     'manage_terms' => 'Beheer gebeurtenissen en termijnen',
-    'delete_last' => 'Verwijder laatste stap',
+    'delete_event' => 'Verwijder gebeurtenis',
+    'delete_event_failed' => 'Deze gebeurtenis kan niet verwijderd worden.',
     'finalize' => 'Afronden',
     'finish_store' => 'Opslaan en afronden',
 

@@ -1,9 +1,9 @@
-@use(App\Enums\ContactType)
-@use(App\Enums\RouteName)
-@use(App\Facades\ActiveDepartment)
-@use(App\Facades\Form)
+@use (App\Enums\ContactType)
+@use (App\Enums\RouteName)
+@use (App\Facades\ActiveDepartment)
+@use (App\Facades\Form)
 
-@section('pageTitle', __('contact.create_in') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
+@section ('pageTitle', __('contact.create_in') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
 
 <x-form-layout>
     <x-slot name="header">
@@ -29,7 +29,7 @@
                             @foreach (ContactType::cases() as $contactType)
                                 <option
                                     value="{{ $contactType->value }}"
-                                    @selected($contactType->value === Form::old('type'))>
+                                    @selected ($contactType->value === Form::old('type'))>
                                     {{ __('contact.contact_type_enum.' . $contactType->value) }}
                                 </option>
                             @endforeach
@@ -397,9 +397,7 @@
                 </fieldset>
 
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('contact.create') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('contact.create') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::DEPARTMENTS_CONTACTS_INDEX, ['department' => $department]) }}">

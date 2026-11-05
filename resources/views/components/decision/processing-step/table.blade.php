@@ -1,4 +1,4 @@
-@props([
+@props ([
     'footer' => null,
     'processingSteps' => [],
     'decision',
@@ -110,9 +110,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4">
-                        {{ __('processing-step.no_processing_steps') }}
-                    </td>
+                    <td colspan="4">{{ __('processing-step.no_processing_steps') }}</td>
                 </tr>
             @endforelse
         </tbody>

@@ -7,7 +7,6 @@ namespace App\Services\PetitionEvent;
 use App\Enums\PetitionEventType;
 use App\Enums\UnspecifiedAdjournmentMode;
 use App\Services\DerivedState;
-use App\ValueObjects\EventCalendar;
 use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
 
@@ -20,50 +19,42 @@ use function trans_choice;
  */
 class PetitionEventTermService
 {
-    /**
-     * @return array<int, string> keyed like the events
-     */
-    public function termTexts(WizardEventCollection $events, UnspecifiedAdjournmentMode $mode): array
-    {
-        $calendar = $this->calendar($events, $mode);
+    public function termText(
+        WizardEventCollection $events,
+        PetitionEventData $event,
+        UnspecifiedAdjournmentMode $mode,
+    ): string {
+        if ($event->type === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END) {
+            return $this->appliedAdjournmentTermText($events, $event, $mode);
+        }
 
-        return $events->all()
-            ->map(fn(PetitionEventData $event): string => $this->termText($event, $calendar))
-            ->all();
+        return $this->durationText($event);
     }
 
     /**
-     * Only the end of an unspecified adjournment needs the calendar, so it is not built without one.
+     * The end of an unspecified adjournment shows the term that it applied, which needs the calendar of all events
+     * and is none when the original term runs longer.
      */
-    private function calendar(WizardEventCollection $events, UnspecifiedAdjournmentMode $mode): ?EventCalendar
-    {
-        $hasAdjournmentEnd = $events->all()->contains(
-            static fn(PetitionEventData $event): bool => $event->type === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END,
-        );
-
-        if (!$hasAdjournmentEnd) {
-            return null;
-        }
-
-        return new DerivedState()
+    private function appliedAdjournmentTermText(
+        WizardEventCollection $events,
+        PetitionEventData $event,
+        UnspecifiedAdjournmentMode $mode,
+    ): string {
+        $appliedTerm = new DerivedState()
             ->withUnspecifiedAdjournmentMode($mode)
             ->addEvents($events->all())
             ->buildCalendar()
-            ->getCalendar();
+            ->findDay($event->date)
+            ?->appliedUnspecifiedAdjournmentTerm;
+
+        return $appliedTerm === null ? '' : $this->days($appliedTerm);
     }
 
     /**
-     * An unspecified adjournment that registered a term for both ways it can end shows both. Its
-     * end shows the term that it applied, which is none when the original term runs longer.
+     * An unspecified adjournment that registered a term for both ways it can end shows both.
      */
-    private function termText(PetitionEventData $event, ?EventCalendar $calendar): string
+    private function durationText(PetitionEventData $event): string
     {
-        if ($event->type === PetitionEventType::UNSPECIFIED_ADJOURNMENT_END) {
-            $appliedTerm = $calendar?->findDay($event->date)?->appliedUnspecifiedAdjournmentTerm;
-
-            return $appliedTerm === null ? '' : $this->days($appliedTerm);
-        }
-
         if ($event->type === PetitionEventType::UNSPECIFIED_ADJOURNMENT && $event->withdrawalDuration !== null) {
             return __('term.event_and_withdrawal_days', [
                 'event' => $event->duration ?? 0,

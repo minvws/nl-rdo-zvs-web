@@ -1,4 +1,4 @@
-@section('pageTitle', __('processing-step.edit'))
+@section ('pageTitle', __('processing-step.edit'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -76,7 +76,7 @@
                         @foreach ($statuses as $status)
                             <option
                                 value="{{ $status->value }}"
-                                @selected($status->value === old('status', $processingStep->status->value))>
+                                @selected ($status->value === old('status', $processingStep->status->value))>
                                 {{ __('processing-step.' . $status->value) }}
                             </option>
                         @endforeach
@@ -97,13 +97,13 @@
                         aria-describedby="first_assignee-error">
                         <option
                             value=""
-                            @selected('' === old('first_assignee'))>
+                            @selected ('' === old('first_assignee'))>
                             {{ __('general.none') }}
                         </option>
                         @foreach ($users as $id => $name)
                             <option
                                 value="{{ $id }}"
-                                @selected($id === old('first_assignee', $processingStep->firstAssignee?->user_id?->toString()))>
+                                @selected ($id === old('first_assignee', $processingStep->firstAssignee?->user_id?->toString()))>
                                 {{ $name }}
                             </option>
                         @endforeach
@@ -124,13 +124,13 @@
                         aria-describedby="second_assignee-error">
                         <option
                             value=""
-                            @selected('' === old('second_assignee'))>
+                            @selected ('' === old('second_assignee'))>
                             {{ __('general.none') }}
                         </option>
                         @foreach ($users as $id => $name)
                             <option
                                 value="{{ $id }}"
-                                @selected($id === old('second_assignee', $processingStep->secondAssignee?->user_id?->toString()))>
+                                @selected ($id === old('second_assignee', $processingStep->secondAssignee?->user_id?->toString()))>
                                 {{ $name }}
                             </option>
                         @endforeach
@@ -138,9 +138,7 @@
                 </div>
 
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('general.save') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('general.save') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{

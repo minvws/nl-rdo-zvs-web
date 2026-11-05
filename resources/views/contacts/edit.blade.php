@@ -1,8 +1,8 @@
-@use(App\Enums\ContactType)
-@use(App\Enums\RouteName)
-@use(App\Facades\Form)
+@use (App\Enums\ContactType)
+@use (App\Enums\RouteName)
+@use (App\Facades\Form)
 
-@section('pageTitle', __('contact.edit'))
+@section ('pageTitle', __('contact.edit'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -29,7 +29,7 @@
                             @foreach (ContactType::cases() as $contactType)
                                 <option
                                     value="{{ $contactType->value }}"
-                                    @selected($contactType->value === Form::old('type', $contact->type->value))>
+                                    @selected ($contactType->value === Form::old('type', $contact->type->value))>
                                     {{ __('contact.contact_type_enum.' . $contactType->value) }}
                                 </option>
                             @endforeach
@@ -400,9 +400,7 @@
 
                 <div class="flex">
                     <div class="button-container flex-grow">
-                        <x-primary-button>
-                            {{ __('contact.edit') }}
-                        </x-primary-button>
+                        <x-primary-button>{{ __('contact.edit') }}</x-primary-button>
                         <a
                             class="button"
                             href="{{ route(RouteName::DEPARTMENTS_CONTACTS_INDEX, ['department' => $department]) }}">
@@ -410,7 +408,7 @@
                         </a>
                     </div>
                     <div class="button-container">
-                        @can(Permission::CONTACT_WRITE->value)
+                        @can (Permission::CONTACT_WRITE->value)
                             @if ($contact->archived_at === null)
                                 <a
                                     href="{{

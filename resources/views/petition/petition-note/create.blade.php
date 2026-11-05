@@ -1,10 +1,8 @@
-@use(Illuminate\Support\Facades\Crypt)
+@use (Illuminate\Support\Facades\Crypt)
 
 <div class="timeline-item">
     <div class="timeline-item__wrapper">
-        <div class="timeline-item__badge">
-            {{ Str::customInitials(Authentication::user()->name) }}
-        </div>
+        <div class="timeline-item__badge">{{ Str::customInitials(Authentication::user()->name) }}</div>
         <div class="timeline-item__content">
             <div class="timeline-item__note">
                 <form
@@ -58,7 +56,9 @@
                         name="comment"
                         id="note"
                         rows="5"
-                        placeholder="{{ __("petition.new_note_placeholder") }}"></textarea>
+                        placeholder="{{ __("petition.new_note_placeholder") }}"
+                        >{{ old("comment") }}</textarea
+                    >
                     <x-input-label
                         class="visually-hidden"
                         for="attachments"

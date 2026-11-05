@@ -1,3 +1,1 @@
-<header class="timeline-item__header">
-    {{ $slot }}
-</header>
+<header class="timeline-item__header">{{ $slot }}</header>

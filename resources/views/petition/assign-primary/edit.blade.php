@@ -1,4 +1,4 @@
-@section("pageTitle", __("petition.edit_assigned_user"))
+@section ("pageTitle", __("petition.edit_assigned_user"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
@@ -45,14 +45,12 @@
                     id="user-id"
                     class="form-select @error("user_id") input-error @enderror"
                     name="user_id"
-                    @error("user_id")
-                        aria-invalid="true"
-                    @enderror>
+                    @if ($errors->has("user_id")) aria-invalid="true" @endif>
                     <option value="">(geen)</option>
                     @foreach ($users as $user)
                         <option
                             value="{{ $user->id }}"
-                            @selected($user->id->toString() === Form::old("user_id", $petition->firstAssignee?->user_id?->toString()))>
+                            @selected ($user->id->toString() === Form::old("user_id", $petition->firstAssignee?->user_id?->toString()))>
                             {{ $user->name }}
                         </option>
                     @endforeach
@@ -60,7 +58,7 @@
             </div>
             @if ($errors->any())
                 <x-notification type="danger">
-                    <p>@lang("validation.global_message")</p>
+                    <p>@lang ("validation.global_message")</p>
                 </x-notification>
             @endif
 
@@ -72,7 +70,7 @@
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_SHOW, ["department" => $petition->department, "petition" => $petition]) }}"
                         hx-target="#assign-primary-block"
                         hx-swap="innerHTML"
-                    @else
+                        @else
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ["department" => $petition->department, "petition" => $petition]) }}"
                     @endifHtmx>
                     {{ __("general.cancel") }}

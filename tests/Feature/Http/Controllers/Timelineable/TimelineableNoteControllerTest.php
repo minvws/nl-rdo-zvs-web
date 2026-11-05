@@ -218,6 +218,44 @@ class TimelineableNoteControllerTest extends FeatureTestCase
             ->assertSessionHasErrors('attachments.0');
     }
 
+    public function testCommentIsKeptWhenAttachmentIsInvalid(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+
+        ConfigHelper::set('filesystems.disks.uploads.allowed_extensions', ['invalid']);
+        Storage::fake('uploads');
+
+        $comment = $this->faker->unique()->sentence();
+        $url = Crypt::encryptString(route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+            'department' => $department,
+            'petition' => $petition,
+        ]));
+        $parameters = [
+            'department' => $department,
+            'timelineableType' => $petition->getMorphClass(),
+            'timelineable' => $petition,
+            'url' => $url,
+        ];
+
+        $user = User::factory()
+            ->fullyVerified()
+            ->withDepartmentRoles($department, DepartmentRole::WRITE)
+            ->create();
+
+        $this->beUser($user, true, $department)
+            ->postByRoute(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_STORE, $parameters, [
+                'comment' => $comment,
+                'attachments' => [UploadedFile::fake()->image('foo.png')],
+                'hx-target' => 'notes-block',
+            ])
+            ->assertSessionHasErrors('attachments.0')
+            ->assertSessionHasInput('comment', $comment);
+
+        $this->getByRoute(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_CREATE, $parameters + ['hx-target' => 'notes-block'])
+            ->assertSee($comment);
+    }
+
     public function testStoreTransactionFails(): void
     {
         $department = Department::factory()->create();
@@ -513,5 +551,95 @@ class TimelineableNoteControllerTest extends FeatureTestCase
             'hx-target' => 'notes-block',
         ]);
         $response->assertRedirect($expectedUrl);
+    }
+
+    public function testConfirmDelete(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $user = User::factory()->fullyVerified()->withDepartmentRoles($department, DepartmentRole::WRITE)->create();
+        $note = TimelineItem::factory()->create([
+            'timelineable_type' => $petition->getMorphClass(),
+            'timelineable_id' => $petition->id,
+            'type' => TimelineType::NOTE,
+            'data' => ['comment' => 'foo', 'attachmentIds' => []],
+        ]);
+
+        $this->beUser($user, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_CONFIRM_DELETE, [
+                'department' => $department,
+                'timelineableType' => $petition->getMorphClass(),
+                'timelineable' => $petition,
+                'url' => Crypt::encryptString('/'),
+                'timelineItem' => $note->internal_id,
+            ])
+            ->assertOk();
+    }
+
+    public function testDelete(): void
+    {
+        Storage::fake('uploads');
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $user = User::factory()->fullyVerified()->withDepartmentRoles($department, DepartmentRole::WRITE)->create();
+
+        Storage::disk('uploads')->put('attachments/file.txt', 'content');
+        $attachment = Attachment::factory()->create([
+            'disk' => 'uploads',
+            'path' => 'attachments/file.txt',
+            'name' => 'file.txt',
+        ]);
+        $note = TimelineItem::factory()->create([
+            'timelineable_type' => $petition->getMorphClass(),
+            'timelineable_id' => $petition->id,
+            'type' => TimelineType::NOTE,
+            'data' => ['comment' => 'foo', 'attachmentIds' => [$attachment->id->toString()]],
+        ]);
+
+        $this->beUser($user, true, $department)
+            ->postByRoute(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_DELETE, [
+                'department' => $department,
+                'timelineableType' => $petition->getMorphClass(),
+                'timelineable' => $petition,
+                'url' => Crypt::encryptString('/'),
+                'timelineItem' => $note->internal_id,
+            ], ['reason' => 'Verkeerde zaak'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/');
+
+        $this->assertSoftDeleted(TimelineItem::class, ['internal_id' => $note->internal_id]);
+        $this->assertSoftDeleted(Attachment::class, ['id' => $attachment->id->toString()]);
+        Storage::disk('uploads')->assertExists('attachments/file.txt');
+
+        $deleted = TimelineItem::query()->where('type', TimelineType::NOTE_DELETED)->sole();
+        $this->assertSame($user->id->toString(), $deleted->user_id->toString());
+        $this->assertSame('Verkeerde zaak', $deleted->data['reason']);
+        $this->assertSame(['file.txt'], $deleted->data['attachment_names']);
+    }
+
+    public function testDeleteNoteOfOtherTimelineableIsNotFound(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $otherPetition = Petition::factory()->recycle($department)->create();
+        $user = User::factory()->fullyVerified()->withDepartmentRoles($department, DepartmentRole::WRITE)->create();
+        $note = TimelineItem::factory()->create([
+            'timelineable_type' => $otherPetition->getMorphClass(),
+            'timelineable_id' => $otherPetition->id,
+            'type' => TimelineType::NOTE,
+            'data' => ['comment' => 'foo', 'attachmentIds' => []],
+        ]);
+
+        $this->beUser($user, true, $department)
+            ->postByRoute(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_DELETE, [
+                'department' => $department,
+                'timelineableType' => $petition->getMorphClass(),
+                'timelineable' => $petition,
+                'url' => Crypt::encryptString('/'),
+                'timelineItem' => $note->internal_id,
+            ])
+            ->assertNotFound();
+
+        $this->assertNotSoftDeleted(TimelineItem::class, ['internal_id' => $note->internal_id]);
     }
 }

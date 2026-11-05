@@ -5,12 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Authorisation;
 
 use App\Enums\Authorization\Permission;
-use App\Facades\ActiveDepartment;
 use App\Models\Department;
 use App\Models\User;
-use App\Services\Authentication\AuthenticationException;
-use App\Services\Authentication\AuthenticationServiceInterface;
-use Deprecated;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Database\DatabaseManager;
@@ -23,7 +19,6 @@ use function in_array;
 class UserPermissionService
 {
     public function __construct(
-        private readonly AuthenticationServiceInterface $authenticationService,
         private readonly DatabaseManager $databaseManager,
         private readonly ConfigRepository $configRepository,
         private readonly CacheManager $cacheManager,
@@ -37,17 +32,6 @@ class UserPermissionService
             null,
             fn(): bool => in_array($permission->value, $this->permissions($user, $department), true),
         );
-    }
-
-    /**
-     * @throws AuthenticationException
-     */
-    #[Deprecated(message: 'Has to be moved elsewhere, as it is not a user permission service method.')]
-    public function hasPermissionAsCurrentUserAndActiveDepartment(Permission $permission): bool
-    {
-        $user = $this->authenticationService->user();
-
-        return $this->hasPermission($permission, $user, ActiveDepartment::getActiveDepartment());
     }
 
     /**

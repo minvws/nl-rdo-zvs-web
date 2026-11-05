@@ -1,11 +1,11 @@
-@use(App\Enums\RouteName)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('petition.custom_cost'))
+@section ('pageTitle', __('petition.custom_cost'))
 
 <div class="petition-property__block">
     <header class="petition-property__header">
         <h2 class="petition-property__title">{{ __('petition.custom_cost') }}</h2>
-        @can('update', [$petition])
+        @can ('update', [$petition])
             <a
                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_CUSTOM_COSTS_EDIT, ['department' => $petition->department, 'petition' => $petition]) }}"
                 class="icon-only petition-property__edit"

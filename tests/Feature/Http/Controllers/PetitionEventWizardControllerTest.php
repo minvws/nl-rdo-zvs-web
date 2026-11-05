@@ -24,6 +24,7 @@ use App\ValueObjects\WizardEventCollection;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Session;
 use PHPUnit\Framework\Attributes\Test;
+use Ramsey\Uuid\Uuid;
 use Tests\Feature\FeatureTestCase;
 
 use function __;
@@ -565,55 +566,127 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     }
 
     #[Test]
-    public function testDeleteLastRemovesLastEventFromSession(): void
+    public function testDeleteRemovesEventFromSession(): void
     {
-        $department = Department::factory()->create();
-        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
-        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
-        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
-
-        $user = User::factory()
-            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
-            ->fullyVerified()
-            ->create();
-
-        $testEvents = WizardEventCollection::make()
-            ->add(new PetitionEventData(
-                type: PetitionEventType::PRIMARY_DECISION,
-                date: CalendarDate::create(now()->toDateString()),
-                createdAt: CarbonImmutable::now(),
-                duration: 42,
-            ))
-            ->add(new PetitionEventData(
-                type: PetitionEventType::RECEIPT_OF_OBJECTION,
-                date: CalendarDate::create(now()->addDays(5)->toDateString()),
-                createdAt: CarbonImmutable::now(),
-                duration: 1,
-            ));
-
-        Session::put(sprintf('wizard.petition.%s.events', $petition->id), $testEvents);
+        [$department, $petition, $user] = $this->bezwaarPetitionWithUser();
+        $events = $this->deletableEvents();
+        Session::put(sprintf('wizard.petition.%s.events', $petition->id), $events);
 
         $response = $this->beUser($user, true, $department)
-            ->post(route(RouteName::PETITION_EVENTS_WIZARD_DELETE_LAST, [
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_DELETE, [
                 'department' => $department,
                 'petition' => $petition,
-            ]), []);
+                'event' => $events->all()->get(2)?->id->toString(),
+            ]));
 
         $response->assertRedirect(route(RouteName::PETITION_EVENTS_WIZARD_STEP, [
             'department' => $department,
             'petition' => $petition,
-
         ]));
+        $response->assertSessionHasNoErrors();
 
-        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
-        $events = Session::get($sessionKey);
-        $this->assertInstanceOf(WizardEventCollection::class, $events);
-        $this->assertEquals(1, $events->count());
-        $this->assertEquals(PetitionEventType::PRIMARY_DECISION->value, $events->all()[0]->type->value);
+        $remaining = Session::get(sprintf('wizard.petition.%s.events', $petition->id));
+        $this->assertInstanceOf(WizardEventCollection::class, $remaining);
+        $this->assertSame(
+            [
+                PetitionEventType::PRIMARY_DECISION,
+                PetitionEventType::RECEIPT_OF_OBJECTION,
+                PetitionEventType::LETTER_OF_SUSPENSION_SENT,
+            ],
+            $remaining->all()->map(static fn(PetitionEventData $event): PetitionEventType => $event->type)->all(),
+        );
     }
 
     #[Test]
-    public function testDeleteLastOnEmptySessionDoesNothing(): void
+    public function testDeleteRefusesAnEventThatALaterEventDependsOn(): void
+    {
+        [$department, $petition, $user] = $this->bezwaarPetitionWithUser();
+        $events = $this->deletableEvents();
+        Session::put(sprintf('wizard.petition.%s.events', $petition->id), $events);
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_DELETE, [
+                'department' => $department,
+                'petition' => $petition,
+                'event' => $events->all()->get(1)?->id->toString(),
+            ]));
+
+        $response->assertSessionHasErrors(['delete' => __('term.delete_event_failed')]);
+
+        $remaining = Session::get(sprintf('wizard.petition.%s.events', $petition->id));
+        $this->assertInstanceOf(WizardEventCollection::class, $remaining);
+        $this->assertSame(4, $remaining->count());
+    }
+
+    #[Test]
+    public function testDeleteRefusesAnEventThatIsNoLongerInTheWizard(): void
+    {
+        [$department, $petition, $user] = $this->bezwaarPetitionWithUser();
+        $events = $this->deletableEvents();
+        Session::put(sprintf('wizard.petition.%s.events', $petition->id), $events);
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_DELETE, [
+                'department' => $department,
+                'petition' => $petition,
+                'event' => Uuid::uuid7()->toString(),
+            ]));
+
+        $response->assertSessionHasErrors(['delete' => __('term.delete_event_failed')]);
+
+        $remaining = Session::get(sprintf('wizard.petition.%s.events', $petition->id));
+        $this->assertInstanceOf(WizardEventCollection::class, $remaining);
+        $this->assertSame(4, $remaining->count());
+    }
+
+    #[Test]
+    public function testDeleteOnEmptySessionDoesNothing(): void
+    {
+        [$department, $petition, $user] = $this->bezwaarPetitionWithUser();
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_DELETE, [
+                'department' => $department,
+                'petition' => $petition,
+                'event' => Uuid::uuid7()->toString(),
+            ]));
+
+        $response->assertSessionHasErrors('delete');
+
+        $events = Session::get(sprintf('wizard.petition.%s.events', $petition->id), WizardEventCollection::make());
+        $this->assertInstanceOf(WizardEventCollection::class, $events);
+        $this->assertEquals(0, $events->count());
+    }
+
+    #[Test]
+    public function testStartOnlyOffersDeletingEventsThatCanBeDeleted(): void
+    {
+        [$department, $petition, $user] = $this->bezwaarPetitionWithUser();
+        $events = $this->deletableEvents();
+        Session::put(sprintf('wizard.petition.%s.events', $petition->id), $events);
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_STEP, [
+                'department' => $department,
+                'petition' => $petition,
+            ]));
+
+        $response->assertOk();
+        foreach ($events->all() as $index => $event) {
+            $deleteUrl = route(RouteName::PETITION_EVENTS_WIZARD_DELETE, [
+                'department' => $department,
+                'petition' => $petition,
+                'event' => $event->id->toString(),
+            ]);
+
+            $index >= 2 ? $response->assertSee($deleteUrl) : $response->assertDontSee($deleteUrl);
+        }
+    }
+
+    /**
+     * @return array{Department, Petition, User}
+     */
+    private function bezwaarPetitionWithUser(): array
     {
         $department = Department::factory()->create();
         $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::BEZWAAR]);
@@ -625,19 +698,42 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
             ->fullyVerified()
             ->create();
 
+        return [$department, $petition, $user];
+    }
 
-        $response = $this->beUser($user, true, $department)
-            ->post(route(RouteName::PETITION_EVENTS_WIZARD_DELETE_LAST, [
-                'department' => $department,
-                'petition' => $petition,
-            ]), []);
+    /**
+     * A hearing between the objection and a suspension, which nothing depends on.
+     */
+    private function deletableEvents(): WizardEventCollection
+    {
+        $createdAt = CarbonImmutable::parse('2025-06-01 12:00:00');
 
-        $response->assertRedirect();
-
-        $sessionKey = sprintf('wizard.petition.%s.events', $petition->id);
-        $events = Session::get($sessionKey, WizardEventCollection::make());
-        $this->assertInstanceOf(WizardEventCollection::class, $events);
-        $this->assertEquals(0, $events->count());
+        return WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: $createdAt,
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-01-20'),
+                createdAt: $createdAt->addMinute(),
+                duration: 42,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::HEARING_DATE,
+                date: CalendarDate::create('2025-01-25'),
+                createdAt: $createdAt->addMinutes(2),
+                hearingForm: HearingForm::PHYSICAL,
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::LETTER_OF_SUSPENSION_SENT,
+                date: CalendarDate::create('2025-02-01'),
+                createdAt: $createdAt->addMinutes(3),
+                duration: 14,
+                suspensionType: SuspensionType::SUSPENSION,
+            ));
     }
 
     #[Test]

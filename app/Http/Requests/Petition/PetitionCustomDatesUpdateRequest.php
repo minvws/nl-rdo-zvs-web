@@ -22,6 +22,8 @@ use Webmozart\Assert\Assert;
 
 use function assert;
 use function is_array;
+use function is_int;
+use function is_string;
 use function route;
 
 class PetitionCustomDatesUpdateRequest extends FormRequest
@@ -65,9 +67,14 @@ class PetitionCustomDatesUpdateRequest extends FormRequest
         $data = $this->input('custom_dates', []);
         assert(is_array($data));
         foreach ($data as $customDateLabel) {
+            Assert::isArray($customDateLabel);
+            Assert::keyExists($customDateLabel, 'date');
             if ($customDateLabel['date'] === null) {
                 continue;
             }
+            Assert::string($customDateLabel['date']);
+            Assert::keyExists($customDateLabel, 'date_label');
+            Assert::true(is_string($customDateLabel['date_label']) || is_int($customDateLabel['date_label']));
             $customDates->push(
                 new PetitionCustomDate([
                     'date' => CalendarDate::createFromFormat(CalendarDate::DEFAULT_STRING_FORMAT, $customDateLabel['date']),

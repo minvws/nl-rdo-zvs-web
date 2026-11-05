@@ -1,4 +1,4 @@
-@vite(['resources/js/password-strength.js'])
+@vite (['resources/js/password-strength.js'])
 <x-form-layout>
     <div class="visually-grouped">
         <form
@@ -55,7 +55,7 @@
                     aria-describedby="password-error"
                     autofocus
                     autocomplete="new-password" />
-                @include('authentication.auth-password-strength-meter')
+                @include ('authentication.auth-password-strength-meter')
             </div>
 
             <!-- Confirm Password -->
@@ -76,9 +76,7 @@
             </div>
 
             <div class="button-container">
-                <x-primary-button>
-                    {{ __('general.save') }}
-                </x-primary-button>
+                <x-primary-button>{{ __('general.save') }}</x-primary-button>
             </div>
         </form>
     </div>

@@ -11,16 +11,14 @@ class DatabaseNotificationPolicy
 {
     public function view(User $user, DatabaseNotification $databaseNotification): bool
     {
-        /** @var string $notifiableId */
-        $notifiableId = $databaseNotification->notifiable_id;
+        $notifiableId = $databaseNotification->getAttribute('notifiable_id');
 
         return $user->id->toString() === $notifiableId;
     }
 
     public function update(User $user, DatabaseNotification $databaseNotification): bool
     {
-        /** @var string $notifiableId */
-        $notifiableId = $databaseNotification->notifiable_id;
+        $notifiableId = $databaseNotification->getAttribute('notifiable_id');
 
         return $user->id->toString() === $notifiableId;
     }

@@ -1,7 +1,7 @@
-@use(App\Enums\Ability)
-@use(App\Enums\PetitionVariant)
-@use(App\Enums\RouteName)
-@use(Illuminate\Support\Facades\Config)
+@use (App\Enums\Ability)
+@use (App\Enums\PetitionVariant)
+@use (App\Enums\RouteName)
+@use (Illuminate\Support\Facades\Config)
 
 <div
     class="petition-sidebar"
@@ -10,7 +10,7 @@
         id="properties-block"
         class="petition-edit"
         data-throw-petition-refresh="header,timeline">
-        @include(
+        @include (
             'petition.properties.show',
             [
                 'petition' => $petition,
@@ -25,21 +25,21 @@
         id="assign-primary-block"
         class="petition-edit"
         data-throw-petition-refresh="timeline">
-        @include('petition.assign-primary.show', ['petition' => $petition])
+        @include ('petition.assign-primary.show', ['petition' => $petition])
     </div>
 
     <div
         id="assign-secondary-block"
         class="petition-edit"
         data-throw-petition-refresh="timeline">
-        @include('petition.assign-secondary.show', ['petition' => $petition])
+        @include ('petition.assign-secondary.show', ['petition' => $petition])
     </div>
 
     <div
         id="contact-block"
         class="petition-edit"
         data-throw-petition-refresh="timeline">
-        @include('petition.contacts.show', ['petition' => $petition])
+        @include ('petition.contacts.show', ['petition' => $petition])
     </div>
 
     @if ($petition->availableCustomDates->isNotEmpty() && ! $petition->isTermEngineConverted())
@@ -47,7 +47,7 @@
             id="custom-dates-block"
             class="petition-edit"
             data-throw-petition-refresh="timeline">
-            @include('petition.custom-dates.show', ['petition' => $petition])
+            @include ('petition.custom-dates.show', ['petition' => $petition])
         </div>
     @endif
 
@@ -66,7 +66,7 @@
             id="external-urls-block"
             class="petition-edit"
             data-throw-petition-refresh="timeline">
-            @include('petition.external-urls.show', ['petition' => $petition])
+            @include ('petition.external-urls.show', ['petition' => $petition])
         </div>
     @endif
 
@@ -75,7 +75,7 @@
             id="querysnapshots-block"
             class="petition-edit"
             data-throw-petition-refresh="timeline">
-            @include('petition.querysnapshots.show', ['petition' => $petition])
+            @include ('petition.querysnapshots.show', ['petition' => $petition])
         </div>
     @endif
 
@@ -83,14 +83,14 @@
         id="policy-department-block"
         class="petition-edit"
         data-throw-petition-refresh="timeline">
-        @include('petition.policy-department.show', ['petition' => $petition])
+        @include ('petition.policy-department.show', ['petition' => $petition])
     </div>
 
     <div
         id="tags-block"
         class="petition-edit"
         data-throw-petition-refresh="timeline">
-        @include('petition.tags.show', ['petition' => $petition])
+        @include ('petition.tags.show', ['petition' => $petition])
     </div>
 
     @if ($availableCostTypes->isNotEmpty())
@@ -98,7 +98,7 @@
             id="custom-costs-block"
             class="petition-edit"
             data-throw-petition-refresh="timeline">
-            @include('petition.custom-costs.show', ['petition' => $petition])
+            @include ('petition.custom-costs.show', ['petition' => $petition])
         </div>
     @endif
 
@@ -107,7 +107,7 @@
             id="correspondence-block"
             class="petition-edit"
             data-throw-petition-refresh="timeline">
-            @include('petition.correspondence.show', ['petition' => $petition])
+            @include ('petition.correspondence.show', ['petition' => $petition])
         </div>
     @endif
 
@@ -117,7 +117,7 @@
             :petitionTerms="$petition->petitionTerms" />
     @endif
 
-    @can(Ability::UPDATE, $petition)
+    @can (Ability::UPDATE, $petition)
         <div class="petition-edit">
             <a
                 href="{{
@@ -133,7 +133,7 @@
         </div>
     @endcan
 
-    @can(Ability::UNARCHIVE, $petition)
+    @can (Ability::UNARCHIVE, $petition)
         @if ($petition->archived_at !== null)
             <div class="petition-edit">
                 <a

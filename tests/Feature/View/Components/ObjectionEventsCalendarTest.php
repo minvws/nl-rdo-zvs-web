@@ -7,6 +7,7 @@ namespace Tests\Feature\View\Components;
 use App\Config\DepartmentConfigurationService;
 use App\Enums\AdjournmentEndReason;
 use App\Enums\DecisionPeriodType;
+use App\Enums\HearingForm;
 use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
 use App\Enums\SuspensionType;
@@ -48,6 +49,23 @@ class ObjectionEventsCalendarTest extends FeatureTestCase
 
         $this->assertSame('2026-04-30', $this->deadlineDate($html));
         $this->assertStringContainsString(__('term.is_open_unspecified_adjournment'), $html);
+    }
+
+    public function testHearingFormIsShownAsParticularity(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-05-20'));
+
+        $html = $this->renderCalendar(
+            Department::factory()->create(['slug' => 'team-a']),
+            new PetitionEventData(
+                type: PetitionEventType::HEARING_DATE,
+                date: CalendarDate::create('2026-04-15'),
+                createdAt: CarbonImmutable::now(),
+                hearingForm: HearingForm::TELEPHONE,
+            ),
+        );
+
+        $this->assertStringContainsString('<span>' . HearingForm::TELEPHONE->label() . '</span>', $html);
     }
 
     public function testContinuingDepartmentShowsTheWaitingDaysAfterTheDecisionTerm(): void

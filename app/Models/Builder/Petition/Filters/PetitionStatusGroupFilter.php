@@ -18,8 +18,10 @@ class PetitionStatusGroupFilter implements Filter
     {
         if ($value === StatusGroup::NOT_CLOSED->value) {
             $query->whereHas('petitionStatus', static fn (Builder $q) => $q->where('status_group', '!=', StatusGroup::CLOSED->value));
-        } else {
-            $query->whereRelation('petitionStatus', 'status_group', $value);
+
+            return;
         }
+
+        $query->whereRelation('petitionStatus', 'status_group', $value);
     }
 }

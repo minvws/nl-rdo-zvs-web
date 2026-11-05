@@ -1,14 +1,12 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('public_holiday.model_plural'))
+@section ('pageTitle', __('public_holiday.model_plural'))
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
-            <h1>
-                {{ __('public_holiday.model_plural') }}
-            </h1>
-            @can(Permission::PUBLIC_HOLIDAY_WRITE)
+            <h1>{{ __('public_holiday.model_plural') }}</h1>
+            @can (Permission::PUBLIC_HOLIDAY_WRITE)
                 <a
                     class="button"
                     href="{{ route(RouteName::ADMIN_PUBLIC_HOLIDAY_CREATE) }}">
@@ -39,7 +37,7 @@
                             <th scope="row">{{ $publicHoliday->name }}</th>
                             <td>{{ $publicHoliday->date }}</td>
                             <td>
-                                @can(Permission::PUBLIC_HOLIDAY_WRITE)
+                                @can (Permission::PUBLIC_HOLIDAY_WRITE)
                                     <a
                                         class="icon-only"
                                         href="{{ route(RouteName::ADMIN_PUBLIC_HOLIDAY_EDIT, ['publicHoliday' => $publicHoliday]) }}"

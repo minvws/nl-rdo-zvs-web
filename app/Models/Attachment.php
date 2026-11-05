@@ -9,6 +9,7 @@ use Database\Factories\AttachmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -24,4 +25,5 @@ class Attachment extends EloquentModel
     /** @use HasFactory<AttachmentFactory> */
     use HasFactory;
     use HasId;
+    use SoftDeletes;
 }

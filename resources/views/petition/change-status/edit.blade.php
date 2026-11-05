@@ -1,5 +1,5 @@
-@use(App\Enums\RouteName)
-@section('pageTitle', __('petition.edit_status'))
+@use (App\Enums\RouteName)
+@section ('pageTitle', __('petition.edit_status'))
 
 <x-form-layout>
     <x-petition-header-details
@@ -28,7 +28,7 @@
                             @foreach ($petitionStatuses as $status)
                                 <option
                                     value="{{ $status->id }}"
-                                    @selected($status->id->toString() === Form::old('status_id', $petition->petition_status_id->toString()))>
+                                    @selected ($status->id->toString() === Form::old('status_id', $petition->petition_status_id->toString()))>
                                     {{ $status->status }}
                                 </option>
                             @endforeach
@@ -96,13 +96,11 @@
                 </thead>
                 <tbody>
                     @forelse ($statusHistory as $history)
-                        <tr @if($loop->last) style="background-color: #e8e8e8" @endif>
+                        <tr @if ($loop->last) style="background-color: #e8e8e8" @endif>
                             <td>
-                                <strong>
-                                    {{ $history->petitionStatus->status }}
-                                </strong>
+                                <strong>{{ $history->petitionStatus->status }}</strong>
                             </td>
-                            <td>{{ $history->date->toDateString() }}</td>
+                            <td>{{ $history->date->format('d-m-Y') }}</td>
                             <td>{{ $history->comment }}</td>
                             <td>
                                 @if ($statusHistory->count() > 1)
@@ -118,7 +116,7 @@
                                                     'department' => $petition->department->slug,
                                                     'petition' => $petition,
                                                 ]),
-                                                __('general.delete') . ' ' . $history->petitionStatus->status . ' - ' . $history->date->toDateString() . '?',
+                                                __('general.delete') . ' ' . $history->petitionStatus->status . ' - ' . $history->date->format('d-m-Y') . '?',
                                                 'DELETE',
                                             )
                                         }}"

@@ -14,7 +14,12 @@ body {
   font-family: $font-family-base;
   background-color: $body-bg;
   color: var(--oc-black);
-  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+.text-wrap-normal {
+  word-break: normal;
+  overflow-wrap: anywhere;
 }
 
 .h1,

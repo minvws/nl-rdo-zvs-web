@@ -1,5 +1,30 @@
 <?xml version="1.0"?>
 <phpmd-baseline>
+  <violation rule="PHPMD\Rule\Design\ExcessiveClassComplexity" file="app/Console/Commands/Petition/ImportAppealsCommand.php"/>
+  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="app/Console/Commands/Petition/ImportAppealsCommand.php" method="handleImport"/>
+  <violation rule="PHPMD\Rule\Design\NPathComplexity" file="app/Console/Commands/Petition/ImportAppealsCommand.php" method="handleImport"/>
+  <violation rule="PHPMD\Rule\Design\ExcessiveMethodLength" file="app/Console/Commands/Petition/ImportAppealsCommand.php" method="handleImport"/>
+  <violation rule="PHPMD\Rule\CleanCode\ElseExpression" file="app/Console/Commands/Petition/ImportAppealsCommand.php"/>
+  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="app/Console/Commands/Petition/ImportAppealsCommand.php" method="handleRollback"/>
+  <violation rule="PHPMD\Rule\Design\NPathComplexity" file="app/Console/Commands/Petition/ImportAppealsCommand.php" method="handleRollback"/>
+  <violation rule="PHPMD\Rule\Design\ExcessiveClassComplexity" file="app/Console/Commands/Petition/ImportWooObjectionsCommand.php"/>
+  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="app/Console/Commands/Petition/ImportWooObjectionsCommand.php" method="handle"/>
+  <violation rule="PHPMD\Rule\Design\NPathComplexity" file="app/Console/Commands/Petition/ImportWooObjectionsCommand.php" method="handle"/>
+  <violation rule="PHPMD\Rule\Design\ExcessiveMethodLength" file="app/Console/Commands/Petition/ImportWooObjectionsCommand.php" method="handle"/>
+  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="app/Console/Commands/Petition/ImportWooObjectionsCommand.php" method="loadJuristEmails"/>
+  <violation rule="PHPMD\Rule\Design\NPathComplexity" file="app/Console/Commands/Petition/ImportWooObjectionsCommand.php" method="loadJuristEmails"/>
+  <violation rule="PHPMD\Rule\Design\NPathComplexity" file="app/Console/Commands/Petition/ImportWooObjectionsCommand.php" method="importRow"/>
+  <violation rule="PHPMD\Rule\Design\ExcessiveMethodLength" file="app/Console/Commands/Petition/ImportWooObjectionsCommand.php" method="importRow"/>
+  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="app/Console/Commands/Petition/LinkCategoriesFromExcelCommand.php" method="handle"/>
+  <violation rule="PHPMD\Rule\Design\NPathComplexity" file="app/Console/Commands/Petition/LinkCategoriesFromExcelCommand.php" method="handle"/>
+  <violation rule="PHPMD\Rule\Design\ExcessiveMethodLength" file="app/Console/Commands/Petition/LinkCategoriesFromExcelCommand.php" method="handle"/>
+  <violation rule="PHPMD\Rule\Design\NPathComplexity" file="app/Console/Commands/Petition/SuffixWooObjectionsCommand.php" method="handle"/>
   <violation rule="PHPMD\Rule\Design\NumberOfChildren" file="app/Http/Requests/FormRequest.php"/>
   <violation rule="PHPMD\Rule\Design\NumberOfChildren" file="app/Models/EloquentModel.php"/>
+  <violation rule="PHPMD\Rule\Design\TooManyMethods" file="app/QueryBuilders/PetitionQueryBuilder.php"/>
+  <violation rule="PHPMD\Rule\Design\ExcessiveMethodLength" file="app/Validation/PetitionEvent/PetitionEventRules.php" method="for"/>
+  <violation rule="PHPMD\Rule\Design\ExcessiveParameterList" file="app/ValueObjects/PetitionEventData.php" method="__construct"/>
+  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="app/ValueObjects/PetitionEventData.php" method="validateDomainRules"/>
+  <violation rule="PHPMD\Rule\Design\NPathComplexity" file="app/ValueObjects/PetitionEventData.php" method="validateDomainRules"/>
+  <violation rule="PHPMD\Rule\Design\TooManyMethods" file="app/View/Components/TimelineItem.php"/>
 </phpmd-baseline>

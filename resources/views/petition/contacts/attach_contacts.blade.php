@@ -1,9 +1,9 @@
-@use(App\Enums\RouteName)
-@use(App\Enums\ContactCriteria)
-@use(App\Enums\ContactRole)
-@use(App\Enums\CorrespondencePreference)
+@use (App\Enums\RouteName)
+@use (App\Enums\ContactCriteria)
+@use (App\Enums\ContactRole)
+@use (App\Enums\CorrespondencePreference)
 
-@section('pageTitle', __('contact.attach_contacts'))
+@section ('pageTitle', __('contact.attach_contacts'))
 
 <x-app-layout>
     <x-petition-header-details

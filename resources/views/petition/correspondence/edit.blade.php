@@ -1,4 +1,4 @@
-@section("pageTitle", __("petition_correspondence.edit"))
+@section ("pageTitle", __("petition_correspondence.edit"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
@@ -19,7 +19,7 @@
                 </span>
             </a>
         </header>
-    @else
+        @else
         <h1>{{ __("petition_correspondence.correspondence") }}</h1>
     @endifHtmx
 
@@ -68,9 +68,7 @@
                     type="date"
                     id="date-of-message"
                     :hasError="$errors->has('date_of_message')"
-                    @error("date_of_message")
-                        aria-invalid="true"
-                    @enderror
+                    @if ($errors->has("date_of_message")) aria-invalid="true" @endif
                     aria-describedby="date-required-error"
                     name="date_of_message"
                     value="{{ Form::old("date_of_message", $petition->date_of_message) }}" />
@@ -106,9 +104,7 @@
                     type="date"
                     id="decision-date"
                     :hasError="$errors->has('decision_date')"
-                    @error("decision_date")
-                        aria-invalid="true"
-                    @enderror
+                    @if ($errors->has("decision_date")) aria-invalid="true" @endif
                     aria-describedby="decision-date-error"
                     name="decision_date"
                     value="{{ Form::old("decision_date", $petition->decision_date) }}" />
@@ -122,7 +118,7 @@
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_CORRESPONDENCE_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                         hx-target="#correspondence-block"
                         hx-swap="innerHTML"
-                    @else
+                        @else
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                     @endifHtmx>
                     {{ __("general.cancel") }}

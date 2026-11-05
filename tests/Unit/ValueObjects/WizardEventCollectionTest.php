@@ -9,7 +9,9 @@ use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
 use Carbon\CarbonImmutable;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
+use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
 class WizardEventCollectionTest extends TestCase
@@ -47,44 +49,56 @@ class WizardEventCollectionTest extends TestCase
     }
 
     #[Test]
-    public function itRemovesLastEventImmutably(): void
+    public function itRemovesAnEventImmutably(): void
     {
-        $event1 = new PetitionEventData(
-            type: PetitionEventType::RECEIPT_OF_OBJECTION,
-            date: CalendarDate::create('2025-01-15'),
-            createdAt: CarbonImmutable::now(),
-            duration: 30,
-        );
-        $event2 = new PetitionEventData(
-            type: PetitionEventType::PRIMARY_DECISION,
-            date: CalendarDate::create('2025-02-15'),
-            createdAt: CarbonImmutable::now(),
-            duration: 30,
-        );
+        [$event1, $event2, $event3] = $this->threeEvents();
+        $collection = WizardEventCollection::make()->add($event1)->add($event2)->add($event3);
 
-        $collection = WizardEventCollection::make()
-            ->add($event1)
-            ->add($event2);
+        $newCollection = $collection->remove($event2->id);
 
-        $this->assertSame(2, $collection->count());
-
-        $newCollection = $collection->removeLast();
-
-        $this->assertSame(2, $collection->count());
-        $this->assertSame(1, $newCollection->count());
-        $this->assertEquals($event1->type, $newCollection->last()->type);
-        $this->assertEquals($event1->date, $newCollection->last()->date);
-        $this->assertEquals($event1->duration, $newCollection->last()->duration);
+        $this->assertSame(3, $collection->count());
+        $this->assertSame([$event1, $event3], $newCollection->all()->all());
     }
 
     #[Test]
-    public function itHandlesRemoveLastOnEmptyCollection(): void
+    public function itHandlesRemoveOfAnUnknownEvent(): void
     {
-        $collection = WizardEventCollection::make();
-        $newCollection = $collection->removeLast();
+        [$event1] = $this->threeEvents();
+        $collection = WizardEventCollection::make()->add($event1);
 
-        $this->assertTrue($newCollection->isEmpty());
-        $this->assertSame($collection, $newCollection);
+        $this->assertSame([$event1], $collection->remove(Uuid::uuid7())->all()->all());
+    }
+
+    #[Test]
+    public function itFindsAnEventById(): void
+    {
+        [$event1, $event2] = $this->threeEvents();
+        $collection = WizardEventCollection::make()->add($event1)->add($event2);
+
+        $this->assertSame($event2, $collection->find(Uuid::fromString($event2->id->toString())));
+        $this->assertNull($collection->remove($event2->id)->find($event2->id));
+    }
+
+    #[Test]
+    public function itReturnsTheEventsBeforeAndAfterAnEvent(): void
+    {
+        [$event1, $event2, $event3] = $this->threeEvents();
+        $collection = WizardEventCollection::make()->add($event1)->add($event2)->add($event3);
+
+        $this->assertSame([], $collection->before($event1)->all()->all());
+        $this->assertSame([$event1], $collection->before($event2)->all()->all());
+        $this->assertSame([$event3], $collection->after($event2)->all()->all());
+        $this->assertSame([], $collection->after($event3)->all()->all());
+    }
+
+    #[Test]
+    public function itRejectsAnEventThatIsNotInTheCollection(): void
+    {
+        [$event1, $event2] = $this->threeEvents();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        WizardEventCollection::make()->add($event1)->before($event2);
     }
 
     #[Test]
@@ -165,5 +179,31 @@ class WizardEventCollectionTest extends TestCase
         $collection = WizardEventCollection::make();
 
         $this->assertNull($collection->last());
+    }
+
+    /**
+     * @return array{PetitionEventData, PetitionEventData, PetitionEventData}
+     */
+    private function threeEvents(): array
+    {
+        return [
+            new PetitionEventData(
+                type: PetitionEventType::PRIMARY_DECISION,
+                date: CalendarDate::create('2025-01-15'),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OBJECTION,
+                date: CalendarDate::create('2025-02-15'),
+                createdAt: CarbonImmutable::now(),
+                duration: 30,
+            ),
+            new PetitionEventData(
+                type: PetitionEventType::HEARING_DATE,
+                date: CalendarDate::create('2025-03-15'),
+                createdAt: CarbonImmutable::now(),
+            ),
+        ];
     }
 }

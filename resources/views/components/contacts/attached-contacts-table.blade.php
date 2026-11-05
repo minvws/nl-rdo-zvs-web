@@ -1,8 +1,8 @@
-@use(App\Enums\ContactRole)
-@use(App\Enums\RouteName)
-@use(App\Enums\CorrespondencePreference)
+@use (App\Enums\ContactRole)
+@use (App\Enums\RouteName)
+@use (App\Enums\CorrespondencePreference)
 
-@props([
+@props ([
     'title',
     'contacts',
     'contactRole',
@@ -77,7 +77,7 @@
                                         @foreach (CorrespondencePreference::cases() as $preference)
                                             <option
                                                 value="{{ $preference->value }}"
-                                                @selected($contact->pivot->correspondence_preference?->value === $preference->value)>
+                                                @selected ($contact->pivot->correspondence_preference?->value === $preference->value)>
                                                 {{ __('contact.correspondence_preference_enum.' . $preference->value) }}
                                             </option>
                                         @endforeach
@@ -122,9 +122,7 @@
                                         type="hidden"
                                         name="role"
                                         value="{{ $contactRole->value }}" />
-                                    <x-secondary-button>
-                                        {{ __('general.detach') }}
-                                    </x-secondary-button>
+                                    <x-secondary-button>{{ __('general.detach') }}</x-secondary-button>
                                 </form>
                             </td>
                         </tr>

@@ -8,8 +8,8 @@
         "watch": "vite build --watch"
     },
     "dependencies": {
-        "@minvws/manon": "^19.0.0",
-        "@minvws/manon-themes": "^19.0.0",
+        "@minvws/manon": "^19.0.1",
+        "@minvws/manon-themes": "^19.0.1",
         "@popperjs/core": "^2.11.8",
         "htmx.org": "^2.0.8",
         "zxcvbn": "^4.4.2"
@@ -18,7 +18,7 @@
         "laravel-vite-plugin": "^1.0",
         "open-color": "^1.9.1",
         "prettier": "3.3.2",
-        "prettier-plugin-blade": "^2.1.19",
+        "prettier-plugin-blade": "^3.3.3",
         "sass": "^1.77.6",
         "vite": "^6.4"
     }

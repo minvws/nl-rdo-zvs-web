@@ -18,6 +18,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Support\Arr;
 use Throwable;
 
 use function in_array;
@@ -47,7 +48,7 @@ class MigratePetitionTermsCommand extends Command
 
     public function handle(): int
     {
-        $zaaknummer = $this->argument('zaaknummer');
+        $zaaknummer = Arr::string($this->arguments(), 'zaaknummer');
 
         if (!$zaaknummer) {
             $this->error('U dient een zaaknummer op te geven');

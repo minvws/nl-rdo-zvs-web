@@ -1,4 +1,4 @@
-@section('pageTitle', __('department.select_department'))
+@section ('pageTitle', __('department.select_department'))
 
 @ifNotHtmx
     <h1>{{ __('department.select_department') }}</h1>

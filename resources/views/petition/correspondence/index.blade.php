@@ -1,4 +1,4 @@
-@section('pageTitle', __('petition_correspondence.word_templates_overview'))
+@section ('pageTitle', __('petition_correspondence.word_templates_overview'))
 
 <x-form-layout>
     <x-petition-header-details

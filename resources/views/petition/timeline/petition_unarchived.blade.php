@@ -6,14 +6,10 @@
                 focusable="false" />
         </div>
         <div class="timeline-item__content">
-            <x-timeline.timeline-header>
-                {{ __('petition.unarchived') }}
-            </x-timeline.timeline-header>
+            <x-timeline.timeline-header>{{ __('petition.unarchived') }}</x-timeline.timeline-header>
 
             <p class="timeline-item__meta">
-                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }}
-                {{ __('general.by') }}
-                {{ $timelineItem->user->name }}
+                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }} {{ __('general.by') }} {{ $timelineItem->user->name }}
             </p>
         </div>
     </div>

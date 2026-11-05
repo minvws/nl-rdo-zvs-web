@@ -1,8 +1,8 @@
-@use(App\Enums\RouteName)
-@use(App\Models\Decision)
-@use(App\Facades\DisplayDate)
+@use (App\Enums\RouteName)
+@use (App\Models\Decision)
+@use (App\Facades\DisplayDate)
 
-@section('pageTitle', __('decision.set_final_decision'))
+@section ('pageTitle', __('decision.set_final_decision'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -34,7 +34,7 @@
                                         name="final_decision_id"
                                         id="decision-{{ $decision->id }}"
                                         value="{{ $decision->id }}"
-                                        @checked($decision->pivot->is_final) />
+                                        @checked ($decision->pivot->is_final) />
                                 </td>
                                 <td>
                                     <label for="decision-{{ $decision->id }}">{{ $decision->name }}</label>
@@ -51,7 +51,7 @@
                                     name="final_decision_id"
                                     id="final-decision-none"
                                     value=""
-                                    @checked(! $petition->decisions->contains(fn (Decision $d): bool => $d->pivot->is_final)) />
+                                    @checked (! $petition->decisions->contains(fn (Decision $d): bool => $d->pivot->is_final)) />
                             </td>
                             <td
                                 colspan="3"
@@ -71,9 +71,7 @@
                     :messages="$errors->get('final_decision_id')" />
 
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('general.save') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('general.save') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition]) }}">

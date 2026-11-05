@@ -1,12 +1,12 @@
-@use(App\Enums\Ability)
-@use(App\Enums\RouteName)
+@use (App\Enums\Ability)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('petition.querysnapshots'))
+@section ('pageTitle', __('petition.querysnapshots'))
 
 <div class="petition-property__block">
     <header class="petition-property__header">
         <h2 class="petition-property__title">{{ __('petition.querysnapshots') }}</h2>
-        @can(Ability::UPDATE, $petition)
+        @can (Ability::UPDATE, $petition)
             <a
                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_QUERYSNAPSHOTS_EDIT, ['department' => $petition->department->slug, 'petition' => $petition]) }}"
                 class="icon-only petition-property__edit"
@@ -30,9 +30,7 @@
                         <dt class="property-list__term">
                             {{ __('querysnapshot_type.' . $querysnapshot->querysnapshot_type->value) }}
                         </dt>
-                        <dd class="property-list__description">
-                            {{ $querysnapshot->querysnapshot_id }}
-                        </dd>
+                        <dd class="property-list__description">{{ $querysnapshot->querysnapshot_id }}</dd>
                     </div>
                 @endforeach
             </dl>

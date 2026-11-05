@@ -1,13 +1,11 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
 
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
-            <h1>
-                {{ __('team.model_plural') }}
-            </h1>
-            @can(Permission::TEAM_WRITE->value)
+            <h1>{{ __('team.model_plural') }}</h1>
+            @can (Permission::TEAM_WRITE->value)
                 <a
                     class="button"
                     href="{{ route(RouteName::DEPARTMENTS_ADMIN_TEAMS_CREATE, ['department' => $department]) }}">
@@ -45,7 +43,7 @@
                             </td>
                             <td>
                                 <div class="actions">
-                                    @can(Permission::TEAM_WRITE->value)
+                                    @can (Permission::TEAM_WRITE->value)
                                         <a
                                             class="icon-only"
                                             href="{{ route(RouteName::DEPARTMENTS_ADMIN_TEAMS_EDIT, ['department' => $department, 'team' => $team->id]) }}"

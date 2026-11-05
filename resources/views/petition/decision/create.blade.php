@@ -1,7 +1,7 @@
-@use(App\Enums\DecisionType)
-@use(App\Enums\RouteName)
+@use (App\Enums\DecisionType)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('decision.create'))
+@section ('pageTitle', __('decision.create'))
 
 <x-form-layout>
     <h1>{{ __('decision.create') }}</h1>
@@ -99,7 +99,7 @@
                 @foreach (DecisionType::cases() as $decisionType)
                     <option
                         value="{{ $decisionType->value }}"
-                        @selected(old('type') === $decisionType->value)>
+                        @selected (old('type') === $decisionType->value)>
                         {{ $decisionType->label() }}
                     </option>
                 @endforeach
@@ -118,7 +118,7 @@
                 @foreach ($teams as $team)
                     <option
                         value="{{ $team->id }}"
-                        @selected($team->id->toString() === old('team_id'))>
+                        @selected ($team->id->toString() === old('team_id'))>
                         {{ $team->name }}
                     </option>
                 @endforeach
@@ -126,9 +126,7 @@
         </div>
 
         <div class="button-container">
-            <x-primary-button>
-                {{ __('general.create') }}
-            </x-primary-button>
+            <x-primary-button>{{ __('general.create') }}</x-primary-button>
             <a
                 class="button"
                 href="{{

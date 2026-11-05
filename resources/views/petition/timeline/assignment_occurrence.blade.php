@@ -1,10 +1,8 @@
-@use(app\Enums\AssignmentRole)
+@use (app\Enums\AssignmentRole)
 
 <div class="timeline-item timeline-item--occurrence timeline-item--occurrence-assignment">
     <div class="timeline-item__wrapper">
-        <div class="timeline-item__badge">
-            {{ Str::customInitials($timelineItem->user->name) }}
-        </div>
+        <div class="timeline-item__badge">{{ Str::customInitials($timelineItem->user->name) }}</div>
         <div class="timeline-item__content">
             <x-timeline.timeline-header>
                 <p>

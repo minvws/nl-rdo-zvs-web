@@ -29,6 +29,7 @@ class MigrateCommand extends IlluminateMigrateCommand
      * That conflict is transient, so retry the affected migration file a few times.
      */
     private const int MAX_CONCURRENCY_RETRIES = 10;
+    private const string DEVELOP_DIRECTORY = 'develop';
     private const string CONCURRENCY_CONFLICT_MESSAGE = 'tuple concurrently updated';
 
     /**
@@ -41,7 +42,9 @@ class MigrateCommand extends IlluminateMigrateCommand
 
         try {
             $databaseMigrations = DB::table($table)->get();
-            $batch = $databaseMigrations->max('batch') + 1;
+            /** @var int|null $maxBatch */
+            $maxBatch = $databaseMigrations->max('batch');
+            $batch = ($maxBatch ?? 0) + 1;
         } catch (QueryException) {
             $databaseMigrations = new Collection();
             $batch = 1;
@@ -61,6 +64,7 @@ class MigrateCommand extends IlluminateMigrateCommand
                     continue;
                 }
 
+                /** @var literal-string|null $query */
                 $query = $fileSystem->get($migration);
                 Assert::string($query);
 
@@ -92,13 +96,20 @@ class MigrateCommand extends IlluminateMigrateCommand
      */
     public function getVersionedFiles(array $files): array
     {
-        return collect($files)
+        /** @var array<string, array<int, string>> $versionedFiles */
+        $versionedFiles = collect($files)
             ->filter(static fn(string $file): bool => Str::of($file)->endsWith('.sql'))
             ->groupBy(static fn(string $file): string => Str::of($file)->before('/')->toString())
-            // @phpstan-ignore-next-line
-            ->sortKeysUsing(version_compare(...))
+            ->sortKeysUsing(static fn(string $a, string $b): int => match (true) {
+                $a === self::DEVELOP_DIRECTORY && $b === self::DEVELOP_DIRECTORY => 0,
+                $a === self::DEVELOP_DIRECTORY => 1,
+                $b === self::DEVELOP_DIRECTORY => -1,
+                default => version_compare($a, $b),
+            })
             ->map(static fn(Collection $group): array => $group->values()->all())
             ->all();
+
+        return $versionedFiles;
     }
 
     /**

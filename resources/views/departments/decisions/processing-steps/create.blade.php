@@ -1,10 +1,10 @@
-@use(App\Enums\ProcessingStepStatus)
+@use (App\Enums\ProcessingStepStatus)
 
-@section("pageTitle", __("processing-step.create"))
+@section ('pageTitle', __('processing-step.create'))
 
 <x-form-layout>
     <x-slot name="header">
-        <h1>{{ __("processing-step.create") }}</h1>
+        <h1>{{ __('processing-step.create') }}</h1>
     </x-slot>
 
     <section class="mt-5">
@@ -55,13 +55,11 @@
                         :messages="$errors->get('deadline_at')" />
                     <input
                         type="date"
-                        class="form-control @error("deadline_at") input-error @enderror"
+                        class="form-control @error('deadline_at') input-error @enderror"
                         id="deadline_at"
                         name="deadline_at"
                         aria-describedby="deadline_at-error"
-                        @error("deadline_at")
-                            aria-invalid="true"
-                        @enderror
+                        @if ($errors->has("deadline_at")) aria-invalid="true" @endif
                         value="{{ old('deadline_at') ?? now()->format('Y-m-d') }}" />
                 </div>
 
@@ -73,18 +71,16 @@
                         id="status-error"
                         :messages="$errors->get('status')" />
                     <select
-                        class="form-select @error("status") input-error @enderror"
+                        class="form-select @error('status') input-error @enderror"
                         id="status"
                         name="status"
                         aria-describedby="status-error"
-                        @error("status")
-                            aria-invalid="true"
-                        @enderror>
+                        @if ($errors->has("status")) aria-invalid="true" @endif>
                         @foreach ($statuses as $status)
                             <option
                                 value="{{ $status->value }}"
-                                @selected($status->value === old("status", ProcessingStepStatus::default()->value))>
-                                {{ __("processing-step." . $status->value) }}
+                                @selected ($status->value === old('status', ProcessingStepStatus::default()->value))>
+                                {{ __('processing-step.' . $status->value) }}
                             </option>
                         @endforeach
                     </select>
@@ -98,22 +94,20 @@
                         id="first_assignee-error"
                         :messages="$errors->get('first_assignee')" />
                     <select
-                        class="form-select @error("first_assignee") input-error @enderror"
+                        class="form-select @error('first_assignee') input-error @enderror"
                         id="first_assignee"
                         name="first_assignee"
                         aria-describedby="first_assignee-error"
-                        @error("first_assignee")
-                            aria-invalid="true"
-                        @enderror>
+                        @if ($errors->has("first_assignee")) aria-invalid="true" @endif>
                         <option
                             value=""
-                            @selected("" === old("first_assignee"))>
-                            {{ __("general.none") }}
+                            @selected ('' === old('first_assignee'))>
+                            {{ __('general.none') }}
                         </option>
                         @foreach ($users as $id => $name)
                             <option
                                 value="{{ $id }}"
-                                @selected($id === old("first_assignee"))>
+                                @selected ($id === old('first_assignee'))>
                                 {{ $name }}
                             </option>
                         @endforeach
@@ -128,22 +122,20 @@
                         id="second_assignee-error"
                         :messages="$errors->get('second_assignee')" />
                     <select
-                        class="form-select @error("second_assignee") input-error @enderror"
+                        class="form-select @error('second_assignee') input-error @enderror"
                         id="second_assignee"
                         name="second_assignee"
                         aria-describedby="second_assignee-error"
-                        @error("second_assignee")
-                            aria-invalid="true"
-                        @enderror>
+                        @if ($errors->has("second_assignee")) aria-invalid="true" @endif>
                         <option
                             value=""
-                            @selected("" === old("second_assignee"))>
-                            {{ __("general.none") }}
+                            @selected ('' === old('second_assignee'))>
+                            {{ __('general.none') }}
                         </option>
                         @foreach ($users as $id => $name)
                             <option
                                 value="{{ $id }}"
-                                @selected($id === old("second_assignee"))>
+                                @selected ($id === old('second_assignee'))>
                                 {{ $name }}
                             </option>
                         @endforeach
@@ -151,9 +143,7 @@
                 </div>
 
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __("general.create") }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('general.create') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{
@@ -162,7 +152,7 @@
                                 'decision' => $decision,
                             ])
                         }}">
-                        {{ __("general.cancel") }}
+                        {{ __('general.cancel') }}
                     </a>
                 </div>
             </form>

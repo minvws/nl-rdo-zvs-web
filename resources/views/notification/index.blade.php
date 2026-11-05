@@ -1,8 +1,8 @@
-@use(App\Enums\NotificationFilter)
-@use(App\Enums\RouteName)
-@use(Illuminate\Support\Str)
+@use (App\Enums\NotificationFilter)
+@use (App\Enums\RouteName)
+@use (Illuminate\Support\Str)
 
-@section('pageTitle', Str::title(__('notification.model_plural')))
+@section ('pageTitle', Str::title(__('notification.model_plural')))
 
 <x-app-layout>
     <x-slot name="header">
@@ -32,7 +32,7 @@
                         @foreach ($notificationFilters as $notificationFilter)
                             <option
                                 value="{{ $notificationFilter->value }}"
-                                @selected($filter === $notificationFilter->value || (! request()->has('filter') && $notificationFilter->value === 'all'))>
+                                @selected ($filter === $notificationFilter->value || (! request()->has('filter') && $notificationFilter->value === 'all'))>
                                 {{ $notificationFilter->label() }}
                             </option>
                         @endforeach
@@ -61,7 +61,9 @@
                 <div class="shadow shadow-right"></div>
                 <div class="x-scrollable">
                     <table>
-                        <caption class="visually-hidden">{{ __('notification.overview') }}</caption>
+                        <caption class="visually-hidden">
+                            {{ __('notification.overview') }}
+                        </caption>
                         <thead>
                             <tr>
                                 <th scope="col">{{ __('notification.message') }}</th>
@@ -83,7 +85,9 @@
                                     <td>{{ $notification->created_at->diffForHumans() }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="2">{{ __('notification.no_notifications_found') }}</td></tr>
+                                <tr>
+                                    <td colspan="2">{{ __('notification.no_notifications_found') }}</td>
+                                </tr>
                             @endforelse
                         </tbody>
                     </table>

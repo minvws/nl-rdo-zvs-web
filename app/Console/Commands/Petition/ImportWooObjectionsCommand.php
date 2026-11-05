@@ -234,11 +234,7 @@ class ImportWooObjectionsCommand extends Command
             return self::FAILURE;
         }
 
-        if ($isDryRun) {
-            DB::rollBack();
-        } else {
-            DB::commit();
-        }
+        $isDryRun ? DB::rollBack() : DB::commit();
 
         $this->printSummary($isDryRun);
 

@@ -1,7 +1,7 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
 
-@can('update', [$petition])
+@can ('update', [$petition])
     <div class="button-container button-container--wrap">
         @foreach ($termTypes as $termType)
             <a

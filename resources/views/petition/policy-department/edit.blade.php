@@ -1,6 +1,6 @@
-@use(App\Models\PolicyDepartment)
+@use (App\Models\PolicyDepartment)
 
-@section("pageTitle", __("policy_department.edit"))
+@section ("pageTitle", __("policy_department.edit"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
@@ -29,9 +29,7 @@
             hx-swap="innerHTML"
             hx-target="#policy-department-block">
             @csrf
-            <h3 class="form-section__title form-section__title--border">
-                {{ __("policy_department.edit") }}
-            </h3>
+            <h3 class="form-section__title form-section__title--border">{{ __("policy_department.edit") }}</h3>
             <div class="form-input-group">
                 <x-input-label
                     class="visually-hidden"
@@ -47,7 +45,7 @@
                             type="checkbox"
                             name="policy_department_ids[]"
                             value="{{ $policyDepartment->id->toString() }}"
-                            @checked(in_array(
+                            @checked (in_array(
                                 $policyDepartment->id,
                                 $petition->policyDepartments
                                     ->map(static function (PolicyDepartment $policyDepartment): string {
@@ -75,7 +73,7 @@
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_POLICY_DEPARTMENT_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                         hx-target="#policy-department-block"
                         hx-swap="innerHTML"
-                    @else
+                        @else
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                     @endifHtmx>
                     {{ __("general.cancel") }}

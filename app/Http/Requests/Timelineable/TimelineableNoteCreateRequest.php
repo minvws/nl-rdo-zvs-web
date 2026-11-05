@@ -20,6 +20,7 @@ use Webmozart\Assert\Assert;
 
 use function __;
 use function array_intersect;
+use function array_values;
 use function in_array;
 use function route;
 
@@ -42,7 +43,7 @@ class TimelineableNoteCreateRequest extends FormRequest
             ],
             'attachments.*' => [
                 $virusscannerRule,
-                File::types($extensions)
+                File::types(array_values($extensions))
                     ->max(Config::string('filesystems.disks.uploads.max_file_size')),
                 $this->secureFileUpload(...),
             ],

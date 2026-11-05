@@ -139,7 +139,6 @@
                         <x-tabler-chevrons-right
                             aria-hidden="true"
                             focusable="false" />
-                        &raquo;
                     </span>
                 </li>
             @endif

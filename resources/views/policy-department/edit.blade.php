@@ -1,6 +1,6 @@
-@use(App\Enums\RouteName)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('policy_department.edit'))
+@section ('pageTitle', __('policy_department.edit'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -40,15 +40,13 @@
                         type="checkbox"
                         name="active"
                         value="1"
-                        @checked(old('active', (string) ($policyDepartment->active ? '1' : '0')) === '1') />
+                        @checked (old('active', (string) ($policyDepartment->active ? '1' : '0')) === '1') />
                     <x-input-label
                         for="active"
                         :content="__('policy_department.active')" />
                 </div>
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('policy_department.edit') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('policy_department.edit') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::ADMIN_POLICY_DEPARTMENT_INDEX) }}">

@@ -24,6 +24,7 @@ use Illuminate\Routing\Redirector;
 use Illuminate\View\Factory;
 use TypeError;
 use ValueError;
+use Webmozart\Assert\Assert;
 
 use function __;
 use function array_values;
@@ -44,6 +45,7 @@ final readonly class PetitionCustomCostsController
         $petitionVariant = $petition->petitionType->type;
 
         $availableCostTypes = $this->repository->get('custom_cost.' . $petitionVariant->value, []);
+        Assert::isArray($availableCostTypes);
         $availableCostTypes = array_values($availableCostTypes);
 
         return $this->htmxHelper->makeFormViewResponse($request, 'petition.custom-costs.edit', [

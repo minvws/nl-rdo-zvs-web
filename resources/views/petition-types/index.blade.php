@@ -1,10 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
-            <h1>
-                {{ __('petition_type.model_plural') }}
-            </h1>
-            @can(Permission::PETITION_TYPE_WRITE->value)
+            <h1>{{ __('petition_type.model_plural') }}</h1>
+            @can (Permission::PETITION_TYPE_WRITE->value)
                 <a
                     class="button"
                     href="{{ route(RouteName::DEPARTMENTS_ADMIN_PETITION_TYPES_CREATE, ['department' => $department]) }}">
@@ -35,7 +33,7 @@
                             <th scope="row">{{ $petitionType->name }}</th>
                             <td>{{ $petitionType->active ? __('general.yes') : __('general.no') }}</td>
                             <td>
-                                @can(Permission::PETITION_TYPE_WRITE->value)
+                                @can (Permission::PETITION_TYPE_WRITE->value)
                                     <a
                                         class="icon-only"
                                         href="{{ route(RouteName::DEPARTMENTS_ADMIN_PETITION_TYPES_EDIT, ['department' => $department, 'petitionType' => $petitionType->id]) }}"

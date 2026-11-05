@@ -86,19 +86,56 @@ button.icon-only--add {
 }
 
 #petition-events-menu {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  align-items: stretch;
+  gap: 1.5rem 2rem;
+  margin: 0;
+  list-style: none;
 
-  .petition-events-menu-card {
-    flex: 0 1 calc(20% - 1rem);
-    padding: 1rem;
-    border: 1px solid var(--oc-gray-4);
-    border-radius: 8px;
-    background-color: var(--oc-white);
-    margin: 0.5rem;
+  > li {
+    position: relative;
 
-    a.button {
+    &::before {
+      content: none;
+    }
+
+    &:hover {
+      border-color: var(--oc-blue-8);
+      background-color: var(--oc-blue-0);
+    }
+
+    &:has(> a:focus-visible) {
+      outline-style: var(--zvs-focus-outline-style);
+      outline-color: var(--zvs-focus-outline-color);
+      outline-width: var(--zvs-focus-outline-width);
+      outline-offset: var(--zvs-focus-outline-offset);
+    }
+
+    > a {
       display: flex;
+      align-self: stretch;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      color: var(--oc-blue-8);
+      outline: none;
+
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+      }
+
+      > svg {
+        flex-shrink: 0;
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+    }
+
+    p {
+      font-size: 0.875rem;
     }
   }
 }

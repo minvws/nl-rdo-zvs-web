@@ -1,13 +1,11 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
 
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
-            <h1>
-                {{ __('policy_department.model_plural') }}
-            </h1>
-            @can(Permission::POLICY_DEPARTMENT_WRITE)
+            <h1>{{ __('policy_department.model_plural') }}</h1>
+            @can (Permission::POLICY_DEPARTMENT_WRITE)
                 <a
                     class="button"
                     href="{{ route(RouteName::ADMIN_POLICY_DEPARTMENT_CREATE) }}">
@@ -45,7 +43,7 @@
                             </td>
                             <td>
                                 <div class="actions">
-                                    @can(Permission::POLICY_DEPARTMENT_WRITE)
+                                    @can (Permission::POLICY_DEPARTMENT_WRITE)
                                         <a
                                             class="icon-only"
                                             href="{{ route(RouteName::ADMIN_POLICY_DEPARTMENT_EDIT, ['policyDepartment' => $policyDepartment]) }}"

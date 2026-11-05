@@ -12,6 +12,7 @@ enum TimelineType: string
     case CONTACT_PIVOT_UPDATED = 'contact_pivot_updated';
     case DEADLINE_ADJUSTMENT_OCCURRENCE = 'deadline_adjustment_occurrence';
     case NOTE = 'note';
+    case NOTE_DELETED = 'note_deleted';
     case STATUS_OCCURRENCE = 'status_occurrence';
     case TIMELINEABLE_CREATED = 'timelineable_created';
     case TERM_CREATED = 'term_created';

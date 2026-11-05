@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 return [
     'note_added' => 'heeft een notitie toegevoegd op',
+    'note_deleted' => [
+        'title' => 'Notitie verwijderd',
+        'files' => 'Verwijderde bestanden',
+        'reason' => 'Toelichting',
+    ],
+    'delete_note' => [
+        'title' => 'Notitie verwijderen',
+        'description' => 'De notitie en alle bijbehorende bestanden worden verwijderd. Dit kan niet ongedaan worden gemaakt. Het verwijderen wordt vastgelegd in de tijdlijn.',
+        'reason' => 'Toelichting (optioneel)',
+        'reason_hint' => 'Noteer hier de reden van het verwijderen.',
+    ],
 
     'contact_attached' => [
         'body' => ':contact is toegevoegd als :role',

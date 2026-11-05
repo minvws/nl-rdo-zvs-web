@@ -1,21 +1,21 @@
-@use(App\Enums\Ability)
-@use(App\Enums\ArchiveFilter)
-@use(App\Enums\ContactType)
-@use(App\Enums\PetitionCriteria)
-@use(App\Enums\PetitionVariant)
-@use(App\Enums\RouteName)
-@use(App\Enums\StatusGroup)
-@use(App\ValueObjects\CalendarDate)
-@use(Illuminate\Support\Str)
-@use(App\Models\Petition)
+@use (App\Enums\Ability)
+@use (App\Enums\ArchiveFilter)
+@use (App\Enums\ContactType)
+@use (App\Enums\PetitionCriteria)
+@use (App\Enums\PetitionVariant)
+@use (App\Enums\RouteName)
+@use (App\Enums\StatusGroup)
+@use (App\ValueObjects\CalendarDate)
+@use (Illuminate\Support\Str)
+@use (App\Models\Petition)
 
-@section("pageTitle", __("petition.all_petitions") . " " . ActiveDepartment::getActiveDepartment()?->name)
+@section ("pageTitle", __("petition.all_petitions") . " " . ActiveDepartment::getActiveDepartment()?->name)
 
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
             <h1>{{ __("petition.model_plural") }}</h1>
-            @can(Ability::CREATE, Petition::class)
+            @can (Ability::CREATE, Petition::class)
                 @foreach ($petitionTypes as $petitionType)
                     <a
                         class="button secondary"
@@ -104,7 +104,7 @@
                             @foreach (StatusGroup::cases() as $status_group)
                                 <option
                                     value="{{ $status_group }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::STATUS_GROUP->value)) === $status_group->value)>
+                                    @selected (request(sprintf("filter.%s", PetitionCriteria::STATUS_GROUP->value)) === $status_group->value)>
                                     {{ __("petition_status." . $status_group->value) }}
                                 </option>
                             @endforeach
@@ -127,7 +127,7 @@
                             @foreach ($usedPetitionStatuses as $status)
                                 <option
                                     value="{{ $status->status }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::STATUS->value)) === $status->status)>
+                                    @selected (request(sprintf("filter.%s", PetitionCriteria::STATUS->value)) === $status->status)>
                                     {{ $status->status }}
                                 </option>
                             @endforeach
@@ -150,7 +150,7 @@
                             @foreach ($usedPetitionParticularities as $particularity)
                                 <option
                                     value="{{ $particularity }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::PARTICULARITIES->value)) === $particularity)>
+                                    @selected (request(sprintf("filter.%s", PetitionCriteria::PARTICULARITIES->value)) === $particularity)>
                                     {{ $particularity }}
                                 </option>
                             @endforeach
@@ -173,7 +173,7 @@
                                 @foreach ($usedCustomProperties as $property)
                                     <option
                                         value="{{ $property->id }}"
-                                        @selected(request(sprintf("filter.%s", PetitionCriteria::CUSTOM_PROPERTY->value)) === $property->id->toString())>
+                                        @selected (request(sprintf("filter.%s", PetitionCriteria::CUSTOM_PROPERTY->value)) === $property->id->toString())>
                                         {{ $property->name }}
                                     </option>
                                 @endforeach
@@ -197,7 +197,7 @@
                             @foreach (ContactType::cases() as $contact_type)
                                 <option
                                     value="{{ $contact_type->value }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::APPLICANT->value)) === $contact_type->value)>
+                                    @selected (request(sprintf("filter.%s", PetitionCriteria::APPLICANT->value)) === $contact_type->value)>
                                     {{ __("contact.contact_type_enum." . $contact_type->value) }}
                                 </option>
                             @endforeach
@@ -220,7 +220,7 @@
                             @foreach ($policyDepartments as $policyDepartment)
                                 <option
                                     value="{{ $policyDepartment->id }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::POLICY_DEPARTMENT->value)) === $policyDepartment->id->toString())>
+                                    @selected (request(sprintf("filter.%s", PetitionCriteria::POLICY_DEPARTMENT->value)) === $policyDepartment->id->toString())>
                                     {{ $policyDepartment->name }}
                                 </option>
                             @endforeach
@@ -242,7 +242,7 @@
                             @foreach ($usedPetitionCategories as $petitionCategory)
                                 <option
                                     value="{{ $petitionCategory->id }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::CATEGORY->value)) === $petitionCategory->id->toString())>
+                                    @selected (request(sprintf("filter.%s", PetitionCriteria::CATEGORY->value)) === $petitionCategory->id->toString())>
                                     {{ $petitionCategory->name }}
                                 </option>
                             @endforeach
@@ -265,7 +265,7 @@
                             @foreach ($usedTeams as $team)
                                 <option
                                     value="{{ $team->id }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::TEAM->value)) === $team->id->toString())>
+                                    @selected (request(sprintf("filter.%s", PetitionCriteria::TEAM->value)) === $team->id->toString())>
                                     {{ $team->name }}
                                 </option>
                             @endforeach
@@ -288,7 +288,7 @@
                             @foreach ($usedPetitionTypes as $petitionType)
                                 <option
                                     value="{{ $petitionType->id }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::PETITION_TYPE->value)) === $petitionType->id->toString())>
+                                    @selected (request(sprintf("filter.%s", PetitionCriteria::PETITION_TYPE->value)) === $petitionType->id->toString())>
                                     {{ $petitionType->name }}
                                 </option>
                             @endforeach
@@ -307,18 +307,16 @@
                             id="assigned-user"
                             name="filter[{{ PetitionCriteria::ASSIGNED_USER->value }}]"
                             class="form-select">
-                            <option value="">
-                                {{ __("petition.filter.no_filter") }}
-                            </option>
+                            <option value="">{{ __("petition.filter.no_filter") }}</option>
                             <option
                                 value="none"
-                                @selected(request()->has(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) && request(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) === "none")>
+                                @selected (request()->has(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) && request(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) === "none")>
                                 {{ __("petition.filter.unassigned") }}
                             </option>
                             @foreach ($assignedUsers as $user)
                                 <option
                                     value="{{ $user->id }}"
-                                    @selected(request(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) === $user->id->toString())>
+                                    @selected (request(sprintf("filter.%s", PetitionCriteria::ASSIGNED_USER->value)) === $user->id->toString())>
                                     {{ $user->name }}
                                 </option>
                             @endforeach
@@ -342,7 +340,7 @@
                                 @foreach ($usedTags as $tag)
                                     <option
                                         value="{{ $tag->id }}"
-                                        @selected(request(sprintf("filter.%s", PetitionCriteria::TAG->value)) === $tag->id->toString())>
+                                        @selected (request(sprintf("filter.%s", PetitionCriteria::TAG->value)) === $tag->id->toString())>
                                         {{ $tag->name }}
                                     </option>
                                 @endforeach
@@ -365,7 +363,7 @@
                             @foreach ($archiveFilters as $archiveFilter)
                                 <option
                                     value="{{ $archiveFilter->value }}"
-                                    @selected(
+                                    @selected (
                                         request(sprintf("filter.%s", PetitionCriteria::ARCHIVE->value)) ===
                                             $archiveFilter->value ||
                                         (! request()->has(sprintf("filter.%s", PetitionCriteria::ARCHIVE->value)) &&
@@ -437,7 +435,9 @@
                 <div class="shadow shadow-right"></div>
                 <div class="x-scrollable">
                     <table data-hide-table-columns="true">
-                        <caption class="visually-hidden">{{ __("petition.overview") }}</caption>
+                        <caption class="visually-hidden">
+                            {{ __("petition.overview") }}
+                        </caption>
                         <thead>
                             <tr>
                                 <th
@@ -651,9 +651,7 @@
                         <tbody>
                             @forelse ($petitions as $petition)
                                 <tr class="table-row-clickable">
-                                    <th scope="row">
-                                        {{ $petition->number }}
-                                    </th>
+                                    <th scope="row">{{ $petition->number }}</th>
                                     <td data-hide-table-column-content="{{ strtolower(__("petition.description")) }}">
                                         @if ($petition->description)
                                             {{ $petition->description }}
@@ -702,8 +700,7 @@
                                     <td data-hide-table-column-content="{{ strtolower(__("petition.type")) }}">
                                         {{ $petition->petitionType->name }}
                                     </td>
-                                    <td
-                                        data-hide-table-column-content="{{ strtolower(__("petition.assigned_user")) }}">
+                                    <td data-hide-table-column-content="{{ strtolower(__("petition.assigned_user")) }}">
                                         {{ $petition->firstAssignee?->user->name ?? __("petition.not_assigned") }}
                                     </td>
                                     <td
@@ -768,9 +765,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td>
-                                    {{ __("petition.count", ["count" => $petitionCount]) }}
-                                </td>
+                                <td>{{ __("petition.count", ["count" => $petitionCount]) }}</td>
                             </tr>
                         </tfoot>
                     </table>

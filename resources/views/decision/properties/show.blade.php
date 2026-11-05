@@ -1,13 +1,13 @@
-@use(App\Enums\Ability)
-@use(App\Enums\RouteName)
-@use(App\Facades\DisplayDate)
+@use (App\Enums\Ability)
+@use (App\Enums\RouteName)
+@use (App\Facades\DisplayDate)
 
 <div
     class="petition-property__block"
     hx-target="this">
     <header class="petition-property__header">
         <h2 class="petition-property__title">{{ $decision->type->label() }}</h2>
-        @can(Ability::UPDATE, [$decision])
+        @can (Ability::UPDATE, [$decision])
             <a
                 href="{{ route(RouteName::DEPARTMENTS_DECISIONS_EDIT, ['department' => $decision->department->slug, 'decision' => $decision]) }}"
                 class="button button--inverse"

@@ -1,13 +1,9 @@
-@vite(['resources/js/password-strength.js'])
+@vite (['resources/js/password-strength.js'])
 <section class="visually-grouped">
     <div class="spacing-0">
-        <h2>
-            {{ __('profile.password.title') }}
-        </h2>
+        <h2>{{ __('profile.password.title') }}</h2>
 
-        <p>
-            {{ __('profile.password.subtitle') }}
-        </p>
+        <p>{{ __('profile.password.subtitle') }}</p>
     </div>
 
     <form
@@ -15,7 +11,7 @@
         data-add-strength-meter="password"
         action="{{ route(RouteName::PASSWORD_UPDATE) }}">
         @csrf
-        @method('put')
+        @method ('put')
 
         <div>
             <x-input-label
@@ -52,7 +48,7 @@
                 type="password"
                 aria-describedby="update-error"
                 autocomplete="new-password" />
-            @include('authentication.auth-password-strength-meter')
+            @include ('authentication.auth-password-strength-meter')
         </div>
 
         <div>

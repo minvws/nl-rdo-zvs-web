@@ -1,6 +1,6 @@
-@use(Illuminate\Support\Facades\Session)
+@use (Illuminate\Support\Facades\Session)
 
-@props([
+@props ([
     'element' => 'div',
     'only' => null,
 ])

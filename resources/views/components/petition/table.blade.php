@@ -1,7 +1,7 @@
-@use(App\Facades\DisplayDate)
-@use(App\Enums\RouteName)
+@use (App\Facades\DisplayDate)
+@use (App\Enums\RouteName)
 
-@props([
+@props ([
     'footer' => null,
     'petitions' => [],
     'detachUrl' => null,
@@ -69,9 +69,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="3">
-                        {{ __('petition.no_attached_petitions') }}
-                    </td>
+                    <td colspan="3">{{ __('petition.no_attached_petitions') }}</td>
                 </tr>
             @endforelse
         </tbody>

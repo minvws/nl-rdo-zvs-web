@@ -14,7 +14,8 @@ Route::get('/petition-events/create/{type}', [PetitionEventWizardController::cla
     ->name(RouteName::PETITION_EVENTS_WIZARD_CREATE);
 Route::post('/petition-events/add', [PetitionEventWizardController::class, 'add'])
     ->name(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM);
-Route::post('/petition-events/delete-last', [PetitionEventWizardController::class, 'deleteLast'])
-    ->name(RouteName::PETITION_EVENTS_WIZARD_DELETE_LAST);
+Route::post('/petition-events/delete/{event}', [PetitionEventWizardController::class, 'delete'])
+    ->whereUuid('event')
+    ->name(RouteName::PETITION_EVENTS_WIZARD_DELETE);
 Route::post('/petition-events/store', [PetitionEventWizardController::class, 'store'])
     ->name(RouteName::PETITION_EVENTS_WIZARD_STORE);

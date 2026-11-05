@@ -1,4 +1,4 @@
-@section("pageTitle", __("petition.edit_custom_cost"))
+@section ("pageTitle", __("petition.edit_custom_cost"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
@@ -16,7 +16,7 @@
                 <span class="visually-hidden">{{ __("petition.custom_cost") }} {{ __("general.edit") }}</span>
             </a>
         </header>
-    @else
+        @else
         <h1>{{ __("petition.edit_custom_cost") }}</h1>
     @endifHtmx
 
@@ -87,7 +87,7 @@
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_CUSTOM_COSTS_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                         hx-target="#custom-costs-block"
                         hx-swap="innerHTML"
-                    @else
+                        @else
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                     @endifHtmx>
                     {{ __("general.cancel") }}

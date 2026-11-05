@@ -26,6 +26,8 @@ readonly class EmailAddressVerified
     }
 
     /**
+     * @param Closure(Request): Response $next
+     *
      * @throws AuthenticationException
      */
     public function handle(Request $request, Closure $next): Response

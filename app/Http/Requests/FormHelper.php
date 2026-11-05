@@ -31,6 +31,7 @@ readonly class FormHelper
      */
     public function oldArray(string $key, ?array $default = null): array|null
     {
+        /** @var array<string, mixed>|null $oldValue */
         $oldValue = $this->request->old($key, $default);
         if ($oldValue === null) {
             return null;

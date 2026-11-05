@@ -10,11 +10,18 @@ use App\Enums\ResultType;
 use App\Enums\SuspensionType;
 use App\Exceptions\InvalidPetitionEventData;
 use Carbon\CarbonImmutable;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 use function array_map;
 
 readonly class PetitionEventData
 {
+    /**
+     * Identifies the event within the wizard, the events are only stored in the database when the wizard is finished.
+     */
+    public UuidInterface $id;
+
     /**
      * @param array<int, PenaltyData> $penalties
      */
@@ -29,7 +36,10 @@ readonly class PetitionEventData
         public ?HearingForm $hearingForm = null,
         public ?string $reasoning = null,
         public ?int $withdrawalDuration = null,
+        ?UuidInterface $id = null,
     ) {
+        $this->id = $id ?? Uuid::uuid7();
+
         $this->validateDomainRules();
     }
 

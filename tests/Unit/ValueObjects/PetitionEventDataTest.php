@@ -15,6 +15,7 @@ use App\ValueObjects\PenaltyData;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
+use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
 class PetitionEventDataTest extends TestCase
@@ -34,6 +35,33 @@ class PetitionEventDataTest extends TestCase
         $this->assertSame('2025-01-15', $event->date->format('Y-m-d'));
         $this->assertSame(30, $event->duration);
         $this->assertSame([], $event->penalties);
+    }
+
+    #[Test]
+    public function itGeneratesAnIdForEveryEvent(): void
+    {
+        $createEvent = static fn(): PetitionEventData => new PetitionEventData(
+            type: PetitionEventType::HEARING_DATE,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+        );
+
+        $this->assertFalse($createEvent()->id->equals($createEvent()->id));
+    }
+
+    #[Test]
+    public function itKeepsAGivenId(): void
+    {
+        $id = Uuid::uuid7();
+
+        $event = new PetitionEventData(
+            type: PetitionEventType::HEARING_DATE,
+            date: CalendarDate::create('2025-01-15'),
+            createdAt: CarbonImmutable::now(),
+            id: $id,
+        );
+
+        $this->assertSame($id, $event->id);
     }
 
     #[Test]

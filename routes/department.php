@@ -265,6 +265,13 @@ Route::prefix('/petitions')->group(static function (): void {
             Route::post('/', [TimelineableNoteController::class, 'store'])
                 ->name(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_STORE);
         });
+
+        Route::prefix('/{timelineItem}/delete')->whereNumber('timelineItem')->group(static function (): void {
+            Route::get('/', [TimelineableNoteController::class, 'confirmDelete'])
+                ->name(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_CONFIRM_DELETE);
+            Route::post('/', [TimelineableNoteController::class, 'delete'])
+                ->name(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_DELETE);
+        });
     });
 });
 

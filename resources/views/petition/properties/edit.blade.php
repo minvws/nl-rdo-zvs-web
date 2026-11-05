@@ -1,6 +1,6 @@
-@use(App\Enums\OptionalFormFieldSetting)
+@use (App\Enums\OptionalFormFieldSetting)
 
-@section("pageTitle", __("petition.edit_properties"))
+@section ("pageTitle", __("petition.edit_properties"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
@@ -19,7 +19,7 @@
                 <span class="visually-hidden">{{ __("petition.model_singular") }} {{ __("general.edit") }}</span>
             </a>
         </header>
-    @else
+        @else
         <h1>{{ __("petition.edit_properties") }}</h1>
     @endifHtmx
 
@@ -67,8 +67,8 @@
                     <textarea
                         class="form-control"
                         id="petition-description"
-                        name="description">
-{{ Form::old("description", $petition->description) }}</textarea
+                        name="description"
+                        >{{ Form::old("description", $petition->description) }}</textarea
                     >
                 </div>
             @endif
@@ -86,7 +86,7 @@
                         @foreach ($petitionCategories as $petitionCategory)
                             <option
                                 value="{{ $petitionCategory->id }}"
-                                @selected($petitionCategory->id->toString() === Form::old("petition_category_id", $petition->petition_category_id?->toString()))>
+                                @selected ($petitionCategory->id->toString() === Form::old("petition_category_id", $petition->petition_category_id?->toString()))>
                                 {{ $petitionCategory->name }}
                             </option>
                         @endforeach
@@ -106,7 +106,7 @@
                     @foreach ($teams as $team)
                         <option
                             value="{{ $team->id }}"
-                            @selected($team->id->toString() === Form::old("team_id", $petition->team_id?->toString()))>
+                            @selected ($team->id->toString() === Form::old("team_id", $petition->team_id?->toString()))>
                             {{ $team->name }}
                         </option>
                     @endforeach
@@ -203,16 +203,14 @@
             @endif
 
             <div class="button-container">
-                <x-primary-button>
-                    {{ __("general.save") }}
-                </x-primary-button>
+                <x-primary-button>{{ __("general.save") }}</x-primary-button>
                 <a
                     class="button"
                     @ifHtmx
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                         hx-target="#properties-block"
                         hx-swap="innerHTML"
-                    @else
+                        @else
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                     @endifHtmx>
                     {{ __("general.cancel") }}

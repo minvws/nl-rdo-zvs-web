@@ -52,11 +52,9 @@ readonly class PetitionCreateAction
                 ];
                 $petition = Petition::query()->create([...$attributes, ...$fixedAttributes]);
 
-                if ($petition->isTermEngineConverted()) {
-                    $this->createPetitionEvents($petition, $attributes, $user);
-                } else {
-                    $this->createTerms($petition, $attributes, $user);
-                }
+                $petition->isTermEngineConverted()
+                    ? $this->createPetitionEvents($petition, $attributes, $user)
+                    : $this->createTerms($petition, $attributes, $user);
 
                 $petition->timelineItems()->create([
                     'user_id' => $user->id,

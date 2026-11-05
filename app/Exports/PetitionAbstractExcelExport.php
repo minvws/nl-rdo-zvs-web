@@ -13,6 +13,7 @@ use App\Models\Builder\Petition\Filters\PetitionTypeFilter;
 use App\Models\CustomPetitionProperty;
 use App\Models\Petition;
 use App\Models\PetitionCategory;
+use App\QueryBuilders\PetitionQueryBuilder;
 use App\ValueObjects\CalendarDate;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -54,14 +55,17 @@ abstract class PetitionAbstractExcelExport implements WithTitle, WithMapping, Wi
      */
     public function query(): Builder
     {
-        return QueryBuilder::for(Petition::class)
+        /** @var PetitionQueryBuilder $petitionQuery */
+        $petitionQuery = QueryBuilder::for(Petition::class)
             ->allowedFilters(
                 AllowedFilter::custom('dateRange', new PetitionStatusHistoryDateRangeFilter())
                     ->default($this->criteria->dateRange),
                 AllowedFilter::custom('petitionType', new PetitionTypeFilter())
                     ->default($this->criteria->petitionType->id),
             )
-            ->getEloquentBuilder()
+            ->getEloquentBuilder();
+
+        return $petitionQuery
             ->with(['customDates']) // Eager load the custom dates relationship
             ->notArchived()
             ->when($this->criteria->petitionCategory instanceof PetitionCategory, function (Builder $query): void {

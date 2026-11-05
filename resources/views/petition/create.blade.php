@@ -1,7 +1,7 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\OptionalFormFieldSetting)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\OptionalFormFieldSetting)
 
-@section('pageTitle', __('petition.create_in') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
+@section ('pageTitle', __('petition.create_in') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
 
 <x-form-layout>
     <x-slot name="header">
@@ -18,10 +18,8 @@
                 action="{{ route(RouteName::DEPARTMENTS_PETITIONS_STORE, ['department' => $department, 'petitionType' => $petitionType]) }}">
                 @csrf
                 <fieldset>
-                    <legend class="form-legend">
-                        {{ __('petition.details') }}
-                    </legend>
-                    @can(Permission::PETITION_NUMBER_OVERRULE->value)
+                    <legend class="form-legend">{{ __('petition.details') }}</legend>
+                    @can (Permission::PETITION_NUMBER_OVERRULE->value)
                         <div class="form-input-group">
                             <x-input-label
                                 for="number"
@@ -93,7 +91,7 @@
                                 @foreach ($petitionCategories as $petitionCategory)
                                     <option
                                         value="{{ $petitionCategory->id }}"
-                                        @selected($petitionCategory->id->toString() === old('petition_category_id'))>
+                                        @selected ($petitionCategory->id->toString() === old('petition_category_id'))>
                                         {{ $petitionCategory->name }}
                                     </option>
                                 @endforeach
@@ -113,7 +111,7 @@
                             @foreach ($teams as $team)
                                 <option
                                     value="{{ $team->id }}"
-                                    @selected($team->id->toString() === old('team_id'))>
+                                    @selected ($team->id->toString() === old('team_id'))>
                                     {{ $team->name }}
                                 </option>
                             @endforeach
@@ -159,9 +157,7 @@
                     </div>
                 </fieldset>
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('general.create') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('general.create') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_INDEX, ['department' => $department]) }}">

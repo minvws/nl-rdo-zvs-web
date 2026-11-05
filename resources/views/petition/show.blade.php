@@ -1,9 +1,9 @@
-@use(App\Enums\Ability)
-@use(App\Enums\RouteName)
-@use(App\Facades\DisplayDate)
-@use(Illuminate\Support\Facades\Crypt)
+@use (App\Enums\Ability)
+@use (App\Enums\RouteName)
+@use (App\Facades\DisplayDate)
+@use (Illuminate\Support\Facades\Crypt)
 
-@section('pageTitle', __('petition.detail_page') . ' ' . $petition->name)
+@section ('pageTitle', __('petition.detail_page') . ' ' . $petition->name)
 
 <x-app-layout>
     <div class="container mt-3">
@@ -27,7 +27,7 @@
                         hx-get="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition]) }}"
                         hx-select=".petition-header__status"
                         hx-swap="innerHTML">
-                        @can(Ability::UPDATE, $petition)
+                        @can (Ability::UPDATE, $petition)
                             <a
                                 class="button button--status-trigger"
                                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_CHANGE_STATUS_EDIT, ['department' => $department, 'petition' => $petition]) }}">
@@ -153,7 +153,7 @@
                                         </a>
                                     </td>
                                     <td>
-                                        @can(Ability::UPDATE, $petition)
+                                        @can (Ability::UPDATE, $petition)
                                             <a
                                                 class="icon-only"
                                                 href="{{
@@ -173,15 +173,13 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3">
-                                        {{ __('decision.no_records') }}
-                                    </td>
+                                    <td colspan="3">{{ __('decision.no_records') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
 
-                    @can(Ability::UPDATE, $petition)
+                    @can (Ability::UPDATE, $petition)
                         <div class="button-container">
                             <a
                                 class="button secondary"
@@ -211,7 +209,7 @@
                         sprintf('Weet u zeker dat u zaak %s wilt loskoppelen van zaak %s?', $relatedPetition->number, $petition->number)
                     ) : null">
                     <x-slot:footer>
-                        @can(Ability::UPDATE, $petition)
+                        @can (Ability::UPDATE, $petition)
                             <div class="button-container">
                                 <a
                                     class="button secondary"
@@ -220,7 +218,7 @@
                                 </a>
                             </div>
                         @endcan
-                    </x-slot>
+                    </x-slot:footer>
                 </x-petition.table>
 
                 <section class="mt-5">
@@ -229,7 +227,7 @@
                         <div
                             class="timeline-actions mb-2"
                             hx-boost="true">
-                            @can(Ability::UPDATE, $petition)
+                            @can (Ability::UPDATE, $petition)
                                 <a
                                     class="button"
                                     href="{{
@@ -264,9 +262,7 @@
                                 hx-target="#timeline-container"
                                 hx-select="#timeline-container"
                                 hx-swap="outerHTML">
-                                <label for="timeline_filter_group">
-                                    {{ __('timeline.filter_by_group') }}
-                                </label>
+                                <label for="timeline_filter_group">{{ __('timeline.filter_by_group') }}</label>
                                 <select
                                     id="timeline_filter_group"
                                     name="timeline_filter_group"

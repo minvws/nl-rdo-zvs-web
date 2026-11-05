@@ -9,6 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Hashing\Hasher;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use MinVWS\AuditLogger\Events\Logging\ResetCredentialsLogEvent;
 use MinVWS\Logging\Laravel\LogService;
@@ -22,7 +23,7 @@ class GenerateApiCredentials extends Command
 {
     public function handle(Hasher $hasher, LogService $logService): int
     {
-        $apiUserId = $this->argument('api_user_id');
+        $apiUserId = Arr::string($this->arguments(), 'api_user_id');
 
         if (!$this->confirm('This command overwrites the current credentials of the API user. Do you wish to continue?')) {
             $this->info('Operation cancelled.');

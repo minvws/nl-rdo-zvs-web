@@ -1,11 +1,11 @@
-@use(App\Enums\RouteName)
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\OptionalFormFieldSetting)
+@use (App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\OptionalFormFieldSetting)
 
-@use(App\Enums\SuspensionType)
-@use(App\Enums\HearingForm)
-@use(App\Enums\ResultType)
-@use(Illuminate\Support\Facades\Lang)
+@use (App\Enums\SuspensionType)
+@use (App\Enums\HearingForm)
+@use (App\Enums\ResultType)
+@use (Illuminate\Support\Facades\Lang)
 
 @php
     $title = Str::ucfirst($selectedType->label($petition->petitionType->type)) . ' ' . Str::lower(__('petition_event.create'));
@@ -14,7 +14,7 @@
     $reasoningRequired = $selectedType->requiresReasoning();
 @endphp
 
-@section('pageTitle', __('petition.create_in') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
+@section ('pageTitle', __('petition.create_in') . ' ' . ActiveDepartment::getActiveDepartment()?->name)
 
 <x-form-layout>
     <x-slot name="header">
@@ -25,9 +25,7 @@
 
     @if ($errors->has('general'))
         @foreach ($errors->get('general') as $error)
-            <div>
-                {{ $error }}
-            </div>
+            <div>{{ $error }}</div>
         @endforeach
     @endif
 
@@ -38,9 +36,7 @@
                 action="{{ route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, ['department' => $department, 'petition' => $petition]) }}">
                 @csrf
                 <fieldset>
-                    <legend class="form-legend">
-                        {{ __('petition_event.details') }}
-                    </legend>
+                    <legend class="form-legend">{{ __('petition_event.details') }}</legend>
 
                     <input
                         type="hidden"
@@ -84,7 +80,7 @@
                                 @foreach (SuspensionType::getForPetitionType($petition->petitionType->type) as $type)
                                     <option
                                         value="{{ $type->value }}"
-                                        @selected(old('suspension_type', $config['suspension_type']->value ?? null) === $type->value)>
+                                        @selected (old('suspension_type', $config['suspension_type']->value ?? null) === $type->value)>
                                         {{ $type->label() }}
                                     </option>
                                 @endforeach
@@ -113,7 +109,7 @@
                                             @foreach ($types as $type)
                                                 <option
                                                     value="{{ $type->value }}"
-                                                    @selected(old('result_type', $config['result_type']->value ?? null) === $type->value)>
+                                                    @selected (old('result_type', $config['result_type']->value ?? null) === $type->value)>
                                                     {{ $resultTypeLabels[$type->value] }}
                                                 </option>
                                             @endforeach
@@ -141,7 +137,7 @@
                                 aria-describedby="reasoning-error"
                                 maxlength="1000"
                                 value="{{ $reasoningValue }}"
-                                @required($reasoningRequired) />
+                                @required ($reasoningRequired) />
                         </div>
                     @endif
 
@@ -163,7 +159,7 @@
                                 @foreach (HearingForm::cases() as $form)
                                     <option
                                         value="{{ $form->value }}"
-                                        @selected(old('hearing_form', $config['hearing_form']->value ?? null) === $form->value)>
+                                        @selected (old('hearing_form', $config['hearing_form']->value ?? null) === $form->value)>
                                         {{ $form->label() }}
                                     </option>
                                 @endforeach
@@ -190,7 +186,7 @@
                                 @foreach ($reasoningSelectEnumClass::cases() as $reason)
                                     <option
                                         value="{{ $reason->value }}"
-                                        @selected(old('reasoning') === $reason->value)>
+                                        @selected (old('reasoning') === $reason->value)>
                                         {{ $reason->label() }}
                                     </option>
                                 @endforeach
@@ -334,9 +330,7 @@
                 </fieldset>
 
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('general.create') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('general.create') }}</x-primary-button>
                     <a
                         class="button secondary"
                         href="{{ route(RouteName::PETITION_EVENTS_WIZARD_STEP, ['department' => $department, 'petition' => $petition]) }}">

@@ -1,13 +1,13 @@
-@use(Illuminate\Support\Facades\Request)
+@use (Illuminate\Support\Facades\Request)
 
-@props([
+@props ([
     "route",
     "icon",
 ])
 
 <li>
     <a
-        @if(Request::getUri()===$route) aria-current="page" @endif
+        @if (Request::getUri()===$route) aria-current="page" @endif
         @foreach ($attributes as $name => $values)
             {{ $name }}="{{ $values }}"
         @endforeach

@@ -1,4 +1,4 @@
-@props([
+@props ([
     'active' => false,
 ])
 
@@ -9,6 +9,6 @@
 
 <a
     {{ $attributes->merge(['class' => $classes]) }}
-    @if($ariaCurrent) aria-current="{{ $ariaCurrent }}" @endif>
+    @if ($ariaCurrent) aria-current="{{ $ariaCurrent }}" @endif>
     {{ $slot }}
 </a>

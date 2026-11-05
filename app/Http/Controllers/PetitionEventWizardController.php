@@ -11,20 +11,23 @@ use App\Enums\PetitionEventType;
 use App\Enums\ResultType;
 use App\Enums\RouteName;
 use App\Enums\UnspecifiedAdjournmentMode;
+use App\Exception\PetitionEventDeletionException;
 use App\Factories\WizardEventCollectionFactory;
 use App\Http\Requests\PetitionEvent\AddPetitionEventRequest;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Services\PetitionEvent\PetitionEventDeletionService;
 use App\Services\PetitionEvent\PetitionEventsStorage;
-use App\Services\PetitionEvent\PetitionEventTermService;
 use App\Services\PetitionEventAvailabilityService;
 use App\ValueObjects\WizardEventCollection;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Ramsey\Uuid\Uuid;
 use Throwable;
 use Webmozart\Assert\Assert;
 
+use function __;
 use function abort_unless;
 use function array_filter;
 use function array_values;
@@ -38,7 +41,7 @@ final readonly class PetitionEventWizardController
         private Factory $view,
         private PetitionEventAvailabilityService $availabilityService,
         private DepartmentConfigurationService $configurationService,
-        private PetitionEventTermService $termService,
+        private PetitionEventDeletionService $deletionService,
     ) {
     }
 
@@ -61,10 +64,6 @@ final readonly class PetitionEventWizardController
         $viewData = [
             'petition' => $petition,
             'events' => $events,
-            'termTexts' => $this->termService->termTexts(
-                $events,
-                $this->configurationService->unspecifiedAdjournmentMode($department),
-            ),
             'availableTypes' => $availableTypes,
         ];
 
@@ -103,19 +102,24 @@ final readonly class PetitionEventWizardController
         ]);
     }
 
-    public function deleteLast(Department $department, Petition $petition): RedirectResponse
+    public function delete(Department $department, Petition $petition, string $event): RedirectResponse
     {
-        $events = $this->eventsStorage->getWizardEvents($petition) ?? WizardEventCollection::make();
-
-        if (!$events->isEmpty()) {
-            $events = $events->removeLast();
-            $this->eventsStorage->setWizardEvents($petition, $events);
-        }
-
-        return to_route(RouteName::PETITION_EVENTS_WIZARD_STEP, [
+        $redirect = to_route(RouteName::PETITION_EVENTS_WIZARD_STEP, [
             'department' => $department,
             'petition' => $petition,
         ]);
+
+        try {
+            $this->deletionService->delete(
+                $petition,
+                Uuid::fromString($event),
+                $this->configurationService->unspecifiedAdjournmentMode($department),
+            );
+        } catch (PetitionEventDeletionException) {
+            return $redirect->withErrors(['delete' => __('term.delete_event_failed')]);
+        }
+
+        return $redirect;
     }
 
     /**

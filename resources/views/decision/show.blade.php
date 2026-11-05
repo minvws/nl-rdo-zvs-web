@@ -1,9 +1,9 @@
-@use(App\Enums\Ability)
-@use(App\Enums\RouteName)
-@use(App\Enums\Authorization\Permission)
-@use(Illuminate\Support\Facades\Crypt)
+@use (App\Enums\Ability)
+@use (App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (Illuminate\Support\Facades\Crypt)
 
-@section('pageTitle', __('decision.detail_page') . ' ' . $decision->name)
+@section ('pageTitle', __('decision.detail_page') . ' ' . $decision->name)
 
 <x-app-layout>
     <div class="container mt-3">
@@ -40,7 +40,7 @@
                     ) : null">
                     >
                     <x-slot:footer>
-                        @can(Ability::UPDATE, [$decision])
+                        @can (Ability::UPDATE, [$decision])
                             @if ($decision->archived_at === null)
                                 <div class="button-container">
                                     <a
@@ -53,7 +53,7 @@
                                 </div>
                             @endif
                         @endcan
-                    </x-slot>
+                    </x-slot:footer>
                 </x-petition.table>
 
                 <x-decision.processing-step.table
@@ -61,7 +61,7 @@
                     :decision="$decision"
                     :processingSteps="$decision->processingSteps">
                     <x-slot:footer>
-                        @can(Ability::UPDATE, [$decision])
+                        @can (Ability::UPDATE, [$decision])
                             @if ($decision->archived_at === null)
                                 <div class="button-container">
                                     <a
@@ -73,7 +73,7 @@
                                 </div>
                             @endif
                         @endcan
-                    </x-slot>
+                    </x-slot:footer>
                 </x-decision.processing-step.table>
 
                 <section class="mt-5">
@@ -82,7 +82,7 @@
                         <div
                             class="timeline-actions mb-2"
                             hx-boost="true">
-                            @can(Ability::UPDATE, [$decision])
+                            @can (Ability::UPDATE, [$decision])
                                 @if ($decision->archived_at === null)
                                     <a
                                         class="button"
@@ -119,9 +119,7 @@
                                 hx-target="#timeline-container"
                                 hx-select="#timeline-container"
                                 hx-swap="outerHTML">
-                                <label for="timeline_filter_group">
-                                    {{ __('timeline.filter_by_group') }}
-                                </label>
+                                <label for="timeline_filter_group">{{ __('timeline.filter_by_group') }}</label>
                                 <select
                                     id="timeline_filter_group"
                                     name="timeline_filter_group"

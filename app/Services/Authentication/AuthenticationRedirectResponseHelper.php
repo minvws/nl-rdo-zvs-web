@@ -6,11 +6,13 @@ namespace App\Services\Authentication;
 
 use App\Enums\Authorization\Permission;
 use App\Enums\RouteName;
+use App\Facades\ActiveDepartment;
 use App\Services\Authorisation\UserPermissionService;
 
 readonly class AuthenticationRedirectResponseHelper
 {
     public function __construct(
+        private AuthenticationServiceInterface $authenticationService,
         private UserPermissionService $userPermissionService,
     ) {
     }
@@ -51,6 +53,10 @@ readonly class AuthenticationRedirectResponseHelper
      */
     private function currentUserHasAdminPanelViewPermission(): bool
     {
-        return $this->userPermissionService->hasPermissionAsCurrentUserAndActiveDepartment(Permission::ADMIN_PANEL_VIEW);
+        return $this->userPermissionService->hasPermission(
+            Permission::ADMIN_PANEL_VIEW,
+            $this->authenticationService->user(),
+            ActiveDepartment::getActiveDepartment(),
+        );
     }
 }

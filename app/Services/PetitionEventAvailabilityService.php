@@ -43,15 +43,43 @@ readonly class PetitionEventAvailabilityService
         WizardEventCollection $currentEvents,
         UnspecifiedAdjournmentMode $adjournmentMode = UnspecifiedAdjournmentMode::FREEZES_TERMS,
     ): array {
+        return array_values(array_filter(
+            PetitionEventType::cases(),
+            fn(PetitionEventType $eventType): bool => $this->isEventTypeAvailable(
+                $eventType,
+                $type,
+                $currentEvents,
+                $adjournmentMode,
+            ),
+        ));
+    }
+
+    /**
+     * Whether the event type may logically follow the current events
+     */
+    public function isEventTypeAvailable(
+        PetitionEventType $eventType,
+        PetitionVariant $type,
+        WizardEventCollection $currentEvents,
+        UnspecifiedAdjournmentMode $adjournmentMode = UnspecifiedAdjournmentMode::FREEZES_TERMS,
+    ): bool {
         if ($type === PetitionVariant::BEROEP) {
-            return [];
+            return false;
         }
 
         if ($currentEvents->isEmpty()) {
-            return $this->getInitialEventForType($type);
+            return in_array($eventType, $this->getInitialEventForType($type), true);
         }
 
-        return $this->filterAvailableTypes($type, $currentEvents, $adjournmentMode);
+        if (!$eventType->isAvailableFor($type)) {
+            return false;
+        }
+
+        $usedTypes = $currentEvents->all()->map(
+            static fn(PetitionEventData $event) => $event->type->value,
+        )->all();
+
+        return $this->canAddEventType($eventType, $type, $usedTypes, $currentEvents, $adjournmentMode);
     }
 
     /**
@@ -65,37 +93,6 @@ readonly class PetitionEventAvailabilityService
             PetitionVariant::WOO_VERZOEK => [PetitionEventType::PETITION_RECEIVED],
             default => [],
         };
-    }
-
-    /**
-     * @return array<PetitionEventType>
-     */
-    private function filterAvailableTypes(
-        PetitionVariant $petitionType,
-        WizardEventCollection $currentEvents,
-        UnspecifiedAdjournmentMode $adjournmentMode,
-    ): array {
-        $usedTypes = $currentEvents->all()->map(
-            static fn(PetitionEventData $event) => $event->type->value,
-        )->all();
-
-        $allEventTypes = PetitionEventType::cases();
-
-        $availableForType = array_filter(
-            $allEventTypes,
-            static fn(PetitionEventType $eventType): bool => $eventType->isAvailableFor($petitionType),
-        );
-
-        return array_values(array_filter(
-            $availableForType,
-            fn(PetitionEventType $eventType): bool => $this->canAddEventType(
-                $eventType,
-                $petitionType,
-                $usedTypes,
-                $currentEvents,
-                $adjournmentMode,
-            ),
-        ));
     }
 
     /**
@@ -114,19 +111,7 @@ readonly class PetitionEventAvailabilityService
             return false;
         }
 
-        if (!$this->passesOpenStateRules($eventType, $currentEvents)) {
-            return false;
-        }
-
-        if (!$this->passesDeadlineRules($eventType, $currentEvents, $adjournmentMode)) {
-            return false;
-        }
-
-        if (!$this->passesResultTypeFollowUpRules($eventType, $currentEvents)) {
-            return false;
-        }
-
-        if (!$eventType->fitsOpenEvents($currentEvents)) {
+        if (!$this->passesEventStateRules($eventType, $currentEvents, $adjournmentMode)) {
             return false;
         }
 
@@ -136,18 +121,45 @@ readonly class PetitionEventAvailabilityService
             return false;
         }
 
-        $isRepeat = in_array($eventType->value, $usedTypes, true);
-        $requiredLast = $eventType->requiresPrecedingLastEvent($isRepeat);
-
-        if ($requiredLast instanceof PetitionEventType && $currentEvents->last()?->type !== $requiredLast) {
+        if (!$this->passesPrecedingEventRule($eventType, $usedTypes, $currentEvents)) {
             return false;
         }
 
-        if (in_array($eventType, self::MULTIPLE_OCCURRENCE_TYPES, true)) {
-            return true;
-        }
+        return $this->passesOccurrenceRule($eventType, $usedTypes);
+    }
 
-        return !in_array($eventType->value, $usedTypes, true);
+    private function passesEventStateRules(
+        PetitionEventType $eventType,
+        WizardEventCollection $currentEvents,
+        UnspecifiedAdjournmentMode $adjournmentMode,
+    ): bool {
+        return $this->passesOpenStateRules($eventType, $currentEvents)
+            && $this->passesDeadlineRules($eventType, $currentEvents, $adjournmentMode)
+            && $this->passesResultTypeFollowUpRules($eventType, $currentEvents)
+            && $eventType->fitsOpenEvents($currentEvents);
+    }
+
+    /**
+     * @param array<string> $usedTypes
+     */
+    private function passesPrecedingEventRule(
+        PetitionEventType $eventType,
+        array $usedTypes,
+        WizardEventCollection $currentEvents,
+    ): bool {
+        $isRepeat = in_array($eventType->value, $usedTypes, true);
+        $requiredLast = $eventType->requiresPrecedingLastEvent($isRepeat);
+
+        return !$requiredLast instanceof PetitionEventType || $currentEvents->last()?->type === $requiredLast;
+    }
+
+    /**
+     * @param array<string> $usedTypes
+     */
+    private function passesOccurrenceRule(PetitionEventType $eventType, array $usedTypes): bool
+    {
+        return in_array($eventType, self::MULTIPLE_OCCURRENCE_TYPES, true)
+            || !in_array($eventType->value, $usedTypes, true);
     }
 
     /**
@@ -213,10 +225,8 @@ readonly class PetitionEventAvailabilityService
         WizardEventCollection $currentEvents,
         UnspecifiedAdjournmentMode $adjournmentMode,
     ): bool {
-        $hasExpiredDeadline = $this->hasExpiredDeadline($currentEvents, $adjournmentMode);
-
         return match ($eventType) {
-            PetitionEventType::OPINION_OUTSIDE_TERM => $hasExpiredDeadline,
+            PetitionEventType::OPINION_OUTSIDE_TERM => $this->hasExpiredDeadline($currentEvents, $adjournmentMode),
             default => true,
         };
     }

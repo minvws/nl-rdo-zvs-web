@@ -21,11 +21,14 @@ class AttachmentFactory extends Factory
      */
     public function definition(): array
     {
+        /** @var string $fileExtension */
+        $fileExtension = $this->faker->fileExtension();
+
         return [
 
             'disk' => 'uploads',
             'path' => sprintf('/attachments/%s.txt', $this->faker->slug),
-            'name' => sprintf('%s.%s', $this->faker->word(), $this->faker->fileExtension()),
+            'name' => sprintf('%s.%s', $this->faker->word(), $fileExtension),
         ];
     }
 }

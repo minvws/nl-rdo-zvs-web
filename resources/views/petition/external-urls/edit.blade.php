@@ -1,4 +1,4 @@
-@section("pageTitle", __("petition.edit_external_urls"))
+@section ("pageTitle", __("petition.edit_external_urls"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx

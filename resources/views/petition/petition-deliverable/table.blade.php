@@ -24,14 +24,10 @@
                     <th scope="row">
                         {{ __(sprintf('petition_deliverable.petition_deliverable_type.%s', $petitionDeliverable->type->value)) }}
                     </th>
+                    <td>{{ DisplayDate::date($petitionDeliverable->deadline_at) }}</td>
+                    <td>{{ $petitionDeliverable->description }}</td>
                     <td>
-                        {{ DisplayDate::date($petitionDeliverable->deadline_at) }}
-                    </td>
-                    <td>
-                        {{ $petitionDeliverable->description }}
-                    </td>
-                    <td>
-                        @can('update', [$petition])
+                        @can ('update', [$petition])
                             <a
                                 class="icon-only"
                                 href="{{
@@ -53,7 +49,7 @@
                         @endcan
                     </td>
                     <td>
-                        @can('update', [$petition])
+                        @can ('update', [$petition])
                             <a
                                 class="icon-only"
                                 href="{{
@@ -75,9 +71,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">
-                        {{ __('petition_deliverable.no_records') }}
-                    </td>
+                    <td colspan="6">{{ __('petition_deliverable.no_records') }}</td>
                 </tr>
             @endforelse
         </tbody>

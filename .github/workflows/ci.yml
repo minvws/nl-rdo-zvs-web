@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -74,6 +74,9 @@ jobs:
           mkdir -p reports
           vendor/bin/phpstan analyse --error-format=github --no-ansi | tee reports/phpstan.json
 
+      - name: Phpmd
+        run: vendor/bin/phpmd analyze app --format=github --ruleset=./phpmd.xml
+
   test:
     env:
       DB_CONNECTION: pgsql
@@ -91,7 +94,7 @@ jobs:
         ports:
           - 5432/tcp
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     defaults:
       run:
         working-directory: ./
@@ -172,7 +175,7 @@ jobs:
   ci:
     name: CI
     needs: [lint, test]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: always()
     steps:
       - name: Check lint and test results

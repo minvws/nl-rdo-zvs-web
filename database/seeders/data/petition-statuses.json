@@ -4588,5 +4588,45 @@
         "petition_type_id": "019884a4-8f70-7058-8174-37c56f023000",
         "created_at": "2025-12-11 14:20:43+00",
         "updated_at": "2025-12-11 14:20:43+00"
+    },
+    {
+        "id": "eb2a5ef7-8218-48cc-a4b3-e9f0b0714492",
+        "status": "Beantwoorden",
+        "order": 200,
+        "status_group": "pending",
+        "bg_color": "#FFDEEB",
+        "petition_type_id": "c5b3d55c-b5e7-4986-a171-7347258a0de5",
+        "created_at": "2026-10-12 00:00:00+00",
+        "updated_at": "2026-10-12 00:00:00+00"
+    },
+    {
+        "id": "99bb6400-4c9f-48bd-a6d6-b9cc223c4b45",
+        "status": "Doorsturen",
+        "order": 201,
+        "status_group": "pending",
+        "bg_color": "#FCC2D7",
+        "petition_type_id": "c5b3d55c-b5e7-4986-a171-7347258a0de5",
+        "created_at": "2026-10-12 00:00:00+00",
+        "updated_at": "2026-10-12 00:00:00+00"
+    },
+    {
+        "id": "897d7e29-a630-46a7-a653-57ac4b6b06cb",
+        "status": "Doorverwijzen",
+        "order": 202,
+        "status_group": "pending",
+        "bg_color": "#FAA2C1",
+        "petition_type_id": "c5b3d55c-b5e7-4986-a171-7347258a0de5",
+        "created_at": "2026-10-12 00:00:00+00",
+        "updated_at": "2026-10-12 00:00:00+00"
+    },
+    {
+        "id": "788272ce-830d-4fec-a3ac-dbac67371658",
+        "status": "Afgehandeld",
+        "order": 400,
+        "status_group": "closed",
+        "bg_color": "#B2F2BB",
+        "petition_type_id": "c5b3d55c-b5e7-4986-a171-7347258a0de5",
+        "created_at": "2026-10-12 00:00:00+00",
+        "updated_at": "2026-10-12 00:00:00+00"
     }
 ]

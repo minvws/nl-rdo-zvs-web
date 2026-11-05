@@ -1,10 +1,10 @@
-@use(App\Enums\Ability)
-@use(App\Enums\RouteName)
-@use(App\Facades\Authentication)
-@use(App\Facades\Otp)
-@use(App\Enums\Authorization\Permission)
-@use(App\Models\Petition)
-@use(App\Facades\ActiveDepartment)
+@use (App\Enums\Ability)
+@use (App\Enums\RouteName)
+@use (App\Facades\Authentication)
+@use (App\Facades\Otp)
+@use (App\Enums\Authorization\Permission)
+@use (App\Models\Petition)
+@use (App\Facades\ActiveDepartment)
 
 <nav
     aria-label="{{ __('general.main-navigation') }}"
@@ -23,7 +23,7 @@
                         {{ __('petition.model_plural') }}
                     </x-nav-item>
 
-                    @can(Permission::DECISION_READ->value)
+                    @can (Permission::DECISION_READ->value)
                         <x-nav-item
                             :route="departmentRoute(RouteName::DEPARTMENTS_DECISIONS_INDEX)"
                             class="{{  request()->routeIs('departments.decisions.*') ? 'active-parent' : ''  }}">
@@ -31,7 +31,7 @@
                         </x-nav-item>
                     @endcan
 
-                    @can(Permission::CONTACT_READ->value)
+                    @can (Permission::CONTACT_READ->value)
                         <x-nav-item
                             :route="departmentRoute(RouteName::DEPARTMENTS_CONTACTS_INDEX)"
                             class="{{  request()->routeIs('departments.contacts.*') ? 'active-parent' : ''  }}">
@@ -40,7 +40,7 @@
                     @endcan
                 @endif
 
-                @can(Permission::ADMIN_PANEL_VIEW->value)
+                @can (Permission::ADMIN_PANEL_VIEW->value)
                     <x-nav-item
                         :route="route(RouteName::ADMIN_SHOW)"
                         class="{{  request()->routeIs('admin.*') ? 'active-parent' : ''  }}">
@@ -48,7 +48,7 @@
                     </x-nav-item>
                 @endcan
 
-                @can(Permission::PETITION_WRITE->value)
+                @can (Permission::PETITION_WRITE->value)
                     @if (Authentication::user()->hasDepartments() && ActiveDepartment::getActiveDepartment())
                         <x-nav-item
                             :route="departmentRoute(RouteName::DEPARTMENTS_PETITIONS_EXPORTS_INDEX)"

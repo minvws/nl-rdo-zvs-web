@@ -1,4 +1,4 @@
-@section('pageTitle', __('user.create'))
+@section ('pageTitle', __('user.create'))
 <x-form-layout>
     <x-slot name="header">
         <h1>{{ __('user.create') }}</h1>
@@ -55,7 +55,7 @@
                             type="checkbox"
                             name="active"
                             value="1"
-                            @checked(old('active', '1') === '1') />
+                            @checked (old('active', '1') === '1') />
                         <x-input-label
                             for="active"
                             :content="__('user.active')" />
@@ -70,7 +70,7 @@
                                 id="global_role-{{ $globalRole->value }}"
                                 name="global_roles[]"
                                 value="{{ $globalRole->value }}"
-                                @checked(is_array(old('global_roles')) && in_array($globalRole->value, old('global_roles'))) />
+                                @checked (is_array(old('global_roles')) && in_array($globalRole->value, old('global_roles'))) />
                             <x-input-label
                                 for="global_role-{{ $globalRole->value }}"
                                 :content="__('role.global_roles.'.$globalRole->value)" />
@@ -88,7 +88,7 @@
                                     id="department_role-{{ $department->id }}-{{ $departmentRole->value }}"
                                     name="department_roles[{{ $department->id }}][]"
                                     value="{{ $departmentRole->value }}"
-                                    @checked(is_array(old('department_roles')) && array_key_exists($department->id->toString(), old('department_roles')) && in_array($departmentRole->value, old('department_roles')[$department->id->toString()])) />
+                                    @checked (is_array(old('department_roles')) && array_key_exists($department->id->toString(), old('department_roles')) && in_array($departmentRole->value, old('department_roles')[$department->id->toString()])) />
                                 <x-input-label
                                     for="department_role-{{ $department->id }}-{{ $departmentRole->value }}"
                                     :content="__('role.department_roles.'.$departmentRole->value)" />
@@ -97,9 +97,7 @@
                     @endforeach
                 </fieldset>
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('user.create') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('user.create') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::ADMIN_USER_INDEX) }}">

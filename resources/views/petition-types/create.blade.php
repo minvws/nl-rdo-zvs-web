@@ -1,8 +1,8 @@
-@use(App\Enums\PetitionVariant)
-@use(App\Enums\RouteName)
-@use(App\Facades\Form)
+@use (App\Enums\PetitionVariant)
+@use (App\Enums\RouteName)
+@use (App\Facades\Form)
 
-@section('pageTitle', __('petition_type.create'))
+@section ('pageTitle', __('petition_type.create'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -42,7 +42,7 @@
                     @foreach (PetitionVariant::cases() as $type)
                         <option
                             value="{{ $type->value }}"
-                            @selected($type->value === Form::old('type'))>
+                            @selected ($type->value === Form::old('type'))>
                             {{ __('petition_type.' . $type->value) }}
                         </option>
                     @endforeach
@@ -73,13 +73,11 @@
                         id="active"
                         name="active"
                         value="1"
-                        @checked(old('active', true)) />
+                        @checked (old('active', true)) />
                     <label for="active">{{ __('petition_type.active') }}</label>
                 </div>
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('petition_type.create') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('petition_type.create') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::DEPARTMENTS_ADMIN_PETITION_TYPES_INDEX, ['department' => $department]) }}">

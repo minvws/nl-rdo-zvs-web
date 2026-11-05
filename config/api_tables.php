@@ -499,6 +499,7 @@ return [
                 'penalties',
                 'suspension_type',
                 'result_type',
+                'hearing_form',
                 'reasoning',
                 'created_at',
                 'updated_at',

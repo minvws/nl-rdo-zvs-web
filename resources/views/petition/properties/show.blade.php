@@ -1,7 +1,7 @@
-@use(App\Enums\Ability)
-@use(App\Enums\RouteName)
-@use(App\Facades\DisplayDate)
-@use(App\Enums\OptionalFormFieldSetting)
+@use (App\Enums\Ability)
+@use (App\Enums\RouteName)
+@use (App\Facades\DisplayDate)
+@use (App\Enums\OptionalFormFieldSetting)
 @php
     $deadlineNoticeOfDefaultPenaltyPeriodEnd ??= null;
     $deadlineAppealNotTimelyPenaltyPeriodEnd ??= null;
@@ -12,7 +12,7 @@
     hx-target="this">
     <header class="petition-property__header">
         <h2 class="petition-property__title">{{ __('petition.model_singular') }}</h2>
-        @can(Ability::UPDATE, $petition)
+        @can (Ability::UPDATE, $petition)
             <a
                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_EDIT, ['department' => $petition->department->slug, 'petition' => $petition]) }}"
                 class="icon-only petition-property__edit"

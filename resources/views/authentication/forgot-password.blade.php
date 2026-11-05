@@ -1,7 +1,5 @@
 <x-form-layout>
-    <h1 class="visually-hidden">
-        {{ __('authorization.forgot_password.header') }}
-    </h1>
+    <h1 class="visually-hidden">{{ __('authorization.forgot_password.header') }}</h1>
 
     <!-- Session Status -->
     <x-auth-session-status :status="session('status')" />
@@ -30,9 +28,7 @@
         </div>
 
         <div class="button-container">
-            <x-primary-button>
-                {{ __('general.send') }}
-            </x-primary-button>
+            <x-primary-button>{{ __('general.send') }}</x-primary-button>
         </div>
     </form>
 </x-form-layout>

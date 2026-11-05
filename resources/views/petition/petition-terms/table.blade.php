@@ -1,5 +1,5 @@
-@use(App\Enums\TermType)
-@use(App\Facades\DisplayDate)
+@use (App\Enums\TermType)
+@use (App\Facades\DisplayDate)
 
 <section class="mt-5">
     <h2>{{ __('term.model_plural') }}</h2>
@@ -42,39 +42,35 @@
         <tbody>
             @forelse ($petitionTerms as $term)
                 <tr
-                    @class([
+                    @class ([
                         'suspended' => $term->type->value === TermType::SUSPENSION->value,
                         'penalty' => $term->type->value === TermType::PENALTY->value,
                     ])>
                     <th
                         scope="row"
                         title="{{ $term->description }}">
-                        @switch($term->type->value)
-                            @case(TermType::SUSPENSION->value)
+                        @switch ($term->type->value)
+                            @case (TermType::SUSPENSION->value)
                                 <x-tabler-arrow-up
                                     aria-hidden="true"
                                     focusable="false" />
-
                                 @break
-                            @case(TermType::SPECIFIED_ADJOURNMENT->value)
+                            @case (TermType::SPECIFIED_ADJOURNMENT->value)
                                 <x-tabler-arrow-up
                                     aria-hidden="true"
                                     focusable="false" />
-
                                 @break
-                            @case(TermType::PENALTY->value)
+                            @case (TermType::PENALTY->value)
                                 <x-tabler-corner-down-right
                                     aria-hidden="true"
                                     focusable="false" />
-
                                 @break
+
                         @endswitch
                         {{ __('term.term_type.' . $term->type->value) }}
                     </th>
                     <td class="align-right">{{ DisplayDate::date($term->start_date) }}</td>
-                    <td class="align-right">
-                        {{ $term->duration_in_days }}
-                    </td>
+                    <td class="align-right">{{ $term->duration_in_days }}</td>
                     <td class="align-right">{{ $term->end_date ? DisplayDate::date($term->end_date) : '' }}</td>
                     <td class="align-right">
                         @if ($term->penalty_amount_in_euros > 0)
@@ -82,7 +78,7 @@
                         @endif
                     </td>
                     <td>
-                        @can(Permission::PETITION_WRITE->value)
+                        @can (Permission::PETITION_WRITE->value)
                             <a
                                 class="icon-only"
                                 href="{{
@@ -102,7 +98,7 @@
                         @endcan
                     </td>
                     <td>
-                        @can(Permission::PETITION_WRITE->value)
+                        @can (Permission::PETITION_WRITE->value)
                             <a
                                 class="icon-only"
                                 href="{{
@@ -124,22 +120,18 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">
-                        {{ __('term.no_records') }}
-                    </td>
+                    <td colspan="6">{{ __('term.no_records') }}</td>
                 </tr>
             @endforelse
             @if ($draftTerm)
                 <tr class="draft-term">
-                    <th scope="row">
-                        {{ __('draft_term.model_singular') }}
-                    </th>
+                    <th scope="row">{{ __('draft_term.model_singular') }}</th>
                     <td class="align-right">{{ DisplayDate::date($draftTerm->start_date) }}</td>
                     <td class="align-right">-</td>
                     <td class="align-right">-</td>
                     <td class="align-right">&nbsp;</td>
                     <td>
-                        @can(Permission::PETITION_WRITE->value)
+                        @can (Permission::PETITION_WRITE->value)
                             <a
                                 class="icon-only"
                                 href="{{
@@ -160,7 +152,7 @@
                         @endcan
                     </td>
                     <td>
-                        @can('update', [$petition])
+                        @can ('update', [$petition])
                             <a
                                 class="icon-only"
                                 href="{{

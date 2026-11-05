@@ -1,15 +1,13 @@
-@use(App\Enums\Authorization\Permission)
-@use(App\Enums\RouteName)
+@use (App\Enums\Authorization\Permission)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('contact.details') . ' ' . $contact->last_name)
+@section ('pageTitle', __('contact.details') . ' ' . $contact->last_name)
 
 <x-app-layout>
     <x-slot name="header">
         <div class="action-bar">
-            <h1>
-                {{ __('contact.show') }}
-            </h1>
-            @can(Permission::CONTACT_WRITE->value)
+            <h1>{{ __('contact.show') }}</h1>
+            @can (Permission::CONTACT_WRITE->value)
                 <a
                     class="button"
                     href="{{ route(RouteName::DEPARTMENTS_CONTACTS_EDIT, ['department' => $department, 'contact' => $contact]) }}">

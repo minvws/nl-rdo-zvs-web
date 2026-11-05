@@ -32,16 +32,12 @@
                 <td>
                     @foreach ($day->petitionEvents as $event)
                         <div class="{{ $eventClass($event) }}">
-                            <span>
-                                {{ $eventLabel($event) }}
-                            </span>
+                            <span>{{ $eventLabel($event) }}</span>
                         </div>
                     @endforeach
                 </td>
                 <td class="{{ $termClass($day) }}">
-                    <span>
-                        {{ $termText($day) }}
-                    </span>
+                    <span>{{ $termText($day) }}</span>
                 </td>
                 <td class="particularities">
                     <span>{{ $day->isATW ? __('term.is_atw') : '' }}</span>
@@ -50,6 +46,12 @@
                     <span>
                         {{ $day->isOpenUnspecifiedAdjournment ? __('term.is_open_unspecified_adjournment') : '' }}
                     </span>
+                    @foreach ($day->petitionEvents as $event)
+                        @if ($event->hearingForm)
+                            <span>{{ $event->hearingForm->label() }}</span>
+                        @endif
+                    @endforeach
+
                     <span class="today-penalty"></span>
                 </td>
             </tr>

@@ -1,4 +1,4 @@
-@props([
+@props ([
     'content' => null,
     'help_text' => false,
     'required' => false,

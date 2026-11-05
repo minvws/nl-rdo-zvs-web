@@ -1,11 +1,11 @@
-@use(App\Enums\Ability)
-@use(App\Enums\RouteName)
-@use(App\Facades\DisplayDate)
+@use (App\Enums\Ability)
+@use (App\Enums\RouteName)
+@use (App\Facades\DisplayDate)
 
 <div class="petition-property__block">
     <header class="petition-property__header">
         <h2 class="petition-property__title">{{ __('petition_correspondence.correspondence') }}</h2>
-        @can(Ability::UPDATE, $petition)
+        @can (Ability::UPDATE, $petition)
             <a
                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_CORRESPONDENCE_EDIT, ['department' => $petition->department->slug, 'petition' => $petition]) }}"
                 class="icon-only petition-property__edit"
@@ -22,7 +22,7 @@
         @endcan
     </header>
     <div class="petition-property__content">
-        @can(Ability::UPDATE, $petition)
+        @can (Ability::UPDATE, $petition)
             <a
                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_CORRESPONDENCE_INDEX, ['department' => $petition->department->slug, 'petition' => $petition]) }}">
                 {{ __('petition_correspondence.word_templates') }}

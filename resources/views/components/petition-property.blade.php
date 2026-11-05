@@ -1,4 +1,4 @@
-@props([
+@props ([
     'block_title',
     'block_route' => null,
 ])
@@ -14,13 +14,9 @@
                 <x-tabler-settings
                     aria-hidden="true"
                     focusable="false" />
-                <span class="visually-hidden">
-                    {{ __('general.edit') }}
-                </span>
+                <span class="visually-hidden">{{ __('general.edit') }}</span>
             </a>
         @endif
     </header>
-    <div class="petition-property__content">
-        {{ $slot }}
-    </div>
+    <div class="petition-property__content">{{ $slot }}</div>
 </div>

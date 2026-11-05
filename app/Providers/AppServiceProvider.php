@@ -21,6 +21,7 @@ use App\Services\Virusscanner\VirusscannerInterface;
 use App\Services\Virusscanner\VirusscannerManager;
 use App\Support\Str\AddressString;
 use App\Support\Str\Initials;
+use Closure;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -118,7 +119,11 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerStringMacro(string $name, string $abstract): void
     {
-        Str::macro($name, $this->app->make($abstract)());
-        Stringable::macro($name, $this->app->make($abstract)());
+        /** @var callable(): Closure $factory */
+        $factory = $this->app->make($abstract);
+        $macro = $factory();
+
+        Str::macro($name, $macro);
+        Stringable::macro($name, $macro);
     }
 }

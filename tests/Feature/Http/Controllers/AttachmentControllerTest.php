@@ -44,6 +44,26 @@ class AttachmentControllerTest extends FeatureTestCase
             ->assertNotFound();
     }
 
+    public function testDownloadSoftDeletedAttachmentNotFound(): void
+    {
+        $disk = 'uploads';
+
+        Storage::fake($disk);
+        Storage::disk($disk)->put('file.txt', 'foo');
+
+        $attachment = Attachment::factory()->create([
+            'disk' => $disk,
+            'path' => 'file.txt',
+            'name' => 'file.txt',
+        ]);
+        $attachment->delete();
+
+        $user = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($user)
+            ->getByRoute('attachments.download', ['attachment' => $attachment->id])
+            ->assertNotFound();
+    }
+
     public function testDownloadWithInvalidPermission(): void
     {
         $attachment = Attachment::factory()

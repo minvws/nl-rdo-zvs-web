@@ -1,4 +1,4 @@
-@use(App\Enums\ContactCriteria)
+@use (App\Enums\ContactCriteria)
 
 <div class="visually-grouped filters">
     <form

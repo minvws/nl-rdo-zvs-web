@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Services\Authentication;
 
 use App\Enums\RouteName;
+use App\Models\User;
 use App\Services\Authentication\AuthenticationRedirectResponseHelper;
+use App\Services\Authentication\AuthenticationServiceInterface;
 use App\Services\Authorisation\UserPermissionService;
 use Mockery;
 use Mockery\MockInterface;
@@ -15,13 +17,15 @@ class AuthenticationRedirectResponseHelperTest extends TestCase
 {
     private AuthenticationRedirectResponseHelper $helper;
     private MockInterface&UserPermissionService $userPermissionService;
+    private MockInterface&AuthenticationServiceInterface $authenticationService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->userPermissionService = Mockery::mock(UserPermissionService::class);
-        $this->helper = new AuthenticationRedirectResponseHelper($this->userPermissionService);
+        $this->authenticationService = Mockery::mock(AuthenticationServiceInterface::class);
+        $this->helper = new AuthenticationRedirectResponseHelper($this->authenticationService, $this->userPermissionService);
     }
 
     protected function tearDown(): void
@@ -57,8 +61,12 @@ class AuthenticationRedirectResponseHelperTest extends TestCase
             'parameters' => [],
         ];
 
+        $this->authenticationService
+            ->shouldReceive('user')
+            ->once()
+            ->andReturn(new User());
         $this->userPermissionService
-            ->shouldReceive('hasPermissionAsCurrentUserAndActiveDepartment')
+            ->shouldReceive('hasPermission')
             ->once()
             ->andReturn(true);
 
@@ -75,8 +83,12 @@ class AuthenticationRedirectResponseHelperTest extends TestCase
             'parameters' => [],
         ];
 
+        $this->authenticationService
+            ->shouldReceive('user')
+            ->once()
+            ->andReturn(new User());
         $this->userPermissionService
-            ->shouldReceive('hasPermissionAsCurrentUserAndActiveDepartment')
+            ->shouldReceive('hasPermission')
             ->once()
             ->andReturn(false);
 

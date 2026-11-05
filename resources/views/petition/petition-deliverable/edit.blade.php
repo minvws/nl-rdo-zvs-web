@@ -1,4 +1,4 @@
-@section('pageTitle', __('petition_deliverable.edit', ['petition_deliverable_type' => __(sprintf('petition_deliverable.petition_deliverable_type.%s', $petitionDeliverable->type->value))]))
+@section ('pageTitle', __('petition_deliverable.edit', ['petition_deliverable_type' => __(sprintf('petition_deliverable.petition_deliverable_type.%s', $petitionDeliverable->type->value))]))
 
 <x-form-layout>
     <x-slot name="header">

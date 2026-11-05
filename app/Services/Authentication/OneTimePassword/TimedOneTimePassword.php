@@ -41,8 +41,7 @@ class TimedOneTimePassword implements OneTimePasswordInterface
      */
     public function generateQRCodeInline(string $label, string $secret): string
     {
-        $otp = TOTP::createFromSecret($secret);
-        $otp->setLabel($label);
+        $otp = TOTP::createFromSecret($secret)->withLabel($label);
         $url = $otp->getProvisioningUri();
 
         $fill = Fill::uniformColor(new Rgb(255, 255, 255), new Rgb(0, 0, 0));

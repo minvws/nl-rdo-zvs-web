@@ -1,4 +1,4 @@
-@use(App\Facades\DisplayDate)
+@use (App\Facades\DisplayDate)
 <div class="timeline-item timeline-item--occurrence timeline-item--occurrence-status">
     <div class="timeline-item__wrapper">
         <div class="timeline-item__badge">
@@ -17,14 +17,12 @@
                         ])
                     }}
                     @if ($comment)
-                            {{ ' ' }} {{ __('petition.status_changed_with_comment') }} {{ $comment }}
+                        {{ ' ' }} {{ __('petition.status_changed_with_comment') }} {{ $comment }}
                     @endif
                 </p>
             </x-timeline.timeline-header>
             <p class="timeline-item__meta">
-                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }}
-                {{ __('general.by') }}
-                {{ $timelineItem->user->name }}
+                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }} {{ __('general.by') }} {{ $timelineItem->user->name }}
             </p>
         </div>
     </div>

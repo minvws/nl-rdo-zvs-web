@@ -1,4 +1,4 @@
-@use(App\Enums\PetitionEventType)
+@use (App\Enums\PetitionEventType)
 
 <div class="timeline-item timeline-item--occurrence">
     <div class="timeline-item__wrapper">
@@ -31,9 +31,7 @@
             @endif
 
             <p class="timeline-item__meta">
-                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }}
-                {{ __('general.by') }}
-                {{ $timelineItem->user->name }}
+                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }} {{ __('general.by') }} {{ $timelineItem->user->name }}
             </p>
         </div>
     </div>

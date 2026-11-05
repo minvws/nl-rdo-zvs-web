@@ -1,12 +1,12 @@
-@use(App\Enums\Ability)
-@use(App\Enums\RouteName)
+@use (App\Enums\Ability)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('petition.external_urls'))
+@section ('pageTitle', __('petition.external_urls'))
 
 <div class="petition-property__block">
     <header class="petition-property__header">
         <h2 class="petition-property__title">{{ __('petition.external_urls') }}</h2>
-        @can(Ability::UPDATE, $petition)
+        @can (Ability::UPDATE, $petition)
             <a
                 href="{{ route(RouteName::DEPARTMENTS_PETITIONS_EXTERNAL_URLS_EDIT, ['department' => $department, 'petition' => $petition]) }}"
                 class="icon-only petition-property__edit"

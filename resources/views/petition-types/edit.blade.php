@@ -1,7 +1,7 @@
-@use(App\Facades\Form)
-@use(App\Enums\RouteName)
+@use (App\Facades\Form)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('petition_type.edit'))
+@section ('pageTitle', __('petition_type.edit'))
 
 <x-form-layout>
     <x-slot name="header">
@@ -69,14 +69,12 @@
                         id="active"
                         name="active"
                         value="1"
-                        @checked(Form::old('active', $petitionType->active)) />
+                        @checked (Form::old('active', $petitionType->active)) />
                     <label for="active">{{ __('petition_type.active') }}</label>
                 </div>
 
                 <div class="button-container">
-                    <x-primary-button>
-                        {{ __('petition_type.edit') }}
-                    </x-primary-button>
+                    <x-primary-button>{{ __('petition_type.edit') }}</x-primary-button>
                     <a
                         class="button"
                         href="{{ route(RouteName::DEPARTMENTS_ADMIN_PETITION_TYPES_INDEX, ['department' => $department]) }}">

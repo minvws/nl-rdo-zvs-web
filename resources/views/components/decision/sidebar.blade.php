@@ -1,5 +1,5 @@
-@use(App\Enums\Ability)
-@use(App\Enums\RouteName)
+@use (App\Enums\Ability)
+@use (App\Enums\RouteName)
 
 <div
     class="decision-sidebar"
@@ -8,10 +8,10 @@
         id="properties-block"
         class="decision-edit"
         data-throw-petition-refresh="header">
-        @include('decision.properties.show', ['decision' => $decision])
+        @include ('decision.properties.show', ['decision' => $decision])
     </div>
 
-    @can(Ability::UPDATE, $decision)
+    @can (Ability::UPDATE, $decision)
         @if ($decision->archived_at === null)
             <div class="decision-edit">
                 <a
@@ -29,7 +29,7 @@
         @endif
     @endcan
 
-    @can(Ability::UNARCHIVE, $decision)
+    @can (Ability::UNARCHIVE, $decision)
         @if ($decision->archived_at !== null)
             <div class="decision-edit">
                 <a

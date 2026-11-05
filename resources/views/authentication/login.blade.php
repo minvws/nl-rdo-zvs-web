@@ -1,6 +1,6 @@
-@use(App\Enums\RouteName)
+@use (App\Enums\RouteName)
 
-@section('pageTitle', __('authentication.login'))
+@section ('pageTitle', __('authentication.login'))
 
 <x-form-layout>
     <!-- Session Status -->
@@ -15,9 +15,7 @@
         <fieldset>
             <legend class="visually-hidden">{{ __('authentication.data') }}</legend>
             @if ($errors->has('authentication'))
-                <x-notification type="danger">
-                    {!! $errors->get('authentication')[0] !!}
-                </x-notification>
+                <x-notification type="danger">{!! $errors->get('authentication')[0] !!}</x-notification>
             @endif
 
             <div>
@@ -67,14 +65,10 @@
             </div>
         </fieldset>
 
-        <a href="{{ route(RouteName::FORGOT_PASSWORD_REQUEST) }}">
-            {{ __('authentication.forgot_password.title') }}
-        </a>
+        <a href="{{ route(RouteName::FORGOT_PASSWORD_REQUEST) }}">{{ __('authentication.forgot_password.title') }}</a>
 
         <div class="button-container">
-            <x-primary-button>
-                {{ __('authentication.login') }}
-            </x-primary-button>
+            <x-primary-button>{{ __('authentication.login') }}</x-primary-button>
         </div>
     </form>
 </x-form-layout>

@@ -1,4 +1,4 @@
-@section("pageTitle", __("petition.edit_custom_date"))
+@section ("pageTitle", __("petition.edit_custom_date"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx

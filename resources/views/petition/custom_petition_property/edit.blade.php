@@ -1,7 +1,7 @@
-@use(App\Enums\CustomPetitionPropertyType)
-@use(App\Enums\RouteName)
+@use (App\Enums\CustomPetitionPropertyType)
+@use (App\Enums\RouteName)
 
-@section("pageTitle", __("exports.export_overview"))
+@section ("pageTitle", __("exports.export_overview"))
 
 <div class="petition-property__block petition-property__block--active">
     @ifHtmx
@@ -35,7 +35,7 @@
             @foreach ($custom_petition_properties as $custom_petition_property)
                 @if ($custom_petition_property->type !== CustomPetitionPropertyType::OPTION)
                     <h3
-                        @class(["form-section__title form-section__title--border" => $custom_petition_property->type === CustomPetitionPropertyType::TITLE])>
+                        @class (["form-section__title form-section__title--border" => $custom_petition_property->type === CustomPetitionPropertyType::TITLE])>
                         {{ $custom_petition_property->name }}
                     </h3>
                 @else
@@ -49,7 +49,7 @@
                             type="checkbox"
                             name="custom_petition_properties[]"
                             value="{{ $custom_petition_property->id }}"
-                            @checked(in_array(
+                            @checked (in_array(
                                 $custom_petition_property->id,
                                 old("custom_petition_properties", $petition_custom_petition_property_ids),
                             )) />
@@ -72,7 +72,7 @@
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_CUSTOM_PETITION_PROPERTY_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                         hx-target="#custom-petition-properties-block"
                         hx-swap="innerHTML"
-                    @else
+                        @else
                         href="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ["department" => $petition->department->slug, "petition" => $petition]) }}"
                     @endifHtmx>
                     {{ __("general.cancel") }}

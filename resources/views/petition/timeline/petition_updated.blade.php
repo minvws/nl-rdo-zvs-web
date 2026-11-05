@@ -1,5 +1,5 @@
-@use(App\Facades\DisplayDate)
-@use(App\ValueObjects\CalendarDate)
+@use (App\Facades\DisplayDate)
+@use (App\ValueObjects\CalendarDate)
 
 <div class="timeline-item timeline-item--occurrence">
     <div class="timeline-item__wrapper">
@@ -26,9 +26,7 @@
                         <br />
                     @endif
 
-                    {{ __(sprintf('petition.date_of_entry.%s', $petition->petitionType->type->value)) }}
-                    :
-                    {{ DisplayDate::date(CalendarDate::createFromFormat('Y-m-d', $timelineItem->data['date_of_entry'])) }}
+                    {{ __(sprintf('petition.date_of_entry.%s', $petition->petitionType->type->value)) }} : {{ DisplayDate::date(CalendarDate::createFromFormat('Y-m-d', $timelineItem->data['date_of_entry'])) }}
                     <br />
                     @if (property_exists($timelineItem->data, 'deadline_override_at'))
                         {{ __('petition.deadline_override_at') }}:
@@ -40,15 +38,13 @@
                     @endif
 
                     @if (property_exists($timelineItem->data, 'description'))
-                            {{ __('petition.description') }}: {{ $timelineItem->data['description'] }}
+                        {{ __('petition.description') }}: {{ $timelineItem->data['description'] }}
                     @endif
                 </p>
             </div>
 
             <p class="timeline-item__meta">
-                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }}
-                {{ __('general.by') }}
-                {{ $timelineItem->user->name }}
+                {{ ucfirst(__('general.on')) }} {{ DisplayDate::sentence($timelineItem->created_at) }} {{ __('general.by') }} {{ $timelineItem->user->name }}
             </p>
         </div>
     </div>
