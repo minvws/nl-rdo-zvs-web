@@ -12,6 +12,7 @@ use App\Validation\Rules\DateMustBeAfterDependencyRule;
 use App\Validation\Rules\DateMustBeInSuspensionRule;
 use App\Validation\Rules\DateMustBeInTermRule;
 use App\Validation\Rules\DateMustBeLatestEventRule;
+use App\Validation\Rules\DateMustBeOnOrAfterDependencyRule;
 use App\Validation\Rules\DateMustNotBeAfterStatutoryTermRule;
 use App\Validation\Rules\DateMustNotBeInSuspensionRule;
 use App\Validation\Rules\DateMustNotBeInTheFutureRule;
@@ -25,6 +26,15 @@ use App\ValueObjects\PetitionEventData;
 
 final class PetitionEventRules
 {
+    /**
+     * Only one of these exists per petition: the start event of the variant that uses the court session
+     * and statement of defence events.
+     */
+    private const array SESSION_DEPENDENCIES = [
+        PetitionEventType::RECEIPT_OF_OPPOSITION,
+        PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING,
+    ];
+
     /**
      * Runs the rules for the event type in order and returns the first failure, or a valid result.
      */
@@ -99,6 +109,8 @@ final class PetitionEventRules
                     PetitionEventType::RECEIPT_OF_OBJECTION,
                     PetitionEventType::PETITION_RECEIVED,
                     PetitionEventType::RECEIPT_OF_COMPLAINT,
+                    PetitionEventType::RECEIPT_OF_OPPOSITION,
+                    PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING,
                 ]),
                 new UniquenessRule(),
             ],
@@ -194,6 +206,20 @@ final class PetitionEventRules
                 new RequiresDependencyRule([PetitionEventType::REFERRED_TO_DEPARTMENT]),
                 new FitsOpenEventsRule(),
                 new DateMustBeLatestEventRule(),
+            ],
+
+            PetitionEventType::RECEIPT_OF_OPPOSITION => [
+                new UniquenessRule(),
+            ],
+
+            PetitionEventType::COURT_SESSION,
+            PetitionEventType::STATEMENT_OF_DEFENCE => [
+                new RequiresDependencyRule(self::SESSION_DEPENDENCIES),
+                new DateMustBeOnOrAfterDependencyRule(self::SESSION_DEPENDENCIES),
+            ],
+
+            PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING => [
+                new UniquenessRule(),
             ],
         };
     }

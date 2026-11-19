@@ -148,6 +148,15 @@ class User extends Authenticatable implements LoggableUser
         return $this->hasMany(UserGlobalRole::class, 'user_id', 'id');
     }
 
+    /**
+     * Queued notifications restore their notifiables keyed by this id, which only works for a string.
+     */
+    #[Override]
+    public function getQueueableId(): string
+    {
+        return $this->id->toString();
+    }
+
     #[Override]
     protected static function booted(): void
     {

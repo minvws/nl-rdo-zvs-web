@@ -11,6 +11,7 @@ use App\Validation\Rules\DateMustNotBeInTheFutureRule;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -59,6 +60,6 @@ class DateMustNotBeInTheFutureRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        return $this->rule->validate($event, $this->createMock(DerivedState::class));
+        return $this->rule->validate($event, Mockery::mock(DerivedState::class));
     }
 }

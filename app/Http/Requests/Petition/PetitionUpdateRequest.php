@@ -74,7 +74,7 @@ class PetitionUpdateRequest extends PetitionCreateRequest
     {
         $overrideDate = $this->input('deadline_override_at');
 
-        if ($overrideDate !== null && $overrideDate !== '') {
+        if ($this->deadlinesEnabled() && $overrideDate !== null && $overrideDate !== '') {
             return;
         }
 
@@ -114,6 +114,14 @@ class PetitionUpdateRequest extends PetitionCreateRequest
         Assert::isInstanceOf($petitionTypeConfiguration[$field], OptionalFormFieldSetting::class);
 
         return $petitionTypeConfiguration[$field]->getValidationRule();
+    }
+
+    private function deadlinesEnabled(): bool
+    {
+        $petition = $this->getRoute()->parameter('petition');
+        Assert::isInstanceOf($petition, Petition::class);
+
+        return Config::boolean(sprintf('petition_variant.%s.petition_deadlines_enabled', $petition->petitionType->type->value));
     }
 
     private function getDepartmentId(): UuidInterface

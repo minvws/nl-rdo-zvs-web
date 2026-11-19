@@ -8,14 +8,15 @@ use App\Events\OtpAuthenticationSuccessEvent;
 use App\Listeners\LogOtpAuthenticationSuccess;
 use App\Models\User;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogOtpAuthenticationSuccessTest extends FeatureTestCase
 {
     public function testLogOtpAuthenticationSuccess(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $data = ['email' => $user->email, 'action' => 'test'];
@@ -27,8 +28,8 @@ class LogOtpAuthenticationSuccessTest extends FeatureTestCase
 
     public function testLogOtpAuthenticationSuccessWithEmptyData(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $event = new OtpAuthenticationSuccessEvent($user);

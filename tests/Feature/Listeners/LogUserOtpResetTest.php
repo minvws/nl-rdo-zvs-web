@@ -8,14 +8,15 @@ use App\Events\UserOtpResetEvent;
 use App\Listeners\LogUserOtpReset;
 use App\Models\User;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogUserOtpResetTest extends FeatureTestCase
 {
     public function testLogUserOtpReset(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $event = new UserOtpResetEvent($user);
@@ -28,8 +29,8 @@ class LogUserOtpResetTest extends FeatureTestCase
     {
         $this->actingAs(User::factory()->make());
 
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $event = new UserOtpResetEvent($user);

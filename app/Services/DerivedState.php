@@ -121,6 +121,8 @@ class DerivedState
                     PetitionEventType::RECEIPT_OF_OBJECTION,
                     PetitionEventType::PETITION_RECEIVED,
                     PetitionEventType::RECEIPT_OF_COMPLAINT,
+                    PetitionEventType::RECEIPT_OF_OPPOSITION,
+                    PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING,
                 ],
                 true,
             ),

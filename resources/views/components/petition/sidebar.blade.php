@@ -117,6 +117,12 @@
             :petitionTerms="$petition->petitionTerms" />
     @endif
 
+    <div
+        id="financial-interest-block"
+        class="petition-edit">
+        @include ('petition.financial-interest.show', ['petition' => $petition])
+    </div>
+
     @can (Ability::UPDATE, $petition)
         <div class="petition-edit">
             <a

@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Services\Decision\DecisionFilterService;
 use App\Services\Decision\DecisionIndexService;
 use App\Services\Timeline\TimelineFilterService;
+use App\Services\Timeline\TimelineNoteAttachmentService;
 use App\View\HtmxHelper;
 use Illuminate\Config\Repository;
 use Illuminate\Container\Attributes\CurrentUser;
@@ -43,6 +44,7 @@ final readonly class DecisionController
         private HtmxHelper $htmxHelper,
         private UrlGenerator $urlGenerator,
         private TimelineFilterService $timelineFilterService,
+        private TimelineNoteAttachmentService $timelineNoteAttachmentService,
         private DecisionFilterService $decisionFilterService,
         private DecisionIndexService $decisionIndexService,
         private Repository $repository,
@@ -99,6 +101,7 @@ final readonly class DecisionController
         return $this->view->make('decision.show', [
             'decision' => $decision,
             'decisionTimelineItems' => $decisionTimelineItems,
+            'noteAttachments' => $this->timelineNoteAttachmentService->getNoteAttachments($decision->timelineItems),
             'timelineFilterGroups' => $timelineFilterGroups,
             'selectedTimelineFilter' => $timelineFilterGroup ?? 'no_selection',
         ]);

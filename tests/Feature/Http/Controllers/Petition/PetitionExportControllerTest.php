@@ -255,6 +255,10 @@ class PetitionExportControllerTest extends FeatureTestCase
             'set 4' => [ExportType::DASHBOARD, PetitionVariant::BEZWAAR],
             'set 5' => [ExportType::INTERNAL, PetitionVariant::BEROEP],
             'set 6' => [ExportType::DASHBOARD, PetitionVariant::BEROEP],
+            'set 7' => [ExportType::INTERNAL, PetitionVariant::VERZET],
+            'set 8' => [ExportType::DASHBOARD, PetitionVariant::VERZET],
+            'set 9' => [ExportType::INTERNAL, PetitionVariant::CIVIELE_PROCEDURE],
+            'set 10' => [ExportType::DASHBOARD, PetitionVariant::CIVIELE_PROCEDURE],
         ];
     }
 

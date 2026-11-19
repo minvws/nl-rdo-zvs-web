@@ -8,16 +8,21 @@ use App\Enums\AssignmentRole;
 use App\Enums\TimelineType;
 use App\Models\Petition;
 use App\Models\User;
-use App\Notifications\PetitionAssigned;
 use App\Repositories\RepositoryTransactionException;
+use App\Services\NotificationRule\NotificationRuleEvaluator;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
+use Illuminate\Support\Facades\Log;
 use Ramsey\Uuid\UuidInterface;
+use Throwable;
+
+use function sprintf;
 
 readonly class PetitionAssignUserAction
 {
     public function __construct(
         private DatabaseManager $databaseManager,
+        private NotificationRuleEvaluator $notificationRuleEvaluator,
     ) {
     }
 
@@ -52,11 +57,26 @@ readonly class PetitionAssignUserAction
                     ['user_id' => $currentAssignedUserId],
                     ['assignment_role' => $assignmentRole],
                 );
-
-                /** @var User $assignedUser */
-                $assignedUser = User::query()->findOrFail($currentAssignedUserId);
-                $assignedUser->notify(new PetitionAssigned($petition));
             },
         );
+
+        if ($assignmentRole === AssignmentRole::PRIMARY) {
+            $this->evaluateNotificationRules($petition);
+        }
+    }
+
+    /**
+     * A new primary assignee gets the notifications that are already due, instead of waiting for the daily job. The
+     * assignment is saved by now, so a failing notification must not fail it; the daily job tries again.
+     */
+    private function evaluateNotificationRules(Petition $petition): void
+    {
+        try {
+            $this->notificationRuleEvaluator->evaluate($petition->refresh());
+        } catch (Throwable $throwable) {
+            Log::error(sprintf('Failed to evaluate notification rules for petition ID: %s', $petition->id), [
+                'exception' => $throwable,
+            ]);
+        }
     }
 }

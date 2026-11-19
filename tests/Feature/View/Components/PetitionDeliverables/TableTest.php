@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\View\Components\PetitionDeliverables;
 
+use App\Config\Config;
 use App\Enums\Authorization\Permission;
+use App\Enums\PetitionVariant;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionType;
 use App\Models\User;
 use App\View\Components\Petition\PetitionDeliverables\Table;
 use Illuminate\Contracts\View\View;
@@ -84,6 +87,26 @@ class TableTest extends FeatureTestCase
             ],
             $petition,
         );
+
+        $this->assertNull($component->render());
+    }
+
+    public function testVerzetShowsNoDeadlines(): void
+    {
+        $petitionType = PetitionType::factory()->create(['type' => PetitionVariant::VERZET]);
+        $petition = Petition::factory()->for($petitionType)->create();
+
+        $component = new Table(Config::array('petition_variant'), $petition);
+
+        $this->assertNull($component->render());
+    }
+
+    public function testCivieleProcedureShowsNoDeadlines(): void
+    {
+        $petitionType = PetitionType::factory()->create(['type' => PetitionVariant::CIVIELE_PROCEDURE]);
+        $petition = Petition::factory()->for($petitionType)->create();
+
+        $component = new Table(Config::array('petition_variant'), $petition);
 
         $this->assertNull($component->render());
     }

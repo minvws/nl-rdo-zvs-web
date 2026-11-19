@@ -10,6 +10,7 @@ use App\Http\Controllers\Decision\DecisionArchiveController;
 use App\Http\Controllers\Decision\DecisionUnarchiveController;
 use App\Http\Controllers\DecisionController;
 use App\Http\Controllers\DecisionPetitionAttachController;
+use App\Http\Controllers\Petition\NotificationRuleController;
 use App\Http\Controllers\Petition\PetitionCategoryController;
 use App\Http\Controllers\Petition\PetitionContactController;
 use App\Http\Controllers\Petition\PetitionCreateController;
@@ -110,6 +111,28 @@ Route::prefix('/admin')->group(static function (): void {
             ->middleware('can:' . Permission::TAG_WRITE->value)
             ->name(RouteName::DEPARTMENTS_ADMIN_TAGS_DELETE);
     });
+
+    Route::prefix('/notification-rules')
+        ->middleware('can:' . Permission::NOTIFICATION_RULE_WRITE->value)
+        ->group(static function (): void {
+            Route::get('/', [NotificationRuleController::class, 'index'])
+                ->name(RouteName::DEPARTMENTS_ADMIN_NOTIFICATION_RULES_INDEX);
+            Route::post('/preview', [NotificationRuleController::class, 'preview'])
+                ->name(RouteName::DEPARTMENTS_ADMIN_NOTIFICATION_RULES_PREVIEW);
+            Route::prefix('/create')->group(static function (): void {
+                Route::get('/', [NotificationRuleController::class, 'create'])
+                    ->name(RouteName::DEPARTMENTS_ADMIN_NOTIFICATION_RULES_CREATE);
+                Route::post('/', [NotificationRuleController::class, 'store']);
+            });
+            Route::prefix('/{notificationRule}/edit')->scopeBindings()->group(static function (): void {
+                Route::get('/', [NotificationRuleController::class, 'edit'])
+                    ->name(RouteName::DEPARTMENTS_ADMIN_NOTIFICATION_RULES_EDIT);
+                Route::post('/', [NotificationRuleController::class, 'update']);
+            });
+            Route::delete('/{notificationRule}', [NotificationRuleController::class, 'delete'])
+                ->scopeBindings()
+                ->name(RouteName::DEPARTMENTS_ADMIN_NOTIFICATION_RULES_DELETE);
+        });
 });
 
 Route::prefix('/contacts')->group(static function (): void {

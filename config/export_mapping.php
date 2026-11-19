@@ -13,6 +13,22 @@ return [
             'Kennelijk niet-ontvankelijk' => 'Niet ontvankelijk',
         ],
     ],
+    PetitionVariant::VERZET->value => [
+        'decision_options' => [
+            'Gegrond' => 'Deels gegrond',
+            'Ongegrond' => 'Niet gegrond',
+            'Niet-ontvankelijk' => 'Niet ontvankelijk',
+            'Kennelijk niet-ontvankelijk' => 'Niet ontvankelijk',
+        ],
+    ],
+    PetitionVariant::CIVIELE_PROCEDURE->value => [
+        'decision_options' => [
+            'Gegrond' => 'Deels gegrond',
+            'Ongegrond' => 'Niet gegrond',
+            'Niet-ontvankelijk' => 'Niet ontvankelijk',
+            'Kennelijk niet-ontvankelijk' => 'Niet ontvankelijk',
+        ],
+    ],
     PetitionVariant::BEZWAAR->value => [
         'term_options' => [
             'Binnen wettelijke termijn' => 'Binnen wettelijke termijn',

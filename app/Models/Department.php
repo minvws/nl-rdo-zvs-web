@@ -76,6 +76,14 @@ class Department extends EloquentModel
     }
 
     /**
+     * @return HasMany<NotificationRule, $this>
+     */
+    public function notificationRules(): HasMany
+    {
+        return $this->hasMany(NotificationRule::class);
+    }
+
+    /**
      * @return HasMany<PetitionType, $this>
      */
     public function petitionTypes(): HasMany

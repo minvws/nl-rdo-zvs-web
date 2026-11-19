@@ -26,6 +26,35 @@
   grid-template-columns: 3fr 1fr;
 }
 
+.input-with-unit {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+
+  input {
+    max-width: 8rem;
+  }
+}
+
+// Space the legend, hint and radio buttons of a fieldset like the label, hint and input of a field
+.notification-rule-form > fieldset {
+  legend {
+    padding: 0;
+    margin-block-end: 0.5rem;
+  }
+
+  .form-legend__help {
+    margin-block: 0 0.5rem;
+  }
+}
+
+// A notification on the anchor date itself has no number of days
+.notification-rule-form:has(input[name="timing"][value="on"]:checked) .notification-rule-days {
+  display: none;
+}
+
 .form-input-group {
   margin-bottom: 1rem;
 }
@@ -139,6 +168,19 @@ input[type="date"] {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.radio-group--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: 1.5rem;
+
+  // Manon gives a radio in a fieldset the full width and a bottom margin
+  .radio {
+    display: flex;
+    width: auto;
+    margin: 0;
+  }
 }
 
 .radio {

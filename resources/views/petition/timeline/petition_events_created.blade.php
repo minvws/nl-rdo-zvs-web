@@ -1,5 +1,3 @@
-@use (App\Enums\PetitionEventType)
-
 <div class="timeline-item timeline-item--occurrence">
     <div class="timeline-item__wrapper">
         <div class="timeline-item__badge">
@@ -13,17 +11,20 @@
                 {{ __('petition_event.calendar_changed') }} {{ __('petition_event.events') }}
             </x-timeline.timeline-header>
 
-            @if ($timelineItem->data?->event_types && is_array($timelineItem->data->event_types))
+            @if ($events !== [])
                 <div class="timeline-item__note">
                     <ul>
-                        @foreach ($timelineItem->data->event_types as $eventType)
+                        @foreach ($events as $event)
                             <li>
-                                @php
-                                    $eventType = PetitionEventType::from($eventType);
-                                    $petitionType = $timelineItem->timelineable?->petitionType->type;
-                                @endphp
-
-                                {{ $eventType->label($petitionType) }}
+                                @if ($event->isRemoved())
+                                    <del>{{ $event->type->label($petitionType) }}</del>
+                                    ({{ __('petition_event.removed') }})
+                                @else
+                                    {{ $event->type->label($petitionType) }}
+                                    @if ($event->isAdded())
+                                        ({{ __('petition_event.added') }})
+                                    @endif
+                                @endif
                             </li>
                         @endforeach
                     </ul>

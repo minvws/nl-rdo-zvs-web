@@ -132,6 +132,7 @@ Two things to be aware of:
 | `decision_petition` | `decision_petition` |
 | `categories` | `petition_categories` |
 | `tags` | `tags` |
+| `notification_rules` | `notification_rules` |
 | `contacts` | `contacts` |
 | `terms` | `petition_terms` |
 | `decisions` | `decisions` |
@@ -258,6 +259,29 @@ name, because a department can rename a tag.
 ```bash
 curl -H "Authorization: Bearer TOKEN" \
   "http://localhost/api/v1/petition_tag?tag_id=<tag_id>"
+```
+
+### GET /api/v1/notification_rules
+
+`notification_rules` are the rules each department sets up to notify the primary assignee of a petition a
+number of days before or after an event or the petition deadline.
+
+**Response Fields:**
+- `id` - Rule ID
+- `department_id` - Department the rule belongs to
+- `anchor` - Date the rule counts from (`event_date`, `event_end_date`, `petition_deadline`)
+- `event_type` - Petition event type for the `event_date` and `event_end_date` anchors, otherwise `null`
+- `offset_days` - Calendar days from the anchor: negative is before it, `0` is on it, positive is after it
+- `recipient` - Who receives the notification (`primary_assignee`)
+- `active` - Whether the rule still sends notifications
+- `active_from` - First trigger date the rule sends notifications for
+- `created_at` - Creation timestamp
+- `updated_at` - Update timestamp
+
+**Example Request:**
+```bash
+curl -H "Authorization: Bearer TOKEN" \
+  "http://localhost/api/v1/notification_rules?department_id=<department_id>"
 ```
 
 ## 5. Use the Bruno collection

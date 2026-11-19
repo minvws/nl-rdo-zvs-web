@@ -27,10 +27,7 @@ final readonly class TimelineableNoteDeleteAction
     ): void {
         Assert::same($note->type, TimelineType::NOTE);
 
-        $attachmentIds = $note->data['attachmentIds'] ?? [];
-        Assert::isArray($attachmentIds);
-
-        $attachments = Attachment::query()->whereIn('id', $attachmentIds)->get();
+        $attachments = Attachment::query()->whereIn('id', $note->attachmentIds())->get();
 
         $this->databaseManager->transaction(static function () use ($timelineable, $note, $user, $reason, $attachments): void {
             $timelineable->timelineItems()->create([

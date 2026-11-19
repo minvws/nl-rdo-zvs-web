@@ -11,6 +11,8 @@ use App\Enums\ProcessingStepStatus;
 use App\Enums\RouteName;
 use App\Enums\TimelineFilterGroup;
 use App\Enums\TimelineType;
+use App\Facades\DisplayDate;
+use App\Models\Attachment;
 use App\Models\Decision;
 use App\Models\Department;
 use App\Models\Petition;
@@ -23,9 +25,11 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 use Tests\Helpers\ConfigHelper;
 
+use function __;
 use function array_keys;
 use function config;
 use function route;
+use function sprintf;
 
 class DecisionControllerTest extends FeatureTestCase
 {
@@ -1217,5 +1221,57 @@ class DecisionControllerTest extends FeatureTestCase
 
         $response->assertOk()
             ->assertViewIs('decision.index');
+    }
+
+    public function testShowListsTheFilesOfNotesWithDownloadAndNoteLinks(): void
+    {
+        $department = Department::factory()->create();
+        $decision = Decision::factory()->recycle($department)->create();
+        $attachment = Attachment::factory()->create(['name' => 'advies.pdf']);
+        $note = TimelineItem::factory()->recycle($decision)->create([
+            'type' => TimelineType::NOTE->value,
+            'created_at' => '2026-10-14 09:30:00',
+            'data' => [
+                'comment' => 'Test note comment',
+                'attachmentIds' => [$attachment->id->toString()],
+            ],
+        ]);
+
+        $decisionUrl = route(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
+            'department' => $department,
+            'decision' => $decision,
+        ]);
+
+        $authUser = User::factory()->withPermissions(Permission::DECISION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
+                'department' => $department,
+                'decision' => $decision,
+            ])
+            ->assertOk()
+            ->assertViewHas('noteAttachments')
+            ->assertSeeInOrder([__('attachment.files'), __('general.name'), __('attachment.note_date')])
+            ->assertSee(route('attachments.download', ['attachment' => $attachment]))
+            ->assertSee('advies.pdf')
+            ->assertSee(DisplayDate::date(CalendarDate::createFromFormat('Y-m-d', '2026-10-14')))
+            ->assertSee(sprintf('href="%s#timeline-item-%d"', $decisionUrl, $note->internal_id), false)
+            ->assertSee(sprintf('hx-get="%s"', $decisionUrl), false)
+            ->assertSee(sprintf('hx-push-url="%s#timeline-item-%d"', $decisionUrl, $note->internal_id), false)
+            ->assertDontSee(__('attachment.no_records'));
+    }
+
+    public function testShowSaysThereAreNoFilesWhenNoDecisionNoteHasOne(): void
+    {
+        $department = Department::factory()->create();
+        $decision = Decision::factory()->recycle($department)->create();
+
+        $authUser = User::factory()->withPermissions(Permission::DECISION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_DECISIONS_SHOW, [
+                'department' => $department,
+                'decision' => $decision,
+            ])
+            ->assertOk()
+            ->assertSee(__('attachment.no_records'));
     }
 }

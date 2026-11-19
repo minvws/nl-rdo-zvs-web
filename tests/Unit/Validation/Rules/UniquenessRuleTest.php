@@ -11,6 +11,7 @@ use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -34,8 +35,8 @@ class UniquenessRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection());
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection());
 
         $result = $this->rule->validate($event, $state);
 
@@ -57,8 +58,8 @@ class UniquenessRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent]));
 
         $result = $this->rule->validate($event, $state);
 
@@ -80,8 +81,8 @@ class UniquenessRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent]));
 
         $result = $this->rule->validate($event, $state);
 
@@ -111,8 +112,8 @@ class UniquenessRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent1, $existingEvent2]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent1, $existingEvent2]));
 
         $result = $this->rule->validate($event, $state);
 

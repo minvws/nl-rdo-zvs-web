@@ -18,7 +18,10 @@ use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\DateFormat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Arr;
 use Override;
+
+use function ksort;
 
 /**
  * @property string $id
@@ -47,6 +50,32 @@ class PetitionEvent extends EloquentModel
     public function petition(): BelongsTo
     {
         return $this->belongsTo(Petition::class, 'petition_id', 'id', 'petition');
+    }
+
+    /**
+     * Compares the content of the events, ignoring identity and timestamps, so events can be compared across
+     * saves. Newly added attributes are included automatically.
+     */
+    public function hasSameContentAs(self $other): bool
+    {
+        return $this->contentAttributes() === $other->contentAttributes();
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    private function contentAttributes(): array
+    {
+        // Raw attributes only hold scalars, so they can be compared strictly (unlike cast values such as CalendarDate).
+        $attributes = Arr::except($this->getAttributes(), ['id', 'created_at', 'updated_at']);
+
+        // No penalties can be stored as null or empty list, normalize empty list to null
+        $penalties = $this->penalties;
+        $attributes['penalties'] = $penalties === [] ? null : $penalties;
+
+        ksort($attributes);
+
+        return $attributes;
     }
 
     #[Override]

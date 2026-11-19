@@ -27,6 +27,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\ValueObjects\CalendarDate;
 use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 
 use function count;

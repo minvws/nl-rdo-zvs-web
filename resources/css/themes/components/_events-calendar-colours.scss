@@ -40,6 +40,12 @@ $calendar-colours: (
     "receipt_of_complaint": (
       "default": $receipt,
     ),
+    "receipt_of_opposition": (
+      "default": $receipt,
+    ),
+    "receipt_of_civil_proceeding": (
+      "default": $receipt,
+    ),
     "petition_received": (
       "default": $receipt,
     ),
@@ -94,6 +100,12 @@ $calendar-colours: (
       "default": $referral-event,
     ),
     "answer_received": (
+      "default": $referral-event,
+    ),
+    "court_session": (
+      "default": $referral-event,
+    ),
+    "statement_of_defence": (
       "default": $referral-event,
     ),
     "final_result": (

@@ -88,6 +88,16 @@ enum ResultType: string
                 self::WITHDRAWN,
                 self::OTHER,
             ],
+            PetitionVariant::VERZET => [
+                self::FINAL_DECISION,
+                self::WITHDRAWN,
+                self::OTHER,
+            ],
+            PetitionVariant::CIVIELE_PROCEDURE => [
+                self::FINAL_DECISION,
+                self::WITHDRAWN,
+                self::OTHER,
+            ],
             PetitionVariant::WOO_VERZOEK => [
                 self::FINAL_DECISION,
                 self::FINAL_DECISION_55_REQUEST,

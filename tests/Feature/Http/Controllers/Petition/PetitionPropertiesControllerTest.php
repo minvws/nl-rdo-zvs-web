@@ -6,9 +6,11 @@ namespace Tests\Feature\Http\Controllers\Petition;
 
 use App\Enums\Authorization\Permission;
 use App\Enums\OptionalFormFieldSetting;
+use App\Enums\PetitionVariant;
 use App\Enums\RouteName;
 use App\Models\Department;
 use App\Models\Petition;
+use App\Models\PetitionType;
 use App\Models\User;
 use Tests\Feature\FeatureTestCase;
 use Tests\Helpers\ConfigHelper;
@@ -334,6 +336,117 @@ class PetitionPropertiesControllerTest extends FeatureTestCase
         $petition->refresh();
 
         $this->assertNull($petition->deadline_override_at);
+    }
+
+    public function testEditShowsTheDeadlineOverrideFieldsWhenDeadlinesAreEnabled(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createPetitionSetupOfType(
+            PetitionVariant::BEZWAAR,
+        );
+
+        $this->beUser($user, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_EDIT, [
+                'department' => $department,
+                'petition' => $petition,
+            ])
+            ->assertOk()
+            ->assertSee('name="deadline_override_at"', false)
+            ->assertSee('name="deadline_override_reason"', false);
+    }
+
+    public function testEditHidesTheDeadlineOverrideFieldsWhenDeadlinesAreDisabledForVerzet(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createPetitionSetupOfType(PetitionVariant::VERZET);
+
+        $this->beUser($user, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_EDIT, [
+                'department' => $department,
+                'petition' => $petition,
+            ])
+            ->assertOk()
+            ->assertDontSee('name="deadline_override_at"', false)
+            ->assertDontSee('name="deadline_override_reason"', false);
+    }
+
+    public function testUpdateIgnoresTheDeadlineOverrideWhenDeadlinesAreDisabledForVerzet(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createPetitionSetupOfType(PetitionVariant::VERZET);
+
+        $this->configureOptionalFormFields($petition);
+
+        $this->beUser($user, true, $department)
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_UPDATE, [
+                'department' => $department,
+                'petition' => $petition,
+            ], [
+                'name' => $this->faker->name(),
+                'date_of_entry' => $petition->date_of_entry->format('Y-m-d'),
+                'deadline_override_at' => '2026-06-30',
+                'deadline_override_reason' => 'Afspraak met verzoeker',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $petition->refresh();
+
+        $this->assertNull($petition->deadline_override_at);
+        $this->assertNull($petition->deadline_override_reason);
+    }
+
+    public function testEditHidesTheDeadlineOverrideFieldsWhenDeadlinesAreDisabledForCivieleProcedure(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createPetitionSetupOfType(
+            PetitionVariant::CIVIELE_PROCEDURE,
+        );
+
+        $this->beUser($user, true, $department)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_EDIT, [
+                'department' => $department,
+                'petition' => $petition,
+            ])
+            ->assertOk()
+            ->assertDontSee('name="deadline_override_at"', false)
+            ->assertDontSee('name="deadline_override_reason"', false);
+    }
+
+    public function testUpdateIgnoresTheDeadlineOverrideWhenDeadlinesAreDisabledForCivieleProcedure(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createPetitionSetupOfType(
+            PetitionVariant::CIVIELE_PROCEDURE,
+        );
+
+        $this->configureOptionalFormFields($petition);
+
+        $this->beUser($user, true, $department)
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_PROPERTIES_UPDATE, [
+                'department' => $department,
+                'petition' => $petition,
+            ], [
+                'name' => $this->faker->name(),
+                'date_of_entry' => $petition->date_of_entry->format('Y-m-d'),
+                'deadline_override_at' => '2026-06-30',
+                'deadline_override_reason' => 'Afspraak met verzoeker',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $petition->refresh();
+
+        $this->assertNull($petition->deadline_override_at);
+        $this->assertNull($petition->deadline_override_reason);
+    }
+
+    /**
+     * @return array{department: Department, petition: Petition, user: User}
+     */
+    private function createPetitionSetupOfType(PetitionVariant $variant): array
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => $variant]);
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+        $user = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)->fullyVerified()->create();
+
+        return ['department' => $department, 'petition' => $petition, 'user' => $user];
     }
 
     public function testShowRendersTheOverrideAlongsideTheCalculatedDeadline(): void

@@ -188,6 +188,14 @@ class PetitionTest extends FeatureTestCase
         $appealType = PetitionType::factory()->create(['type' => PetitionVariant::BEROEP]);
         $newAppeal = Petition::factory()->for($appealType)->create();
         $this->assertFalse($newAppeal->isTermEngineConverted());
+
+        $verzetType = PetitionType::factory()->create(['type' => PetitionVariant::VERZET]);
+        $verzet = Petition::factory()->for($verzetType)->create();
+        $this->assertTrue(Petition::query()->findOrFail($verzet->id)->isTermEngineConverted());
+
+        $civieleProcedureType = PetitionType::factory()->create(['type' => PetitionVariant::CIVIELE_PROCEDURE]);
+        $civieleProcedure = Petition::factory()->for($civieleProcedureType)->create();
+        $this->assertTrue(Petition::query()->findOrFail($civieleProcedure->id)->isTermEngineConverted());
     }
 
     #[Test]

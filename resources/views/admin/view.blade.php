@@ -99,6 +99,18 @@
                             {{ __('tag.model_plural') }}
                         </a>
                     @endcan
+
+                    @can (Permission::NOTIFICATION_RULE_WRITE->value)
+                        <a
+                            class="button secondary mt-2"
+                            href="{{
+                                route(RouteName::DEPARTMENTS_ADMIN_NOTIFICATION_RULES_INDEX, [
+                                    'department' => $department,
+                                ])
+                            }}">
+                            {{ __('notification_rule.model_plural') }}
+                        </a>
+                    @endcan
                 </div>
             @endforeach
         </div>

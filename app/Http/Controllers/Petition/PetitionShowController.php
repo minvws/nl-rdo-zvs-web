@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Services\DerivedState;
 use App\Services\Petition\PetitionTimelineService;
 use App\Services\Timeline\TimelineFilterService;
+use App\Services\Timeline\TimelineNoteAttachmentService;
 use App\ValueObjects\CalendarDate;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Contracts\View\Factory;
@@ -33,6 +34,7 @@ final readonly class PetitionShowController
         private Factory $view,
         private PetitionTimelineService $petitionTimelineService,
         private TimelineFilterService $timelineFilterService,
+        private TimelineNoteAttachmentService $timelineNoteAttachmentService,
         private WizardEventCollectionFactory $eventCollectionFactory,
         private DerivedState $derivedState,
         private DepartmentConfigurationService $departmentConfiguration,
@@ -80,6 +82,7 @@ final readonly class PetitionShowController
             'users' => User::query()->active()->get(),
             'user' => $user,
             'petitionTimelineItems' => $petitionTimelineItems,
+            'noteAttachments' => $this->timelineNoteAttachmentService->getNoteAttachments($petition->timelineItems),
             'timelineFilterGroups' => $timelineFilterGroups,
             'selectedTimelineFilter' => $timelineFilterGroup->value ?? 'no_selection',
         ]);

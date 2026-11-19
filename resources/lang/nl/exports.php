@@ -47,6 +47,7 @@ return [
             'hoger_beroep' => 'Hoger beroep',
             'klacht' => 'Klacht',
             'verzet' => 'Verzet',
+            'civiele_procedure' => 'Civiele procedure',
             'voorlopige_voorziening' => 'Voorlopige voorziening',
             'woo_verzoek' => 'Woo-verzoeken',
         ],

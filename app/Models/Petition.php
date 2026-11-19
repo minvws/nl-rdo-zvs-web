@@ -46,6 +46,8 @@ use Kingmaker\Illuminate\Eloquent\Relations\HasBelongsToManySelfRelation;
 use Override;
 use Ramsey\Uuid\UuidInterface;
 
+use function in_array;
+
 /**
  * @property UuidInterface $department_id
  * @property CalendarDate $date_of_entry
@@ -74,6 +76,7 @@ use Ramsey\Uuid\UuidInterface;
  * @property int $total_days_suspended
  * @property int $igs_penalty_today
  * @property int $bnt_penalty_today
+ * @property ?int $amount_in_dispute
  * @property int $igs_forfeited
  * @property int $bnt_forfeited
  * @property int $igs_penalty_maximum
@@ -389,6 +392,11 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
             return true;
         }
 
+        // Verzet and civiele procedure only exist in the term engine V2, there are no V1 terms to fall back on.
+        if (in_array($this->petitionType->type, [PetitionVariant::VERZET, PetitionVariant::CIVIELE_PROCEDURE], true)) {
+            return true;
+        }
+
         if ($this->petitionTerms()->exists()) {
             return false;
         }
@@ -423,6 +431,7 @@ class Petition extends EloquentModel implements DepartmentAwareInterface, Timeli
             'date_of_close' => CalendarDateCast::class,
             'date_appealed_decision' => CalendarDateCast::class,
             'decision_date' => CalendarDateCast::class,
+            'amount_in_dispute' => 'integer',
         ];
     }
 

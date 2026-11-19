@@ -67,6 +67,16 @@ return [
                 'result_type' => ResultType::FINAL_DECISION,
             ],
         ],
+        PetitionVariant::VERZET->value => [
+            PetitionEventType::FINAL_RESULT->value => [
+                'result_type' => ResultType::FINAL_DECISION,
+            ],
+        ],
+        PetitionVariant::CIVIELE_PROCEDURE->value => [
+            PetitionEventType::FINAL_RESULT->value => [
+                'result_type' => ResultType::FINAL_DECISION,
+            ],
+        ],
         PetitionVariant::WOO_VERZOEK->value => [
             PetitionEventType::PETITION_RECEIVED->value => [
                 'duration' => 28,

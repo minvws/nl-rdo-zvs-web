@@ -11,6 +11,8 @@ use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionAssignment;
 use App\Models\User;
+use App\Services\NotificationRule\NotificationRuleEvaluator;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class PetitionAssignedSecondaryUserControllerTest extends FeatureTestCase
@@ -73,6 +75,27 @@ class PetitionAssignedSecondaryUserControllerTest extends FeatureTestCase
         // Now using the assignments() relation
         $secondAssignment = $petition->assignments()->where('assignment_role', AssignmentRole::SECONDARY)->first();
         $this->assertEquals($secondaryUser->id, $secondAssignment?->user_id);
+    }
+
+    public function testUpdateAssignedSecondaryUserDoesNotEvaluateNotificationRules(): void
+    {
+        $evaluator = Mockery::mock(NotificationRuleEvaluator::class);
+        $evaluator->shouldNotReceive('evaluate');
+        $this->app->instance(NotificationRuleEvaluator::class, $evaluator);
+
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $secondaryUser = User::factory()->recycle($department)->create();
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_SECONDARY_UPDATE, [
+                'department' => $department,
+                'petition' => $petition,
+            ], [
+                'user_id' => $secondaryUser->id->toString(),
+            ])
+            ->assertRedirect();
     }
 
     public function testUpdateAssignedSecondaryUserWithHtmx(): void

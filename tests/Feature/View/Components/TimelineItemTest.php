@@ -25,12 +25,15 @@ use App\Models\Tag;
 use App\Models\TimelineItem as TimelineItemModel;
 use App\Models\User;
 use App\View\Components\TimelineItem;
+use Illuminate\Support\Number;
 use Illuminate\Testing\TestComponent;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Feature\FeatureTestCase;
 use Webmozart\Assert\Assert;
 
 use function __;
+use function sprintf;
+use function substr_count;
 
 class TimelineItemTest extends FeatureTestCase
 {
@@ -125,6 +128,22 @@ class TimelineItemTest extends FeatureTestCase
                 Attachment::factory()->create()->id,
             ],
         ]);
+    }
+
+    public function testRenderNoteHasAnchorId(): void
+    {
+        $timelineItem = TimelineItemModel::factory()
+            ->create([
+                'type' => TimelineType::NOTE,
+                'data' => [
+                    'comment' => $this->faker->sentence(),
+                    'attachmentIds' => [],
+                ],
+            ])
+            ->refresh();
+
+        $this->component(TimelineItem::class, ['timelineItem' => $timelineItem])
+            ->assertSee(sprintf('id="timeline-item-%d"', $timelineItem->internal_id), false);
     }
 
     public function testRenderTimelineableCreated(): void
@@ -226,6 +245,32 @@ class TimelineItemTest extends FeatureTestCase
         $component = $this->renderTimelineItem(TimelineType::TAGS_CHANGED, [
             'tag_ids' => [],
         ]);
+
+        $component->assertSee('Activiteit kan niet meer gevonden worden');
+    }
+
+    public function testRenderFinancialInterestUpdated(): void
+    {
+        $component = $this->renderTimelineItem(TimelineType::FINANCIAL_INTEREST_UPDATED, [
+            'amount_in_dispute' => 300_000,
+        ]);
+
+        $component->assertSee(__('timeline.financial_interest_changed', ['amount' => Number::currency(300_000, 'EUR', 'nl', 0)]));
+        $component->assertDontSee('Activiteit kan niet meer gevonden worden');
+    }
+
+    public function testRenderFinancialInterestUpdatedWithoutAmount(): void
+    {
+        $component = $this->renderTimelineItem(TimelineType::FINANCIAL_INTEREST_UPDATED, [
+            'amount_in_dispute' => null,
+        ]);
+
+        $component->assertSee(__('timeline.financial_interest_cleared'));
+    }
+
+    public function testRenderFinancialInterestUpdatedFallsBackOnInvalidData(): void
+    {
+        $component = $this->renderTimelineItem(TimelineType::FINANCIAL_INTEREST_UPDATED, []);
 
         $component->assertSee('Activiteit kan niet meer gevonden worden');
     }
@@ -444,13 +489,49 @@ class TimelineItemTest extends FeatureTestCase
 
     public function testRenderPetitionEventsCreated(): void
     {
-        $this->assertView(TimelineType::PETITION_EVENTS_CREATED, [
-            'event_types' => [
-                'receipt_of_objection',
-                'primary_decision',
+        $html = $this->renderPetitionEventsCreated([
+            'events' => [
+                ['type' => 'receipt_of_objection', 'change' => 'unchanged'],
+                ['type' => 'primary_decision', 'change' => 'added'],
+                ['type' => 'petition_received', 'change' => 'removed'],
             ],
             'count' => 2,
         ]);
+
+        $this->assertStringNotContainsString('Activiteit kan niet meer gevonden worden', $html);
+        $this->assertSame(1, substr_count($html, '(toegevoegd)'));
+        $this->assertSame(1, substr_count($html, '(verwijderd)'));
+        $this->assertSame(1, substr_count($html, '<del>'));
+    }
+
+    public function testRenderPetitionEventsCreatedWithLegacyData(): void
+    {
+        $html = $this->renderPetitionEventsCreated([
+            'event_types' => ['receipt_of_objection', 'primary_decision'],
+            'count' => 2,
+        ]);
+
+        $this->assertStringNotContainsString('Activiteit kan niet meer gevonden worden', $html);
+        $this->assertSame(2, substr_count($html, '<li>'));
+        $this->assertStringNotContainsString('(toegevoegd)', $html);
+        $this->assertStringNotContainsString('(verwijderd)', $html);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderPetitionEventsCreated(array $data): string
+    {
+        $timelineItem = TimelineItemModel::factory()
+            ->create([
+                'timelineable_id' => Petition::factory()->create()->id,
+                'timelineable_type' => 'petition',
+                'type' => TimelineType::PETITION_EVENTS_CREATED,
+                'data' => $data,
+            ])
+            ->refresh();
+
+        return (string) $this->component(TimelineItem::class, ['timelineItem' => $timelineItem])->render();
     }
 
     public function testRenderFallbackOnException(): void

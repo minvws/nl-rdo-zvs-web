@@ -15,6 +15,7 @@ use App\Enums\TermType;
 use App\Enums\TimelineFilterGroup;
 use App\Enums\TimelineType;
 use App\Facades\DisplayDate;
+use App\Models\Attachment;
 use App\Models\Contact;
 use App\Models\Decision;
 use App\Models\Department;
@@ -35,6 +36,8 @@ use function __;
 use function app;
 use function array_keys;
 use function config;
+use function route;
+use function sprintf;
 
 class PetitionShowControllerTest extends FeatureTestCase
 {
@@ -51,6 +54,48 @@ class PetitionShowControllerTest extends FeatureTestCase
             ])
             ->assertOk()
             ->assertViewIs('petition.show');
+    }
+
+    public function testShowHidesAllDeadlinesForVerzet(): void
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::VERZET]);
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition->id,
+            ])
+            ->assertOk()
+            ->assertSee(__('term.days_in_progress'))
+            ->assertDontSee('<dt>' . __('petition.deadline_at') . '</dt>', false)
+            ->assertDontSee(__('petition.deadline_decision_period'))
+            ->assertDontSee(__('petition.deadline_notice_of_default'))
+            ->assertDontSee(__('petition.deadline_appeal_not_timely'))
+            ->assertDontSee(__('petition_deliverable.model_plural'));
+    }
+
+    public function testShowHidesAllDeadlinesForCivieleProcedure(): void
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::CIVIELE_PROCEDURE]);
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition->id,
+            ])
+            ->assertOk()
+            ->assertSee(__('term.days_in_progress'))
+            ->assertDontSee('<dt>' . __('petition.deadline_at') . '</dt>', false)
+            ->assertDontSee(__('petition.deadline_decision_period'))
+            ->assertDontSee(__('petition.deadline_notice_of_default'))
+            ->assertDontSee(__('petition.deadline_appeal_not_timely'))
+            ->assertDontSee(__('petition_deliverable.model_plural'));
     }
 
     public function testShowDisplaysFirstPhoneContactDateOfTheApplicant(): void
@@ -518,5 +563,91 @@ class PetitionShowControllerTest extends FeatureTestCase
         ])
             ->assertOk()
             ->assertDontSee($tagsChangedText);
+    }
+
+    public function testShowListsTheFilesOfNotesWithDownloadAndNoteLinks(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $attachment = Attachment::factory()->create(['name' => 'besluit.pdf']);
+        $note = TimelineItem::factory()->recycle($petition)->create([
+            'type' => TimelineType::NOTE->value,
+            'created_at' => '2026-10-14 09:30:00',
+            'data' => [
+                'comment' => 'Test note comment',
+                'attachmentIds' => [$attachment->id->toString()],
+            ],
+        ]);
+
+        $petitionUrl = route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+            'department' => $department,
+            'petition' => $petition,
+        ]);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition,
+            ])
+            ->assertOk()
+            ->assertViewHas('noteAttachments')
+            ->assertSeeInOrder([__('attachment.files'), __('general.name'), __('attachment.note_date')])
+            ->assertSee(route('attachments.download', ['attachment' => $attachment]))
+            ->assertSee('besluit.pdf')
+            ->assertSee(DisplayDate::date(CalendarDate::createFromFormat('Y-m-d', '2026-10-14')))
+            ->assertSee(sprintf('href="%s#timeline-item-%d"', $petitionUrl, $note->internal_id), false)
+            ->assertSee(sprintf('hx-push-url="%s#timeline-item-%d"', $petitionUrl, $note->internal_id), false)
+            ->assertSee(sprintf('hx-swap="outerHTML show:#timeline-item-%d:top"', $note->internal_id), false)
+            ->assertSee('hx-select-oob="#timeline_filter_group:innerHTML"', false)
+            ->assertSee('hx-select="#note-attachments"', false)
+            ->assertDontSee(__('attachment.no_records'));
+    }
+
+    public function testShowListsNoteFilesWhenTheTimelineIsFilteredOnOtherItems(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $attachment = Attachment::factory()->create(['name' => 'zienswijze.docx']);
+        TimelineItem::factory()->recycle($petition)->create([
+            'type' => TimelineType::NOTE->value,
+            'data' => [
+                'comment' => 'Test note comment',
+                'attachmentIds' => [$attachment->id->toString()],
+            ],
+        ]);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition,
+                'timeline_filter_group' => TimelineFilterGroup::UPDATES->value,
+            ])
+            ->assertOk()
+            ->assertDontSee('Test note comment')
+            ->assertSee('zienswijze.docx');
+    }
+
+    public function testShowSaysThereAreNoFilesWhenNoNoteHasOne(): void
+    {
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        TimelineItem::factory()->recycle($petition)->create([
+            'type' => TimelineType::NOTE->value,
+            'data' => [
+                'comment' => 'Test note comment',
+                'attachmentIds' => [],
+            ],
+        ]);
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_READ)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->getByRoute(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                'department' => $department,
+                'petition' => $petition,
+            ])
+            ->assertOk()
+            ->assertSee(__('attachment.no_records'));
     }
 }

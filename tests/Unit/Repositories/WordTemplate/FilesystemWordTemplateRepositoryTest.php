@@ -10,7 +10,6 @@ use App\Repositories\WordTemplate\WordTemplateNotFoundException;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestCase;
 
 class FilesystemWordTemplateRepositoryTest extends TestCase
@@ -23,7 +22,7 @@ class FilesystemWordTemplateRepositoryTest extends TestCase
         $filename = $this->faker->word();
         $path = $this->faker->word();
 
-        /** @var Filesystem&MockObject $filesystem */
+        /** @var Filesystem&MockInterface $filesystem */
         $filesystem = $this->mock(Filesystem::class, static function (MockInterface $mock) use ($filename, $path): void {
             $mock->expects('exists')
                 ->once()
@@ -52,7 +51,7 @@ class FilesystemWordTemplateRepositoryTest extends TestCase
     #[Test]
     public function testGetByIdWhenConfigNotFound(): void
     {
-        /** @var Filesystem&MockObject $filesystem */
+        /** @var Filesystem&MockInterface $filesystem */
         $filesystem = $this->mock(Filesystem::class);
         $departments = [];
 
@@ -68,7 +67,7 @@ class FilesystemWordTemplateRepositoryTest extends TestCase
         /** @var WordTemplateId $wordTemplateId */
         $wordTemplateId = $this->faker->randomElement(WordTemplateId::cases());
 
-        /** @var Filesystem&MockObject $filesystem */
+        /** @var Filesystem&MockInterface $filesystem */
         $filesystem = $this->mock(Filesystem::class, function (MockInterface $mock): void {
             $mock->expects('exists')
                 ->once()

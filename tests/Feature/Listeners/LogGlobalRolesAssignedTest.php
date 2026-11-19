@@ -8,14 +8,15 @@ use App\Events\GlobalRolesAssignedEvent;
 use App\Listeners\LogGlobalRolesAssigned;
 use App\Models\User;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogGlobalRolesAssignedTest extends FeatureTestCase
 {
     public function testLogGlobalRolesAssigned(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $roles = ['admin', 'moderator'];
@@ -28,8 +29,8 @@ class LogGlobalRolesAssignedTest extends FeatureTestCase
     public function testLogGlobalRolesAssignedWithUser(): void
     {
         $this->actingAs(User::factory()->make());
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $roles = ['admin', 'moderator'];

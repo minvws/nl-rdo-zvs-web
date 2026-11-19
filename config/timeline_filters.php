@@ -12,6 +12,7 @@ return [
             TimelineType::CORRESPONDENCE_UPDATED->value,
             TimelineType::CUSTOM_COST_UPDATED->value,
             TimelineType::EXTERNAL_URL_UPDATED->value,
+            TimelineType::FINANCIAL_INTEREST_UPDATED->value,
             TimelineType::PETITION_CUSTOM_DATES_CHANGED->value,
             TimelineType::PETITION_CUSTOM_PROPERTIES_CHANGED->value,
             TimelineType::PETITION_UPDATED->value,

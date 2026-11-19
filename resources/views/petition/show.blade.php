@@ -221,91 +221,97 @@
                     </x-slot:footer>
                 </x-petition.table>
 
-                <section class="mt-5">
-                    <h2 class="mb-3">{{ __('petition.updates') }}</h2>
-                    <div>
-                        <div
-                            class="timeline-actions mb-2"
-                            hx-boost="true">
-                            @can (Ability::UPDATE, $petition)
-                                <a
-                                    class="button"
-                                    href="{{
-                                        route(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_CREATE, [
-                                            'department' => $department,
-                                            'timelineableType' => $petition->getMorphClass(),
-                                            'timelineable' => $petition->id,
-                                            'url' => Crypt::encryptString(
-                                                route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
-                                                    'department' => $department,
-                                                    'petition' => $petition,
-                                                ]),
-                                            ),
-                                        ])
-                                    }}"
-                                    hx-push-url="false"
-                                    hx-swap="innerHTML"
-                                    hx-target="#notes-block">
-                                    @csrf
-                                    {{ __('petition.note') . ' ' . __('general.add') }}
-                                    <x-tabler-message-dots
-                                        aria-hidden="true"
-                                        focusable="false" />
-                                </a>
-                            @endcan
+                <div class="activity-columns">
+                    <section class="mt-5">
+                        <h2 class="mb-3">{{ __('petition.updates') }}</h2>
+                        <div>
+                            <div
+                                class="timeline-actions mb-2"
+                                hx-boost="true">
+                                @can (Ability::UPDATE, $petition)
+                                    <a
+                                        class="button"
+                                        href="{{
+                                            route(RouteName::DEPARTMENTS_TIMELINEABLE_NOTES_CREATE, [
+                                                'department' => $department,
+                                                'timelineableType' => $petition->getMorphClass(),
+                                                'timelineable' => $petition->id,
+                                                'url' => Crypt::encryptString(
+                                                    route(RouteName::DEPARTMENTS_PETITIONS_SHOW, [
+                                                        'department' => $department,
+                                                        'petition' => $petition,
+                                                    ]),
+                                                ),
+                                            ])
+                                        }}"
+                                        hx-push-url="false"
+                                        hx-swap="innerHTML"
+                                        hx-target="#notes-block">
+                                        @csrf
+                                        {{ __('petition.note') . ' ' . __('general.add') }}
+                                        <x-tabler-message-dots
+                                            aria-hidden="true"
+                                            focusable="false" />
+                                    </a>
+                                @endcan
 
-                            <form
-                                id="filter-form"
-                                data-auto-submit="form"
-                                hx-trigger="change from:select[name='timeline_filter_group']"
-                                hx-get="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition]) }}"
-                                hx-target="#timeline-container"
-                                hx-select="#timeline-container"
-                                hx-swap="outerHTML">
-                                <label for="timeline_filter_group">{{ __('timeline.filter_by_group') }}</label>
-                                <select
-                                    id="timeline_filter_group"
-                                    name="timeline_filter_group"
-                                    class="form-select">
-                                    <option
-                                        value="no_selection"
-                                        {{ $selectedTimelineFilter === 'no_selection' ? 'selected' : '' }}>
-                                        {{ __('timeline.all_timeline_items') }}
-                                    </option>
-                                    @foreach ($timelineFilterGroups as $value => $label)
+                                <form
+                                    id="filter-form"
+                                    data-auto-submit="form"
+                                    hx-trigger="change from:select[name='timeline_filter_group']"
+                                    hx-get="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition]) }}"
+                                    hx-target="#timeline-container"
+                                    hx-select="#timeline-container"
+                                    hx-swap="outerHTML">
+                                    <label for="timeline_filter_group">{{ __('timeline.filter_by_group') }}</label>
+                                    <select
+                                        id="timeline_filter_group"
+                                        name="timeline_filter_group"
+                                        class="form-select">
                                         <option
-                                            value="{{ $value }}"
-                                            {{ $selectedTimelineFilter === $value ? 'selected' : '' }}>
-                                            {{ $label }}
+                                            value="no_selection"
+                                            {{ $selectedTimelineFilter === 'no_selection' ? 'selected' : '' }}>
+                                            {{ __('timeline.all_timeline_items') }}
                                         </option>
-                                    @endforeach
-                                </select>
-                                <button
-                                    formaction="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition]) }}"
-                                    data-auto-submit="submit"
-                                    type="submit"
-                                    method="get">
-                                    {{ __('general.filter_now') }}
-                                </button>
-                            </form>
+                                        @foreach ($timelineFilterGroups as $value => $label)
+                                            <option
+                                                value="{{ $value }}"
+                                                {{ $selectedTimelineFilter === $value ? 'selected' : '' }}>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <button
+                                        formaction="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition]) }}"
+                                        data-auto-submit="submit"
+                                        type="submit"
+                                        method="get">
+                                        {{ __('general.filter_now') }}
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
 
-                    <div id="notes-block"></div>
+                        <div id="notes-block"></div>
 
-                    <div
-                        id="timeline-container"
-                        class="timeline"
-                        hx-trigger="eventPetitionUpdated-timeline from:body"
-                        hx-get="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition]) }}"
-                        hx-select="#timeline-container"
-                        hx-swap="outerHTML"
-                        aria-live="polite">
-                        @foreach ($petitionTimelineItems as $timelineItem)
-                            <x-timeline-item :timelineItem="$timelineItem" />
-                        @endforeach
-                    </div>
-                </section>
+                        <div
+                            id="timeline-container"
+                            class="timeline"
+                            hx-trigger="eventPetitionUpdated-timeline from:body"
+                            hx-get="{{ route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition]) }}"
+                            hx-select="#timeline-container"
+                            hx-swap="outerHTML"
+                            aria-live="polite">
+                            @foreach ($petitionTimelineItems as $timelineItem)
+                                <x-timeline-item :timelineItem="$timelineItem" />
+                            @endforeach
+                        </div>
+                    </section>
+
+                    <x-timeline.note-attachments
+                        :noteAttachments="$noteAttachments"
+                        :timelineableUrl="route(RouteName::DEPARTMENTS_PETITIONS_SHOW, ['department' => $department, 'petition' => $petition])" />
+                </div>
             </div>
 
             <x-petition.sidebar

@@ -33,6 +33,8 @@ readonly class PetitionEventAvailabilityService
         PetitionEventType::HEARING_DATE,
         PetitionEventType::REFERRED_TO_DEPARTMENT,
         PetitionEventType::ANSWER_RECEIVED,
+        PetitionEventType::COURT_SESSION,
+        PetitionEventType::STATEMENT_OF_DEFENCE,
     ];
 
     /**
@@ -91,6 +93,8 @@ readonly class PetitionEventAvailabilityService
             PetitionVariant::BEZWAAR => [PetitionEventType::PRIMARY_DECISION],
             PetitionVariant::KLACHT => [PetitionEventType::RECEIPT_OF_COMPLAINT],
             PetitionVariant::WOO_VERZOEK => [PetitionEventType::PETITION_RECEIVED],
+            PetitionVariant::VERZET => [PetitionEventType::RECEIPT_OF_OPPOSITION],
+            PetitionVariant::CIVIELE_PROCEDURE => [PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING],
             default => [],
         };
     }

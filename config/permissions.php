@@ -23,6 +23,7 @@ return [
             Permission::TEAM_READ->value,
             Permission::TAG_WRITE->value,
             Permission::TAG_READ->value,
+            Permission::NOTIFICATION_RULE_WRITE->value,
             Permission::POLICY_DEPARTMENT_WRITE->value,
             Permission::POLICY_DEPARTMENT_READ->value,
             Permission::ADMIN_PANEL_VIEW->value,

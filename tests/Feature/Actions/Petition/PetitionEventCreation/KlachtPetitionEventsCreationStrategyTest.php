@@ -86,6 +86,6 @@ final class KlachtPetitionEventsCreationStrategyTest extends FeatureTestCase
         $this->assertNotNull($createdItem);
         $this->assertEquals('petition_events_created', $createdItem->type->value);
         $this->assertEquals($user->id, $createdItem->user_id);
-        $this->assertCount(1, $createdItem->data['event_types']);
+        $this->assertCount(1, $createdItem->data['events']);
     }
 }

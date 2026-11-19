@@ -8,14 +8,15 @@ use App\Listeners\LogUserLogout;
 use App\Models\User;
 use Illuminate\Auth\Events\Logout;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogUserLogoutTest extends FeatureTestCase
 {
     public function testLogUserLogout(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $event = new Logout('web', $user);

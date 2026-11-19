@@ -8,14 +8,15 @@ use App\Events\OtpDisabledEvent;
 use App\Listeners\LogOtpDisabled;
 use App\Models\User;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogOtpDisabledTest extends FeatureTestCase
 {
     public function testLogOtpDisabled(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $data = ['email' => $user->email];
@@ -27,8 +28,8 @@ class LogOtpDisabledTest extends FeatureTestCase
 
     public function testLogOtpDisabledWithEmptyData(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $event = new OtpDisabledEvent($user);

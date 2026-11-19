@@ -11,6 +11,7 @@ use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PetitionEventData;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -33,8 +34,8 @@ class RequiresDependencyRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent]));
 
         $result = $rule->validate($event, $state);
 
@@ -52,8 +53,8 @@ class RequiresDependencyRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection());
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection());
 
         $result = $rule->validate($event, $state);
 
@@ -85,8 +86,8 @@ class RequiresDependencyRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent1, $existingEvent2]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent1, $existingEvent2]));
 
         $result = $rule->validate($event, $state);
 
@@ -116,8 +117,8 @@ class RequiresDependencyRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent1, $existingEvent2]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent1, $existingEvent2]));
 
         $result = $rule->validate($event, $state);
 
@@ -145,8 +146,8 @@ class RequiresDependencyRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent]));
 
         $result = $rule->validate($event, $state);
 
@@ -173,8 +174,8 @@ class RequiresDependencyRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent]));
 
         $result = $rule->validate($event, $state);
 
@@ -201,8 +202,8 @@ class RequiresDependencyRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent]));
 
         $result = $rule->validate($event, $state);
 
@@ -229,8 +230,8 @@ class RequiresDependencyRuleTest extends TestCase
             createdAt: CarbonImmutable::now(),
         );
 
-        $state = $this->createMock(DerivedState::class);
-        $state->method('getEvents')->willReturn(new Collection([$existingEvent]));
+        $state = Mockery::mock(DerivedState::class);
+        $state->allows('getEvents')->andReturn(new Collection([$existingEvent]));
 
         $result = $rule->validate($event, $state);
 

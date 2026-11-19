@@ -5,7 +5,6 @@ declare(strict_types=1);
 return [
     'model_singular' => 'notificatie',
     'model_plural' => 'notificaties',
-    'petition_assigned :number' => 'Zaak :number is aan u toegewezen',
     'mark_all_read' => 'Markeer alle als gelezen',
     'all' => 'Alle notificaties',
     'unread' => 'Ongelezen notificaties',

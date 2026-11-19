@@ -30,7 +30,10 @@ Na iedere deployment moeten:
 
 ## Changelog per Tag:
 
-### DEVELOP
+### v1.29.0
+
+- Verwerk migraties in `database/sql` v0.0.54
+- De env-var `NOTIFICATIONS_ENABLED` vervalt en kan worden verwijderd. Notificaties staan altijd aan en worden ook per mail verstuurd, dus controleer de env-var `OUTBOX_SMTP_FROM` en dat de worker en de cron-task draaien
 
 ### v1.28.0
 

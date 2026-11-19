@@ -13,6 +13,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 
 use function __;
+use function route;
 
 class AdminPanelControllerTest extends FeatureTestCase
 {
@@ -80,6 +81,36 @@ class AdminPanelControllerTest extends FeatureTestCase
         $this->beUser($user, true, $department)
             ->getByRoute(RouteName::ADMIN_SHOW)
             ->assertDontSeeText(__($translationKey));
+    }
+
+    /**
+     * The bell in the navigation is also labelled "Notificaties", so the button is recognised by its link.
+     *
+     * @return array<string, array{Permission, bool}>
+     */
+    public static function notificationRulesLinkProvider(): array
+    {
+        return [
+            'permitted' => [Permission::NOTIFICATION_RULE_WRITE, true],
+            'not permitted' => [Permission::TAG_WRITE, false],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('notificationRulesLinkProvider')]
+    public function testNotificationRulesLink(Permission $permission, bool $expectLink): void
+    {
+        $department = Department::factory()->create();
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::ADMIN_PANEL_VIEW, $permission)
+            ->fullyVerified()
+            ->create();
+
+        $link = route(RouteName::DEPARTMENTS_ADMIN_NOTIFICATION_RULES_INDEX, ['department' => $department]);
+        $response = $this->beUser($user, true, $department)->getByRoute(RouteName::ADMIN_SHOW);
+
+        $expectLink ? $response->assertSee($link, false) : $response->assertDontSee($link, false);
     }
 
     public static function permissionsDataProvider(): array

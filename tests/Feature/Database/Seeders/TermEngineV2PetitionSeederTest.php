@@ -119,7 +119,7 @@ class TermEngineV2PetitionSeederTest extends FeatureTestCase
             }
         }
 
-        foreach ([PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK, PetitionVariant::KLACHT] as $variant) {
+        foreach ([PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK, PetitionVariant::KLACHT, PetitionVariant::VERZET, PetitionVariant::CIVIELE_PROCEDURE] as $variant) {
             foreach (ResultType::getForPetitionType($variant) as $resultType) {
                 $this->assertArrayHasKey($resultType->value, $used[$variant->value] ?? [], $variant->value);
             }

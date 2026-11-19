@@ -58,6 +58,7 @@ return [
                 'created_at',
                 'updated_at',
                 'igs_forfeited',
+                'amount_in_dispute',
             ],
             'filterable_fields' => [
                 'created_at',
@@ -162,6 +163,27 @@ return [
                 'updated_at',
             ],
             'filterable_fields' => [
+                'created_at',
+                'updated_at',
+            ],
+        ],
+
+        'notification_rules' => [
+            'table' => 'notification_rules',
+            'fields' => [
+                'id',
+                'department_id',
+                'anchor',
+                'event_type',
+                'offset_days',
+                'recipient',
+                'active',
+                'active_from',
+                'created_at',
+                'updated_at',
+            ],
+            'filterable_fields' => [
+                'department_id',
                 'created_at',
                 'updated_at',
             ],

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console\Commands;
 
-use App\Actions\CustomDates\CustomDatesAdjustAction;
 use App\Enums\CustomDateLabel;
 use App\Models\Department;
 use App\Models\Petition;
 use App\Models\PetitionType;
 use App\Models\PetitionTypeCustomDateLabel;
 use Exception;
+use Illuminate\Database\DatabaseManager;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 
@@ -106,12 +107,9 @@ class CustomDatesAdjustCommandTest extends FeatureTestCase
             ->recycle($petitionType)
             ->create(['date_label' => CustomDateLabel::DATE_PUBLIC_HEARING]);
 
-        $mockAction = $this->createMock(CustomDatesAdjustAction::class);
-        $mockAction->expects($this->once())
-            ->method('execute')
-            ->willThrowException(new Exception('Database error'));
-
-        $this->app->instance(CustomDatesAdjustAction::class, $mockAction);
+        $this->partialMock(DatabaseManager::class, static function (MockInterface $mock): void {
+            $mock->expects('transaction')->andThrow(new Exception('Database error'));
+        });
 
         $this->artisan('app:custom-dates:adjust')
             ->expectsQuestion('Select a Department', $department->id->toString())

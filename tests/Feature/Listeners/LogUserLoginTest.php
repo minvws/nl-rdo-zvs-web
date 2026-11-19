@@ -8,14 +8,15 @@ use App\Listeners\LogUserLogin;
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogUserLoginTest extends FeatureTestCase
 {
     public function testLogUserLogin(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $event = new Login('web', $user, false);

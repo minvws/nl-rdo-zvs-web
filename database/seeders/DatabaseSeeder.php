@@ -75,6 +75,8 @@ class DatabaseSeeder extends Seeder
 
         $this->createWooCustomPetitionProperties();
         $this->createBeroepCustomPetitionProperties();
+        $this->createVerzetCustomPetitionProperties();
+        $this->createCivieleProcedureCustomPetitionProperties();
         $this->createBezwaarCustomPetitionProperties();
 
         $this->call(TermEngineV2PetitionSeeder::class);
@@ -298,6 +300,52 @@ class DatabaseSeeder extends Seeder
         }
     }
 
+    private function createVerzetCustomPetitionProperties(): void
+    {
+        $verzetPetitionTypes = PetitionType::where(['type' => PetitionVariant::VERZET->value])->get();
+
+        foreach ($verzetPetitionTypes as $verzetPetitionType) {
+            CustomPetitionProperty::factory()
+                ->count(10)
+                ->state(new Sequence(
+                    ['type' => CustomPetitionPropertyType::NAME, 'ordering' => 1, 'name' => 'Uitkomst'],
+                    ['type' => CustomPetitionPropertyType::TITLE, 'ordering' => 2, 'name' => 'Uitkomst doorgeven'],
+                    ['type' => CustomPetitionPropertyType::SUBTITLE, 'ordering' => 3, 'name' => 'Uitspraak'],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 4, 'name' => 'Gegrond', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 5, 'name' => 'Ongegrond', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 6, 'name' => 'Intrekking', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 7, 'name' => 'Niet-ontvankelijk', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 8, 'name' => 'Kennelijk niet-ontvankelijk', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 9, 'name' => 'Toegewezen', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 10, 'name' => 'Afgewezen', 'grouping' => 3],
+                ))
+                ->create(['petition_type_id' => $verzetPetitionType->id]);
+        }
+    }
+
+    private function createCivieleProcedureCustomPetitionProperties(): void
+    {
+        $civieleProcedurePetitionTypes = PetitionType::where(['type' => PetitionVariant::CIVIELE_PROCEDURE->value])->get();
+
+        foreach ($civieleProcedurePetitionTypes as $civieleProcedurePetitionType) {
+            CustomPetitionProperty::factory()
+                ->count(10)
+                ->state(new Sequence(
+                    ['type' => CustomPetitionPropertyType::NAME, 'ordering' => 1, 'name' => 'Uitkomst'],
+                    ['type' => CustomPetitionPropertyType::TITLE, 'ordering' => 2, 'name' => 'Uitkomst doorgeven'],
+                    ['type' => CustomPetitionPropertyType::SUBTITLE, 'ordering' => 3, 'name' => 'Uitspraak'],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 4, 'name' => 'Gegrond', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 5, 'name' => 'Ongegrond', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 6, 'name' => 'Intrekking', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 7, 'name' => 'Niet-ontvankelijk', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 8, 'name' => 'Kennelijk niet-ontvankelijk', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 9, 'name' => 'Toegewezen', 'grouping' => 3],
+                    ['type' => CustomPetitionPropertyType::OPTION, 'ordering' => 10, 'name' => 'Afgewezen', 'grouping' => 3],
+                ))
+                ->create(['petition_type_id' => $civieleProcedurePetitionType->id]);
+        }
+    }
+
     private function createBezwaarCustomPetitionProperties(): void
     {
         $bezwaarPetitionTypes = PetitionType::where(['type' => PetitionVariant::BEZWAAR->value])->get();
@@ -358,6 +406,20 @@ class DatabaseSeeder extends Seeder
                 'department_id' => $department->id,
                 'name' => 'Klacht',
                 'type' => PetitionVariant::KLACHT->value,
+            ]));
+        }
+
+        if ($department->slug === 'team-c') {
+            $types->push($this->petitionTypeCreateAction->execute([
+                'department_id' => $department->id,
+                'name' => 'Verzet',
+                'type' => PetitionVariant::VERZET->value,
+            ]));
+
+            $types->push($this->petitionTypeCreateAction->execute([
+                'department_id' => $department->id,
+                'name' => 'Civiele procedure',
+                'type' => PetitionVariant::CIVIELE_PROCEDURE->value,
             ]));
         }
 

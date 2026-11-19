@@ -14,6 +14,8 @@ readonly class PetitionEventCreationStrategyResolver
         private ObjectionPetitionEventsCreationStrategy $bezwaarStrategy,
         private WooVerzoekPetitionEventsCreationStrategy $wooVerzoekStrategy,
         private KlachtPetitionEventsCreationStrategy $klachtStrategy,
+        private VerzetPetitionEventsCreationStrategy $verzetStrategy,
+        private CivieleProcedurePetitionEventsCreationStrategy $civieleProcedureStrategy,
     ) {
     }
 
@@ -24,6 +26,8 @@ readonly class PetitionEventCreationStrategyResolver
             PetitionVariant::BEZWAAR => $this->bezwaarStrategy,
             PetitionVariant::WOO_VERZOEK => $this->wooVerzoekStrategy,
             PetitionVariant::KLACHT => $this->klachtStrategy,
+            PetitionVariant::VERZET => $this->verzetStrategy,
+            PetitionVariant::CIVIELE_PROCEDURE => $this->civieleProcedureStrategy,
         };
     }
 }

@@ -58,6 +58,13 @@ enum RouteName: string
     case DEPARTMENTS_ADMIN_TAGS_EDIT = 'departments.admin.tags.edit';
     case DEPARTMENTS_ADMIN_TAGS_INDEX = 'departments.admin.tags.index';
 
+    // departments.admin.notification_rules
+    case DEPARTMENTS_ADMIN_NOTIFICATION_RULES_CREATE = 'departments.admin.notification-rules.create';
+    case DEPARTMENTS_ADMIN_NOTIFICATION_RULES_DELETE = 'departments.admin.notification-rules.delete';
+    case DEPARTMENTS_ADMIN_NOTIFICATION_RULES_EDIT = 'departments.admin.notification-rules.edit';
+    case DEPARTMENTS_ADMIN_NOTIFICATION_RULES_INDEX = 'departments.admin.notification-rules.index';
+    case DEPARTMENTS_ADMIN_NOTIFICATION_RULES_PREVIEW = 'departments.admin.notification-rules.preview';
+
     // departments.contacts
     case DEPARTMENTS_CONTACTS_INDEX = 'departments.contacts.index';
     case DEPARTMENTS_CONTACTS_INDEX_FILTER = 'departments.contacts.index_filter';
@@ -224,6 +231,11 @@ enum RouteName: string
     case DEPARTMENTS_PETITION_PETITION_ATTACH_FORM = 'departments.petitions.petitions.attach-form';
     case DEPARTMENTS_PETITION_PETITION_ATTACH = 'departments.petitions.petitions.attach';
     case DEPARTMENTS_PETITION_PETITION_DETACH = 'departments.petitions.petitions.detach';
+
+    // departments.petitions.financial-interest
+    case DEPARTMENTS_PETITIONS_FINANCIAL_INTEREST_SHOW = 'departments.petitions.financial-interest.show';
+    case DEPARTMENTS_PETITIONS_FINANCIAL_INTEREST_EDIT = 'departments.petitions.financial-interest.edit';
+    case DEPARTMENTS_PETITIONS_FINANCIAL_INTEREST_UPDATE = 'departments.petitions.financial-interest.update';
 
     // departments.petitions.correspondence
     case DEPARTMENTS_PETITIONS_CORRESPONDENCE_INDEX = 'departments.petitions.correspondence.index';

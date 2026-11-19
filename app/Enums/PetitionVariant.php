@@ -10,4 +10,6 @@ enum PetitionVariant: string
     case BEZWAAR = 'bezwaar';
     case WOO_VERZOEK = 'woo_verzoek';
     case KLACHT = 'klacht';
+    case VERZET = 'verzet';
+    case CIVIELE_PROCEDURE = 'civiele_procedure';
 }

@@ -1,7 +1,9 @@
 @use (App\Enums\Ability)
 @use (Illuminate\Support\Facades\Crypt)
 
-<div class="timeline-item timeline-item--note">
+<div
+    id="timeline-item-{{ $timelineItem->internal_id }}"
+    class="timeline-item timeline-item--note">
     <div class="timeline-item__wrapper">
         <div class="timeline-item__badge">{{ Str::customInitials($timelineItem->user->name) }}</div>
         <div class="timeline-item__content">

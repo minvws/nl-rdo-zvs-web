@@ -14,6 +14,14 @@ return [
         ExternalUrlType::PUBLICATION_PAGE->value,
         ExternalUrlType::DECISION_PAGE->value,
     ],
+    PetitionVariant::VERZET->value => [
+        ExternalUrlType::PUBLICATION_PAGE->value,
+        ExternalUrlType::DECISION_PAGE->value,
+    ],
+    PetitionVariant::CIVIELE_PROCEDURE->value => [
+        ExternalUrlType::PUBLICATION_PAGE->value,
+        ExternalUrlType::DECISION_PAGE->value,
+    ],
     PetitionVariant::BEZWAAR->value => [
         ExternalUrlType::PUBLICATION_PAGE->value,
         ExternalUrlType::DECISION_PAGE->value,

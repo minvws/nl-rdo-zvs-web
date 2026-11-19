@@ -167,7 +167,6 @@ return [
 |--------------------------------------------------------------------------
 */
     'features' => [
-        'notifications' => env('NOTIFICATIONS_ENABLED', false),
         'term_engine_v2' => env('TERM_ENGINE_V2_ENABLED', false),
     ],
 

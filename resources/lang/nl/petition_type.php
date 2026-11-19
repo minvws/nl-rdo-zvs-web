@@ -18,6 +18,7 @@ return [
     'bezwaar' => 'Bezwaar',
     'klacht' => 'Klacht',
     'verzet' => 'Verzet',
+    'civiele_procedure' => 'Civiele procedure',
     'voorlopige_voorziening' => 'Voorlopige voorziening',
     'woo_verzoek' => 'WOO verzoek',
     'petition-type-type' => 'Zaaktype',

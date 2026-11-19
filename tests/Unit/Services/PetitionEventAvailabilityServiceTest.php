@@ -570,6 +570,92 @@ class PetitionEventAvailabilityServiceTest extends TestCase
         $this->assertContains(PetitionEventType::FINAL_RESULT, $availableTypes);
     }
 
+    public function testVerzetOffersOnlySessionAndStatementOfDefenceRepeatedlyInAnyOrder(): void
+    {
+        $currentEvents = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OPPOSITION,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::STATEMENT_OF_DEFENCE,
+                date: CalendarDate::create('2025-01-10'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::COURT_SESSION,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::now(),
+            ));
+
+        $this->assertSame(
+            [PetitionEventType::FINAL_RESULT, PetitionEventType::COURT_SESSION, PetitionEventType::STATEMENT_OF_DEFENCE],
+            $this->service->getAvailableEventTypes(PetitionVariant::VERZET, $currentEvents),
+        );
+    }
+
+    public function testVerzetOffersNothingAfterTheFinalResult(): void
+    {
+        $currentEvents = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OPPOSITION,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::FINAL_RESULT,
+                date: CalendarDate::create('2025-02-01'),
+                createdAt: CarbonImmutable::now(),
+                resultType: ResultType::FINAL_DECISION,
+            ));
+
+        $this->assertSame([], $this->service->getAvailableEventTypes(PetitionVariant::VERZET, $currentEvents));
+    }
+
+    public function testCivieleProcedureOffersOnlySessionAndStatementOfDefenceRepeatedlyInAnyOrder(): void
+    {
+        $currentEvents = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::STATEMENT_OF_DEFENCE,
+                date: CalendarDate::create('2025-01-10'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::COURT_SESSION,
+                date: CalendarDate::create('2025-01-05'),
+                createdAt: CarbonImmutable::now(),
+            ));
+
+        $this->assertSame(
+            [PetitionEventType::FINAL_RESULT, PetitionEventType::COURT_SESSION, PetitionEventType::STATEMENT_OF_DEFENCE],
+            $this->service->getAvailableEventTypes(PetitionVariant::CIVIELE_PROCEDURE, $currentEvents),
+        );
+    }
+
+    public function testCivieleProcedureOffersNothingAfterTheFinalResult(): void
+    {
+        $currentEvents = WizardEventCollection::make()
+            ->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING,
+                date: CalendarDate::create('2025-01-01'),
+                createdAt: CarbonImmutable::now(),
+            ))
+            ->add(new PetitionEventData(
+                type: PetitionEventType::FINAL_RESULT,
+                date: CalendarDate::create('2025-02-01'),
+                createdAt: CarbonImmutable::now(),
+                resultType: ResultType::FINAL_DECISION,
+            ));
+
+        $this->assertSame([], $this->service->getAvailableEventTypes(PetitionVariant::CIVIELE_PROCEDURE, $currentEvents));
+    }
+
     public function testReturnsEmptyArrayForBeroepType(): void
     {
         $currentEvents = WizardEventCollection::make()->add(
@@ -1601,6 +1687,14 @@ class PetitionEventAvailabilityServiceTest extends TestCase
             'klacht starts with its receipt' => [
                 PetitionVariant::KLACHT,
                 [PetitionEventType::RECEIPT_OF_COMPLAINT],
+            ],
+            'verzet starts with its receipt' => [
+                PetitionVariant::VERZET,
+                [PetitionEventType::RECEIPT_OF_OPPOSITION],
+            ],
+            'civiele procedure starts with its receipt' => [
+                PetitionVariant::CIVIELE_PROCEDURE,
+                [PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING],
             ],
             'beroep has no events' => [
                 PetitionVariant::BEROEP,

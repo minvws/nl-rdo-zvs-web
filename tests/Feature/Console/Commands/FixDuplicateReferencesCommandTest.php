@@ -8,6 +8,7 @@ use App\Models\Decision;
 use App\Models\Department;
 use Exception;
 use Illuminate\Database\DatabaseManager;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\FeatureTestCase;
 
@@ -283,12 +284,9 @@ final class FixDuplicateReferencesCommandTest extends FeatureTestCase
             'created_at' => '2025-01-01 10:00:00',
         ]);
 
-        $mockDb = $this->createPartialMock(DatabaseManager::class, ['connection']);
-        $mockDb->method('connection')->willReturnCallback(function (): void {
-            throw new Exception('Database connection failed');
+        $this->partialMock(DatabaseManager::class, static function (MockInterface $mock): void {
+            $mock->expects('connection')->andThrow(new Exception('Database connection failed'));
         });
-
-        $this->app->instance(DatabaseManager::class, $mockDb);
 
         $this->artisan('app:decisions:fix-references')
             ->expectsOutputToContain('Database connection failed')

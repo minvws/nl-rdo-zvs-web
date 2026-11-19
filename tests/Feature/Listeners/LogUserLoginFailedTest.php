@@ -7,14 +7,15 @@ namespace Tests\Feature\Listeners;
 use App\Listeners\LogUserLoginFailed;
 use Illuminate\Auth\Events\Failed;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogUserLoginFailedTest extends FeatureTestCase
 {
     public function testLogUserLoginFailed(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $event = new Failed('web', null, ['email' => 'test@example.com', 'password' => 'wrong']);
 

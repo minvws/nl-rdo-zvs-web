@@ -11,7 +11,6 @@ use App\Services\Petition\WordTemplate\WordTemplateException;
 use App\Services\Petition\WordTemplate\WordTemplateService;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestCase;
 
 class WordTemplateServiceTest extends TestCase
@@ -21,7 +20,7 @@ class WordTemplateServiceTest extends TestCase
     {
         $wordTemplateId = $this->faker->randomElement(WordTemplateId::cases());
 
-        /** @var WordTemplateRepositoryInterface&MockObject $wordTemplateRepository */
+        /** @var WordTemplateRepositoryInterface&MockInterface $wordTemplateRepository */
         $wordTemplateRepository = $this->mock(
             WordTemplateRepositoryInterface::class,
             static function (MockInterface $mock) use ($wordTemplateId): void {
@@ -41,7 +40,7 @@ class WordTemplateServiceTest extends TestCase
     {
         $wordTemplateId = $this->faker->randomElement(WordTemplateId::cases());
 
-        /** @var WordTemplateRepositoryInterface&MockObject $wordTemplateRepository */
+        /** @var WordTemplateRepositoryInterface&MockInterface $wordTemplateRepository */
         $wordTemplateRepository = $this->mock(
             WordTemplateRepositoryInterface::class,
             static function (MockInterface $mock) use ($wordTemplateId): void {

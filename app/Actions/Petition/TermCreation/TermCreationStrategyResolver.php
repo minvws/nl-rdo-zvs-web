@@ -6,6 +6,7 @@ namespace App\Actions\Petition\TermCreation;
 
 use App\Actions\Petition\Contracts\TermCreationStrategyInterface;
 use App\Enums\PetitionVariant;
+use LogicException;
 
 readonly class TermCreationStrategyResolver
 {
@@ -24,6 +25,10 @@ readonly class TermCreationStrategyResolver
             PetitionVariant::BEZWAAR => $this->bezwaarStrategy,
             PetitionVariant::WOO_VERZOEK => $this->wooVerzoekStrategy,
             PetitionVariant::KLACHT => $this->klachtStrategy,
+            PetitionVariant::VERZET => throw new LogicException('Verzet runs on the term engine V2 and has no V1 terms.'),
+            PetitionVariant::CIVIELE_PROCEDURE => throw new LogicException(
+                'Civiele procedure runs on the term engine V2 and has no V1 terms.',
+            ),
         };
     }
 }

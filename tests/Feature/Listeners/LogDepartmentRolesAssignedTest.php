@@ -10,14 +10,15 @@ use App\Models\DepartmentUser;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogDepartmentRolesAssignedTest extends FeatureTestCase
 {
     public function testLogDepartmentRolesAssigned(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $departmentUser = DepartmentUser::factory()->make();
@@ -31,8 +32,8 @@ class LogDepartmentRolesAssignedTest extends FeatureTestCase
     public function testLogDepartmentRolesAssignedWithUser(): void
     {
         $this->actingAs(User::factory()->make());
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $departmentUser = DepartmentUser::factory()->make();

@@ -17,6 +17,29 @@ return [
         ],
         'petition_terms_enabled' => false,
         'petition_deliverables_enabled' => true,
+        'petition_deadlines_enabled' => true,
+    ],
+    PetitionVariant::VERZET->value => [
+        'optional_form_fields' => [
+            'name' => OptionalFormFieldSetting::OPTIONAL,
+            'description' => OptionalFormFieldSetting::OPTIONAL,
+            'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,
+            'petition_category_id' => OptionalFormFieldSetting::REQUIRED,
+        ],
+        'petition_terms_enabled' => false,
+        'petition_deliverables_enabled' => false,
+        'petition_deadlines_enabled' => false,
+    ],
+    PetitionVariant::CIVIELE_PROCEDURE->value => [
+        'optional_form_fields' => [
+            'name' => OptionalFormFieldSetting::OPTIONAL,
+            'description' => OptionalFormFieldSetting::OPTIONAL,
+            'date_appealed_decision' => OptionalFormFieldSetting::EXCLUDED,
+            'petition_category_id' => OptionalFormFieldSetting::REQUIRED,
+        ],
+        'petition_terms_enabled' => false,
+        'petition_deliverables_enabled' => false,
+        'petition_deadlines_enabled' => false,
     ],
     PetitionVariant::BEZWAAR->value => [
         'optional_form_fields' => [
@@ -39,6 +62,7 @@ return [
             TermType::PENALTY,
         ],
         'petition_deliverables_enabled' => false,
+        'petition_deadlines_enabled' => true,
     ],
     PetitionVariant::KLACHT->value => [
         'optional_form_fields' => [
@@ -49,6 +73,7 @@ return [
         ],
         'petition_terms_enabled' => false,
         'petition_deliverables_enabled' => true,
+        'petition_deadlines_enabled' => true,
     ],
     PetitionVariant::WOO_VERZOEK->value => [
         'optional_form_fields' => [
@@ -68,6 +93,7 @@ return [
             TermType::PENALTY,
         ],
         'petition_deliverables_enabled' => false,
+        'petition_deadlines_enabled' => true,
     ],
 
 ];

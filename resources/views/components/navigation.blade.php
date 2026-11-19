@@ -61,20 +61,18 @@
 
             <ul class="actions">
                 <li class="nav-item">
-                    @if (Config::get('app.features.notifications'))
-                        <x-nav-link
-                            class="notification-link"
-                            :href="route(RouteName::NOTIFICATIONS_INDEX)">
-                            <span class="visually-hidden">Notificaties</span>
+                    <x-nav-link
+                        class="notification-link"
+                        :href="route(RouteName::NOTIFICATIONS_INDEX)">
+                        <span class="visually-hidden">Notificaties</span>
 
-                            <x-tabler-bell
-                                class="icon"
-                                aria-hidden="true" />
-                            @if (Authentication::user()->unreadNotifications()->count() > 0)
-                                <span class="badge">{{ Authentication::user()->unreadNotifications()->count() }}</span>
-                            @endif
-                        </x-nav-link>
-                    @endif
+                        <x-tabler-bell
+                            class="icon"
+                            aria-hidden="true" />
+                        @if (Authentication::user()->unreadNotifications()->count() > 0)
+                            <span class="badge">{{ Authentication::user()->unreadNotifications()->count() }}</span>
+                        @endif
+                    </x-nav-link>
                 </li>
                 <li class="nav-item">
                     <x-nav-link

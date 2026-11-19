@@ -7,6 +7,7 @@ namespace App\View\Components;
 use App\Collections\CustomPetitionPropertyCollection;
 use App\Collections\PolicyDepartmentCollection;
 use App\Enums\AssignmentRole;
+use App\Enums\PetitionEventType;
 use App\Enums\TimelineType;
 use App\Models\Attachment;
 use App\Models\Contact;
@@ -18,6 +19,7 @@ use App\Models\PolicyDepartment;
 use App\Models\TimelineItem as TimelineItemModel;
 use App\Models\User;
 use App\ValueObjects\CalendarDate;
+use App\ValueObjects\PetitionEventChangeData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -61,6 +63,7 @@ class TimelineItem extends Component
                 TimelineType::STATUS_OCCURRENCE => $this->renderStatusOccurence(),
                 TimelineType::POLICY_DEPARTMENT_CHANGED => $this->renderPolicyDepartmentChanged(),
                 TimelineType::TAGS_CHANGED => $this->renderTagsChanged(),
+                TimelineType::FINANCIAL_INTEREST_UPDATED => $this->renderFinancialInterestUpdated(),
                 TimelineType::TEAM_CHANGED => $this->renderView('petition.timeline.team_changed'),
                 TimelineType::FINAL_DECISION_SET => $this->renderView('petition.timeline.final_decision_set'),
                 TimelineType::PETITION_CUSTOM_PROPERTIES_CHANGED => $this->renderPetitionCustomPropertiesChanged(),
@@ -81,7 +84,7 @@ class TimelineItem extends Component
                 TimelineType::DECISION_UNARCHIVED => $this->renderView('decision.timeline.decision_unarchived'),
                 TimelineType::EXTERNAL_URL_UPDATED => $this->renderExternalUrlUpdated(),
                 TimelineType::QUERYSNAPSHOT_UPDATED => $this->renderQuerysnapshotUpdated(),
-                TimelineType::PETITION_EVENTS_CREATED => $this->renderView('petition.timeline.petition_events_created'),
+                TimelineType::PETITION_EVENTS_CREATED => $this->renderPetitionEventsCreated(),
                 default => null,
             };
         } catch (Throwable $e) {
@@ -195,16 +198,12 @@ class TimelineItem extends Component
 
     private function renderNote(): View
     {
-        $data = (array) $this->timelineItem->data;
-        Assert::keyExists($data, 'attachmentIds');
-        Assert::isArray($data['attachmentIds']);
-
         return $this->view
             ->make('petition.timeline.note')
             ->with([
                 'timelineItem' => $this->timelineItem,
                 'timelineable' => $this->timelineItem->timelineable,
-                'attachments' => Attachment::query()->whereIn('id', $data['attachmentIds'])->get(),
+                'attachments' => Attachment::query()->whereIn('id', $this->timelineItem->attachmentIds())->get(),
             ]);
     }
 
@@ -222,6 +221,20 @@ class TimelineItem extends Component
             ->with([
                 'timelineItem' => $this->timelineItem,
                 'policyDepartments' => $policyDepartments->toString(),
+            ]);
+    }
+
+    private function renderFinancialInterestUpdated(): View
+    {
+        $data = (array) $this->timelineItem->data;
+        Assert::keyExists($data, 'amount_in_dispute');
+        Assert::nullOrInteger($data['amount_in_dispute']);
+
+        return $this->view
+            ->make('petition.timeline.financial_interest_updated')
+            ->with([
+                'timelineItem' => $this->timelineItem,
+                'amountInDispute' => $data['amount_in_dispute'],
             ]);
     }
 
@@ -431,6 +444,51 @@ class TimelineItem extends Component
                 'timelineItem' => $this->timelineItem,
                 'externalUrls' => $externalUrls,
             ]);
+    }
+
+    private function renderPetitionEventsCreated(): View
+    {
+        $petition = $this->timelineItem->timelineable;
+
+        return $this->view
+            ->make('petition.timeline.petition_events_created')
+            ->with([
+                'timelineItem' => $this->timelineItem,
+                'events' => $this->getPetitionEventChanges(),
+                'petitionType' => $petition instanceof Petition ? $petition->petitionType->type : null,
+            ]);
+    }
+
+    /**
+     * @return array<PetitionEventChangeData>
+     */
+    private function getPetitionEventChanges(): array
+    {
+        $data = (array) $this->timelineItem->data;
+
+        if (array_key_exists('events', $data)) {
+            Assert::isArray($data['events']);
+
+            return array_map(static function (mixed $event): PetitionEventChangeData {
+                Assert::isArray($event);
+                Assert::string($event['type'] ?? null);
+                Assert::string($event['change'] ?? null);
+
+                return PetitionEventChangeData::fromArray(['type' => $event['type'], 'change' => $event['change']]);
+            }, $data['events']);
+        }
+
+        // Items created before changes were tracked only have a plain list of event types.
+        $eventTypes = $data['event_types'] ?? [];
+        Assert::isArray($eventTypes);
+        Assert::allString($eventTypes);
+
+        return array_map(
+            static fn(string $type): PetitionEventChangeData => PetitionEventChangeData::createForUnchanged(
+                PetitionEventType::from($type),
+            ),
+            $eventTypes,
+        );
     }
 
     private function renderQuerysnapshotUpdated(): View

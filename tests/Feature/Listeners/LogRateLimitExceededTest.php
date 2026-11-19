@@ -7,14 +7,15 @@ namespace Tests\Feature\Listeners;
 use App\Events\RateLimitExceededEvent;
 use App\Listeners\LogRateLimitExceeded;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogRateLimitExceededTest extends FeatureTestCase
 {
     public function testLogRateLimitExceeded(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $parameters = ['test@example.com'];
         $ip = '192.168.1.1';
@@ -26,8 +27,8 @@ class LogRateLimitExceededTest extends FeatureTestCase
 
     public function testLogRateLimitExceededWithNullIp(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $parameters = ['test@example.com'];
         $event = new RateLimitExceededEvent($parameters);

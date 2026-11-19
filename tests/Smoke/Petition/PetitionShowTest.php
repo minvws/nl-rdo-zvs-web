@@ -46,6 +46,7 @@ class PetitionShowTest extends SmokeTestCase
                 TermType::FIRST,
             ],
             'petition_deliverables_enabled' => true,
+            'petition_deadlines_enabled' => true,
         ]);
 
         $this->beUser($user)
@@ -89,6 +90,7 @@ class PetitionShowTest extends SmokeTestCase
                 TermType::FIRST,
             ],
             'petition_deliverables_enabled' => true,
+            'petition_deadlines_enabled' => true,
         ]);
 
         DepartmentUser::factory()->create([

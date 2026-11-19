@@ -8,14 +8,15 @@ use App\Events\GlobalRolesWithdrawnEvent;
 use App\Listeners\LogGlobalRolesWithdrawn;
 use App\Models\User;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogGlobalRolesWithdrawnTest extends FeatureTestCase
 {
     public function testLogGlobalRolesWithdrawn(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $roles = ['admin', 'moderator'];
@@ -28,8 +29,8 @@ class LogGlobalRolesWithdrawnTest extends FeatureTestCase
     public function testLogGlobalRolesWithdrawnWithUser(): void
     {
         $this->actingAs(User::factory()->make());
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $roles = ['admin', 'moderator'];

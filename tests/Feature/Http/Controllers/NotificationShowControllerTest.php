@@ -115,6 +115,33 @@ class NotificationShowControllerTest extends FeatureTestCase
         $response->assertSee(__('notification.back_to_notifications_and_mark_as_unread'));
     }
 
+    public function testShowsANotificationRuleNotification(): void
+    {
+        $user = User::factory()->fullyVerified()->create();
+        $this->beUser($user);
+
+        $notification = DatabaseNotification::query()->create([
+            'id' => (string) Str::uuid(),
+            'notifiable_id' => $user->id,
+            'notifiable_type' => 'user',
+            'type' => 'notification-rule-triggered',
+            'data' => [
+                'title' => 'Notificatie voor zaak 2026A000001',
+                'regarding' => 'Opschorting',
+                'action' => 'Is 7 dagen geleden afgelopen',
+                'url' => '/petitions/1',
+            ],
+            'read_at' => null,
+        ]);
+
+        $this->getByRoute(RouteName::NOTIFICATIONS_SHOW, ['notification' => $notification->id])
+            ->assertOk()
+            ->assertSee('Notificatie voor zaak 2026A000001')
+            ->assertSee('Betreft: Opschorting')
+            ->assertSee('Actie: Is 7 dagen geleden afgelopen')
+            ->assertSee('/petitions/1');
+    }
+
     public function testShowsFallbackForUnknownNotificationType(): void
     {
         $user = User::factory()->fullyVerified()->create();

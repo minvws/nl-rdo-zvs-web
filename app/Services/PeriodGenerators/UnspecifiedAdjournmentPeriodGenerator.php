@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Services\PeriodGenerators;
 
 use App\Enums\AdjournmentEndReason;
-use App\Enums\PetitionEventType;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\EventCalendar;
 use App\ValueObjects\PetitionEventData;
+use App\ValueObjects\PetitionEventPair;
 use Illuminate\Support\Collection;
 
 /**
@@ -32,25 +32,9 @@ class UnspecifiedAdjournmentPeriodGenerator implements PeriodGeneratorInterface
      */
     public function generate(Collection $events, EventCalendar $calendar): void
     {
-        $starts = $this->sortedEventsOfType($events, PetitionEventType::UNSPECIFIED_ADJOURNMENT);
-        $ends = $this->sortedEventsOfType($events, PetitionEventType::UNSPECIFIED_ADJOURNMENT_END);
-
-        $starts->each(function (PetitionEventData $start, int $index) use ($ends, $calendar): void {
-            $this->freezeAdjournment($calendar, $start, $ends->get($index));
+        PetitionEventPair::unspecifiedAdjournments($events)->each(function (PetitionEventPair $adjournment) use ($calendar): void {
+            $this->freezeAdjournment($calendar, $adjournment->start, $adjournment->end);
         });
-    }
-
-    /**
-     * @param Collection<int, PetitionEventData> $events
-     *
-     * @return Collection<int, PetitionEventData>
-     */
-    private function sortedEventsOfType(Collection $events, PetitionEventType $type): Collection
-    {
-        return $events
-            ->filter(static fn(PetitionEventData $event): bool => $event->type === $type)
-            ->sortBy(static fn(PetitionEventData $event): string => $event->date->toDateString())
-            ->values();
     }
 
     private function freezeAdjournment(

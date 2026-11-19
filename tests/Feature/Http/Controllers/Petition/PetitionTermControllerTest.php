@@ -266,13 +266,16 @@ class PetitionTermControllerTest extends FeatureTestCase
             'penalty_amount_in_euros' => $penaltyAmountInEuros,
         ]);
 
-        $parentPtitionTerm = PetitionTerm::where('type', $termType)->firstOrFail(); // should be the only one in the database
+        $parentPetitionTerm = PetitionTerm::where('type', $termType)
+            ->whereNull('parent_id')
+            ->firstOrFail();
+
         $this->assertDatabaseHas(PetitionTerm::class, [
             'type' => TermType::PENALTY,
             'start_date' => $startDate->addDays($durationInDays),
             'duration_in_days' => $penaltyTermDurationInDays,
             'penalty_amount_in_euros' => $penaltyTermPenaltyAmountInEuros,
-            'parent_id' => $parentPtitionTerm->id,
+            'parent_id' => $parentPetitionTerm->id,
         ]);
     }
 
@@ -353,14 +356,16 @@ class PetitionTermControllerTest extends FeatureTestCase
         ]);
 
         $this->assertDatabaseCount(PetitionTerm::class, 4);
-        $parentPtitionTerm = PetitionTerm::where('type', $termType)->firstOrFail(); // should be the only one in the database
+        $parentPetitionTerm = PetitionTerm::where('type', $termType)
+            ->whereNull('parent_id')
+            ->firstOrFail();
 
         $this->assertDatabaseHas(PetitionTerm::class, [
             'type' => TermType::PENALTY,
             'start_date' => $startDate->addDays($durationInDays),
             'duration_in_days' => $penaltyTermDurationInDays,
             'penalty_amount_in_euros' => $penaltyTermPenaltyAmountInEuros,
-            'parent_id' => $parentPtitionTerm->id,
+            'parent_id' => $parentPetitionTerm->id,
         ]);
         $this->assertDatabaseHas(PetitionTerm::class, [
             'type' => TermType::PENALTY,
@@ -697,7 +702,7 @@ class PetitionTermControllerTest extends FeatureTestCase
     public function testUpdateOfAppointmentWithApplicantWithEndDateWithoutDuration(): void
     {
         $startDate = $this->faker->calendarDate();
-        $exptectedNewDurationInDays = $this->faker->numberBetween(20, 30);
+        $expectedNewDurationInDays = $this->faker->numberBetween(20, 30);
 
         $department = Department::factory()->create();
         $petition = Petition::factory()->recycle($department)->create();
@@ -721,7 +726,7 @@ class PetitionTermControllerTest extends FeatureTestCase
                 'term_type' => $petitionTerm->type,
             ]);
 
-        $newEndDate = $petitionTerm->start_date->addDays($exptectedNewDurationInDays - 1);
+        $newEndDate = $petitionTerm->start_date->addDays($expectedNewDurationInDays - 1);
 
         $authUser = User::factory()->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)->fullyVerified()->create();
         $this->beUser($authUser, true, $department)
@@ -737,7 +742,7 @@ class PetitionTermControllerTest extends FeatureTestCase
 
         $this->assertDatabaseHas(PetitionTerm::class, [
             'start_date' => $startDate,
-            'duration_in_days' => $exptectedNewDurationInDays,
+            'duration_in_days' => $expectedNewDurationInDays,
             'end_date' => $newEndDate,
         ]);
     }

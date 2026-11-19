@@ -38,6 +38,10 @@ enum PetitionEventType: string
     case RECEIPT_OF_COMPLAINT = 'receipt_of_complaint';
     case REFERRED_TO_DEPARTMENT = 'referred_to_department';
     case ANSWER_RECEIVED = 'answer_received';
+    case RECEIPT_OF_OPPOSITION = 'receipt_of_opposition';
+    case COURT_SESSION = 'court_session';
+    case STATEMENT_OF_DEFENCE = 'statement_of_defence';
+    case RECEIPT_OF_CIVIL_PROCEEDING = 'receipt_of_civil_proceeding';
 
     /**
      * @codeCoverageIgnore pure config mapping, no business logic to test
@@ -186,15 +190,29 @@ enum PetitionEventType: string
             self::RECEIPT_APPEAL_NOT_TIMELY,
             self::UNSPECIFIED_ADJOURNMENT,
             self::UNSPECIFIED_ADJOURNMENT_END => match ($petitionType) {
-                PetitionVariant::KLACHT => false,
+                PetitionVariant::KLACHT, PetitionVariant::VERZET, PetitionVariant::CIVIELE_PROCEDURE => false,
                 default => true,
             },
 
             self::RECEIPT_OF_COMPLAINT => $petitionType === PetitionVariant::KLACHT,
 
+            self::RECEIPT_OF_OPPOSITION => $petitionType === PetitionVariant::VERZET,
+
+            self::COURT_SESSION,
+            self::STATEMENT_OF_DEFENCE => match ($petitionType) {
+                PetitionVariant::VERZET, PetitionVariant::CIVIELE_PROCEDURE => true,
+                default => false,
+            },
+
+            self::RECEIPT_OF_CIVIL_PROCEEDING => $petitionType === PetitionVariant::CIVIELE_PROCEDURE,
+
+            self::FINAL_RESULT => true,
+
             self::MEETING_SCHEDULED,
-            self::FINAL_RESULT,
-            self::ADJOURNMENT => true,
+            self::ADJOURNMENT => match ($petitionType) {
+                PetitionVariant::VERZET, PetitionVariant::CIVIELE_PROCEDURE => false,
+                default => true,
+            },
         };
     }
 
@@ -221,10 +239,14 @@ enum PetitionEventType: string
             self::OPINION_OUTSIDE_TERM,
             self::SENT_PARTIAL_DECISION,
             self::REFERRED_TO_DEPARTMENT,
+            self::COURT_SESSION,
+            self::STATEMENT_OF_DEFENCE,
             self::FINAL_RESULT => match ($petitionType) {
                 PetitionVariant::BEZWAAR => [self::RECEIPT_OF_OBJECTION],
                 PetitionVariant::WOO_VERZOEK => [self::PETITION_RECEIVED],
                 PetitionVariant::KLACHT => [self::RECEIPT_OF_COMPLAINT],
+                PetitionVariant::VERZET => [self::RECEIPT_OF_OPPOSITION],
+                PetitionVariant::CIVIELE_PROCEDURE => [self::RECEIPT_OF_CIVIL_PROCEEDING],
                 default => [],
             },
 
@@ -345,6 +367,9 @@ enum PetitionEventType: string
                 ],
                 default => [],
             },
+            self::COURT_SESSION, self::STATEMENT_OF_DEFENCE => [
+                self::FINAL_RESULT,
+            ],
             self::UNSPECIFIED_ADJOURNMENT => match ($petitionType) {
                 PetitionVariant::BEZWAAR, PetitionVariant::WOO_VERZOEK => [
                     self::NOTICE_OF_DEFAULT_RECEIVED,

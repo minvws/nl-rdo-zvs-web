@@ -44,7 +44,9 @@ class FinalDecisionValidatorTest extends TestCase
                 'event' => PetitionEventType::FINAL_RESULT->label(),
                 'required_events' => PetitionEventType::RECEIPT_OF_OBJECTION->label()
                     . ' ' . __('general.or') . ' ' . PetitionEventType::PETITION_RECEIVED->label()
-                    . ' ' . __('general.or') . ' ' . PetitionEventType::RECEIPT_OF_COMPLAINT->label(),
+                    . ' ' . __('general.or') . ' ' . PetitionEventType::RECEIPT_OF_COMPLAINT->label()
+                    . ' ' . __('general.or') . ' ' . PetitionEventType::RECEIPT_OF_OPPOSITION->label()
+                    . ' ' . __('general.or') . ' ' . PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING->label(),
             ]),
             $result->getErrors()['general'],
         );

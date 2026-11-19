@@ -85,4 +85,11 @@ class ApiTableConfigurationServiceTest extends TestCase
 
         $this->assertContains('igs_forfeited', $config['fields']);
     }
+
+    public function testPetitionsExposesTheAmountInDisputeField(): void
+    {
+        $config = $this->service->getTableConfig('petitions');
+
+        $this->assertContains('amount_in_dispute', $config['fields']);
+    }
 }

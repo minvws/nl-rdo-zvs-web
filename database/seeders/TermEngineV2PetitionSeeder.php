@@ -62,6 +62,8 @@ class TermEngineV2PetitionSeeder extends Seeder
         PetitionEventType::RECEIPT_OF_OBJECTION,
         PetitionEventType::PETITION_RECEIVED,
         PetitionEventType::RECEIPT_OF_COMPLAINT,
+        PetitionEventType::RECEIPT_OF_OPPOSITION,
+        PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING,
     ];
 
     public function run(): void
@@ -88,6 +90,8 @@ class TermEngineV2PetitionSeeder extends Seeder
             ...self::wooScenarios('team-b', 'WOO-verzoek (covid-19)'),
             ...self::teamIScenarios(),
             ...self::klachtScenarios(),
+            ...self::verzetScenarios(),
+            ...self::civieleProcedureScenarios(),
         ];
 
         foreach (array_keys($scenarios) as $index) {
@@ -678,6 +682,94 @@ class TermEngineV2PetitionSeeder extends Seeder
         ];
 
         return self::toScenarios($scenarios, 'team-wjz-klachten', 'Klacht', PetitionVariant::KLACHT, 'Klacht');
+    }
+
+    /**
+     * @return list<Scenario>
+     */
+    private static function verzetScenarios(): array
+    {
+        $scenarios = [
+            'Net ontvangen' => [
+                self::event(PetitionEventType::RECEIPT_OF_OPPOSITION, 2),
+            ],
+            'Zitting geweest' => [
+                self::event(PetitionEventType::RECEIPT_OF_OPPOSITION, 30),
+                self::event(PetitionEventType::COURT_SESSION, 10),
+            ],
+            'Verweerschrift ingediend' => [
+                self::event(PetitionEventType::RECEIPT_OF_OPPOSITION, 30),
+                self::event(PetitionEventType::STATEMENT_OF_DEFENCE, 12),
+            ],
+            'Meerdere zittingen en verweerschriften door elkaar' => [
+                self::event(PetitionEventType::RECEIPT_OF_OPPOSITION, 60),
+                self::event(PetitionEventType::STATEMENT_OF_DEFENCE, 40),
+                self::event(PetitionEventType::COURT_SESSION, 30),
+                self::event(PetitionEventType::COURT_SESSION, 20),
+                self::event(PetitionEventType::STATEMENT_OF_DEFENCE, 10),
+            ],
+            'Afgerond, verzet ingetrokken' => [
+                self::event(PetitionEventType::RECEIPT_OF_OPPOSITION, 40),
+                self::event(PetitionEventType::COURT_SESSION, 20),
+                self::event(PetitionEventType::FINAL_RESULT, 8, resultType: ResultType::WITHDRAWN),
+            ],
+            'Afgerond, anders' => [
+                self::event(PetitionEventType::RECEIPT_OF_OPPOSITION, 40),
+                self::event(PetitionEventType::STATEMENT_OF_DEFENCE, 20),
+                self::event(
+                    PetitionEventType::FINAL_RESULT,
+                    8,
+                    resultType: ResultType::OTHER,
+                    reasoning: 'Verzet is niet in behandeling genomen.',
+                ),
+            ],
+        ];
+
+        return self::toScenarios($scenarios, 'team-c', 'Verzet', PetitionVariant::VERZET, 'Verzet');
+    }
+
+    /**
+     * @return list<Scenario>
+     */
+    private static function civieleProcedureScenarios(): array
+    {
+        $scenarios = [
+            'Net ontvangen' => [
+                self::event(PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING, 2),
+            ],
+            'Zitting geweest' => [
+                self::event(PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING, 30),
+                self::event(PetitionEventType::COURT_SESSION, 10),
+            ],
+            'Verweerschrift ingediend' => [
+                self::event(PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING, 30),
+                self::event(PetitionEventType::STATEMENT_OF_DEFENCE, 12),
+            ],
+            'Meerdere zittingen en verweerschriften door elkaar' => [
+                self::event(PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING, 60),
+                self::event(PetitionEventType::STATEMENT_OF_DEFENCE, 40),
+                self::event(PetitionEventType::COURT_SESSION, 30),
+                self::event(PetitionEventType::COURT_SESSION, 20),
+                self::event(PetitionEventType::STATEMENT_OF_DEFENCE, 10),
+            ],
+            'Afgerond, procedure ingetrokken' => [
+                self::event(PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING, 40),
+                self::event(PetitionEventType::COURT_SESSION, 20),
+                self::event(PetitionEventType::FINAL_RESULT, 8, resultType: ResultType::WITHDRAWN),
+            ],
+            'Afgerond, anders' => [
+                self::event(PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING, 40),
+                self::event(PetitionEventType::STATEMENT_OF_DEFENCE, 20),
+                self::event(
+                    PetitionEventType::FINAL_RESULT,
+                    8,
+                    resultType: ResultType::OTHER,
+                    reasoning: 'De procedure is niet in behandeling genomen.',
+                ),
+            ],
+        ];
+
+        return self::toScenarios($scenarios, 'team-c', 'Civiele procedure', PetitionVariant::CIVIELE_PROCEDURE, 'Civiele procedure');
     }
 
     /**

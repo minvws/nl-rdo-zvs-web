@@ -133,7 +133,6 @@ The manual is located in the `manual` folder and is built with [Sphinx](https://
 If you need to enable or disable feature flags, you can do so by setting these variables in your `.env` file:
 
 ```
-NOTIFICATIONS_ENABLED=true|false
 TERM_ENGINE_V2_ENABLED=true|false
 ```
 

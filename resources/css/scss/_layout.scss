@@ -4,6 +4,13 @@
   gap: 2rem;
 }
 
+.activity-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 2rem;
+  align-items: start;
+}
+
 .petition-sidebar {
   display: flex;
   flex-direction: column;

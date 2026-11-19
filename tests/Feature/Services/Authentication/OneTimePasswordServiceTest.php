@@ -8,7 +8,8 @@ use App\Models\User;
 use App\Services\Authentication\OneTimePassword\FakeOneTimePassword;
 use App\Services\Authentication\OneTimePassword\OneTimePasswordInterface;
 use App\Services\Authentication\OneTimePasswordService;
-use PHPUnit\Framework\MockObject\MockObject;
+use Mockery;
+use Mockery\MockInterface;
 use Tests\Feature\FeatureTestCase;
 
 class OneTimePasswordServiceTest extends FeatureTestCase
@@ -55,11 +56,9 @@ class OneTimePasswordServiceTest extends FeatureTestCase
     {
         $user = User::factory()->fullyVerified()->state(['otp_verified_at' => null])->create();
 
-        /** @var OneTimePasswordInterface&MockObject $oneTimePassword */
-        $oneTimePassword = $this->createMock(FakeOneTimePassword::class);
-        $oneTimePassword->expects($this->once())
-            ->method('isCodeValid')
-            ->willReturn(false);
+        /** @var OneTimePasswordInterface&MockInterface $oneTimePassword */
+        $oneTimePassword = Mockery::mock(FakeOneTimePassword::class);
+        $oneTimePassword->expects('isCodeValid')->andReturn(false);
 
         $oneTimePasswordService = $this->getOneTimePasswordService($oneTimePassword);
         $result = $oneTimePasswordService->verifyCode($this->faker->word(), $user);

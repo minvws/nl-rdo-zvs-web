@@ -6,12 +6,25 @@ namespace Tests\Feature\Http\Controllers\Petition;
 
 use App\Enums\AssignmentRole;
 use App\Enums\Authorization\Permission;
+use App\Enums\NotificationRuleAnchor;
+use App\Enums\PetitionEventType;
 use App\Enums\RouteName;
 use App\Models\Department;
+use App\Models\NotificationRule;
 use App\Models\Petition;
 use App\Models\PetitionAssignment;
+use App\Models\PetitionEvent;
 use App\Models\User;
+use App\Notifications\NotificationRuleTriggered;
+use App\Services\NotificationRule\NotificationRuleEvaluator;
+use App\ValueObjects\CalendarDate;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Mockery;
+use RuntimeException;
 use Tests\Feature\FeatureTestCase;
+
+use function sprintf;
 
 class PetitionAssignedUserControllerTest extends FeatureTestCase
 {
@@ -65,6 +78,8 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
     public function testUpdateAssignedUser(): void
     {
+        Notification::fake();
+
         $department = Department::factory()
             ->create();
         $petition = Petition::factory()
@@ -89,6 +104,69 @@ class PetitionAssignedUserControllerTest extends FeatureTestCase
 
         $petition->refresh();
         $this->assertEquals($user->id, $petition->firstAssignee->user_id);
+        Notification::assertNothingSent();
+    }
+
+    public function testUpdateAssignedUserSendsTheNotificationsThatAreAlreadyDue(): void
+    {
+        Notification::fake();
+
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        PetitionEvent::factory()->for($petition)->withType(PetitionEventType::ACTUAL_DISCLOSURE)->create([
+            'date' => CalendarDate::today(),
+        ]);
+        NotificationRule::factory()->recycle($department)->create([
+            'anchor' => NotificationRuleAnchor::EVENT_DATE,
+            'event_type' => PetitionEventType::ACTUAL_DISCLOSURE,
+            'offset_days' => 0,
+            'active_from' => CalendarDate::today(),
+        ]);
+        $user = User::factory()->recycle($department)->create();
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
+                'department' => $department,
+                'petition' => $petition,
+            ], [
+                'user_id' => $user->id->toString(),
+            ])
+            ->assertRedirect();
+
+        Notification::assertSentTo($user, NotificationRuleTriggered::class);
+    }
+
+    public function testUpdateAssignedUserSavesTheAssignmentWhenNotificationRulesFail(): void
+    {
+        Log::spy();
+        $evaluator = Mockery::mock(NotificationRuleEvaluator::class);
+        $evaluator->shouldReceive('evaluate')->once()->andThrow(new RuntimeException('mail server down'));
+        $this->app->instance(NotificationRuleEvaluator::class, $evaluator);
+
+        $department = Department::factory()->create();
+        $petition = Petition::factory()->recycle($department)->create();
+        $user = User::factory()->recycle($department)->create();
+
+        $authUser = User::factory()->withPermissions(Permission::PETITION_WRITE)->fullyVerified()->create();
+        $this->beUser($authUser)
+            ->postByRoute(RouteName::DEPARTMENTS_PETITIONS_ASSIGN_PRIMARY_UPDATE, [
+                'department' => $department,
+                'petition' => $petition,
+            ], [
+                'user_id' => $user->id->toString(),
+            ])
+            ->assertRedirect();
+
+        $this->assertEquals($user->id, $petition->refresh()->firstAssignee?->user_id);
+        Log::shouldHaveReceived('error')
+            ->once()
+            ->withArgs(
+                static fn(string $message): bool => $message === sprintf(
+                    'Failed to evaluate notification rules for petition ID: %s',
+                    $petition->id,
+                ),
+            );
     }
 
     public function testUpdateAssignedUserAllowsAssignedUserToBeNull(): void

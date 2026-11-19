@@ -6,6 +6,7 @@ namespace Tests\Feature\Api;
 
 use App\Enums\ContactRole;
 use App\Enums\HearingForm;
+use App\Enums\NotificationRuleAnchor;
 use App\Enums\PetitionEventType;
 use App\Enums\TagColor;
 use App\Models\ApiUser;
@@ -13,6 +14,7 @@ use App\Models\Contact;
 use App\Models\CustomCost;
 use App\Models\CustomPetitionProperty;
 use App\Models\Decision;
+use App\Models\NotificationRule;
 use App\Models\Petition;
 use App\Models\PetitionAssignment;
 use App\Models\PetitionCustomDate;
@@ -28,6 +30,7 @@ use App\Models\ProcessingStep;
 use App\Models\PublicHoliday;
 use App\Models\Tag;
 use App\Models\User;
+use App\ValueObjects\CalendarDate;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\FeatureTestCase;
@@ -244,6 +247,15 @@ class GenericApiControllerTest extends FeatureTestCase
         $this->assertSame(1500, $response->json('data.0.igs_forfeited'));
     }
 
+    public function testPetitionsEndpointReturnsTheAmountInDispute(): void
+    {
+        Petition::factory()->create(['amount_in_dispute' => 300_000]);
+
+        $response = $this->getJson('/api/v1/petitions?fields=id,amount_in_dispute')->assertOk();
+
+        $this->assertSame(300_000, $response->json('data.0.amount_in_dispute'));
+    }
+
     public function testPetitionEventsEndpointReturnsTheHearingForm(): void
     {
         PetitionEvent::factory()->create([
@@ -282,6 +294,28 @@ class GenericApiControllerTest extends FeatureTestCase
             ],
             array_map(static fn(array $row): array => array_diff_key($row, ['created_at' => 0, 'updated_at' => 0]), $data),
         );
+    }
+
+    public function testNotificationRulesEndpointReturnsRules(): void
+    {
+        $rule = NotificationRule::factory()->create([
+            'anchor' => NotificationRuleAnchor::EVENT_DATE,
+            'event_type' => PetitionEventType::ACTUAL_DISCLOSURE,
+            'offset_days' => 14,
+            'active_from' => CalendarDate::create('2026-10-12'),
+        ]);
+
+        $this->getJson('/api/v1/notification_rules')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $rule->id->toString())
+            ->assertJsonPath('data.0.department_id', $rule->department_id->toString())
+            ->assertJsonPath('data.0.anchor', 'event_date')
+            ->assertJsonPath('data.0.event_type', 'actual_disclosure')
+            ->assertJsonPath('data.0.offset_days', 14)
+            ->assertJsonPath('data.0.recipient', 'primary_assignee')
+            ->assertJsonPath('data.0.active', true)
+            ->assertJsonPath('data.0.active_from', '2026-10-12');
     }
 
     public function testFilteringPetitionTagByTagId(): void

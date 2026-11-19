@@ -77,4 +77,9 @@ enum Permission: string
      */
     case TAG_WRITE = 'tag.write';
     case TAG_READ = 'tag.read';
+
+    /**
+     * Notification rule permissions
+     */
+    case NOTIFICATION_RULE_WRITE = 'notification_rule.write';
 }

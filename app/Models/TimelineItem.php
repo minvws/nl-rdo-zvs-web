@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Override;
 use Ramsey\Uuid\UuidInterface;
+use Webmozart\Assert\Assert;
 
 /**
  * @property int $internal_id
@@ -53,6 +54,18 @@ class TimelineItem extends EloquentModel
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function attachmentIds(): array
+    {
+        $attachmentIds = $this->data['attachmentIds'] ?? [];
+        Assert::isList($attachmentIds);
+        Assert::allString($attachmentIds);
+
+        return $attachmentIds;
     }
 
     #[Override]

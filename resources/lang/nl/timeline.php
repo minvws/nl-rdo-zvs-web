@@ -39,6 +39,8 @@ return [
     ],
     'policy_department_changed' => 'Beleidsdirecties zijn gewijzigd naar :policyDepartments',
     'tags_changed' => 'Tags zijn gewijzigd naar :tags',
+    'financial_interest_changed' => 'Bedrag in geschil is gewijzigd naar :amount',
+    'financial_interest_cleared' => 'Bedrag in geschil is verwijderd',
     'tags_cleared' => 'Alle tags zijn van de zaak gehaald',
 
     'filter_groups' => [

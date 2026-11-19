@@ -8,14 +8,15 @@ use App\Listeners\LogPasswordReset;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use MinVWS\Logging\Laravel\LogService;
+use Mockery;
 use Tests\Feature\FeatureTestCase;
 
 class LogPasswordResetTest extends FeatureTestCase
 {
     public function testLogPasswordReset(): void
     {
-        $logService = $this->createMock(LogService::class);
-        $logService->expects($this->once())->method('log');
+        $logService = Mockery::mock(LogService::class);
+        $logService->expects('log');
 
         $user = User::factory()->make();
         $event = new PasswordReset($user);

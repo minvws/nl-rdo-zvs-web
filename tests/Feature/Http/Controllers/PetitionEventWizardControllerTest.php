@@ -6,28 +6,37 @@ namespace Tests\Feature\Http\Controllers;
 
 use App\Enums\Authorization\Permission;
 use App\Enums\HearingForm;
+use App\Enums\NotificationRuleAnchor;
 use App\Enums\PetitionEventType;
 use App\Enums\PetitionVariant;
 use App\Enums\ResultType;
 use App\Enums\RouteName;
 use App\Enums\SuspensionType;
 use App\Models\Department;
+use App\Models\NotificationRule;
 use App\Models\Petition;
 use App\Models\PetitionEvent;
 use App\Models\PetitionStatus;
 use App\Models\PetitionType;
 use App\Models\User;
+use App\Notifications\NotificationRuleTriggered;
+use App\Services\NotificationRule\NotificationRuleEvaluator;
 use App\ValueObjects\CalendarDate;
 use App\ValueObjects\PenaltyData;
 use App\ValueObjects\PetitionEventData;
 use App\ValueObjects\WizardEventCollection;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Session;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 use Tests\Feature\FeatureTestCase;
 
 use function __;
+use function array_column;
 use function now;
 use function preg_match;
 use function route;
@@ -784,6 +793,88 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
             'type' => PetitionEventType::RECEIPT_OF_OBJECTION->value,
             'duration' => 1,
         ]);
+    }
+
+    #[Test]
+    public function testStoreNotifiesThePrimaryAssigneeOfARuleThatIsDue(): void
+    {
+        Notification::fake();
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::WOO_VERZOEK]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->withFirstAssignee()->create();
+        NotificationRule::factory()->recycle($department)->create([
+            'anchor' => NotificationRuleAnchor::EVENT_DATE,
+            'event_type' => PetitionEventType::PETITION_RECEIVED,
+            'offset_days' => 0,
+        ]);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        Session::put(sprintf('wizard.petition.%s.events', $petition->id), WizardEventCollection::make()->add(new PetitionEventData(
+            type: PetitionEventType::PETITION_RECEIVED,
+            date: CalendarDate::today(),
+            createdAt: CarbonImmutable::now(),
+        )));
+
+        $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_STORE, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [])
+            ->assertRedirect();
+
+        $assignee = $petition->refresh()->firstAssignee?->user;
+        $this->assertInstanceOf(User::class, $assignee);
+        Notification::assertSentTo($assignee, NotificationRuleTriggered::class);
+    }
+
+    #[Test]
+    public function testStoreSavesTheEventsWhenNotificationRulesFail(): void
+    {
+        Log::spy();
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::WOO_VERZOEK]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create();
+
+        $evaluator = Mockery::mock(NotificationRuleEvaluator::class);
+        $evaluator->shouldReceive('evaluate')->once()->andThrow(new RuntimeException('mail server down'));
+        $this->app->instance(NotificationRuleEvaluator::class, $evaluator);
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        Session::put(sprintf('wizard.petition.%s.events', $petition->id), WizardEventCollection::make()->add(new PetitionEventData(
+            type: PetitionEventType::PETITION_RECEIVED,
+            date: CalendarDate::today(),
+            createdAt: CarbonImmutable::now(),
+        )));
+
+        $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_STORE, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas(PetitionEvent::class, [
+            'petition_id' => $petition->id,
+            'type' => PetitionEventType::PETITION_RECEIVED->value,
+        ]);
+        Log::shouldHaveReceived('error')
+            ->once()
+            ->withArgs(
+                static fn(string $message): bool => $message === sprintf(
+                    'Failed to evaluate notification rules for petition ID: %s',
+                    $petition->id,
+                ),
+            );
     }
 
     #[Test]
@@ -1888,6 +1979,183 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
     }
 
     #[Test]
+    public function testVerzetAcceptsSessionsAndStatementsOfDefenceRepeatedlyOnOrAfterTheReceipt(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createVerzetSetup();
+
+        $postRoute = route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+            'department' => $department,
+            'petition' => $petition,
+        ]);
+
+        $this->beUser($user, true, $department);
+
+        foreach (
+            [
+                [PetitionEventType::STATEMENT_OF_DEFENCE, '2025-02-01'],
+                [PetitionEventType::COURT_SESSION, '2025-01-10'],
+                [PetitionEventType::COURT_SESSION, '2025-01-15'],
+                [PetitionEventType::STATEMENT_OF_DEFENCE, '2025-01-12'],
+            ] as [$type, $date]
+        ) {
+            $this->post($postRoute, ['type' => $type->value, 'date' => $date])->assertSessionHasNoErrors();
+        }
+
+        $events = Session::get(sprintf('wizard.petition.%s.events', $petition->id));
+        $this->assertInstanceOf(WizardEventCollection::class, $events);
+        $this->assertCount(5, $events->all());
+    }
+
+    #[Test]
+    public function testVerzetRejectsAnEventBeforeTheReceipt(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createVerzetSetup();
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::COURT_SESSION->value,
+                'date' => '2025-01-09',
+            ]);
+
+        $response->assertSessionHasErrors('date');
+    }
+
+    #[Test]
+    public function testVerzetOffersOnlyItsOwnEventTypes(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createVerzetSetup();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_STEP, [
+                'department' => $department,
+                'petition' => $petition,
+            ]));
+
+        $this->assertSame(
+            [PetitionEventType::FINAL_RESULT, PetitionEventType::COURT_SESSION, PetitionEventType::STATEMENT_OF_DEFENCE],
+            $response->viewData('availableTypes'),
+        );
+    }
+
+    /**
+     * @return array{department: Department, petition: Petition, user: User}
+     */
+    private function createVerzetSetup(): array
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::VERZET]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create([
+            'date_of_entry' => '2025-01-10',
+        ]);
+        Session::put(
+            sprintf('wizard.petition.%s.events', $petition->id),
+            WizardEventCollection::make()->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_OPPOSITION,
+                date: CalendarDate::create('2025-01-10'),
+                createdAt: CarbonImmutable::now()->subMinute(),
+            )),
+        );
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        return ['department' => $department, 'petition' => $petition, 'user' => $user];
+    }
+
+    #[Test]
+    public function testCivieleProcedureAcceptsSessionsAndStatementsOfDefenceRepeatedlyOnOrAfterTheReceipt(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createCivieleProcedureSetup();
+
+        $postRoute = route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+            'department' => $department,
+            'petition' => $petition,
+        ]);
+
+        $this->beUser($user, true, $department);
+
+        foreach (
+            [
+                [PetitionEventType::STATEMENT_OF_DEFENCE, '2025-02-01'],
+                [PetitionEventType::COURT_SESSION, '2025-01-10'],
+                [PetitionEventType::COURT_SESSION, '2025-01-15'],
+                [PetitionEventType::STATEMENT_OF_DEFENCE, '2025-01-12'],
+            ] as [$type, $date]
+        ) {
+            $this->post($postRoute, ['type' => $type->value, 'date' => $date])->assertSessionHasNoErrors();
+        }
+
+        $events = Session::get(sprintf('wizard.petition.%s.events', $petition->id));
+        $this->assertInstanceOf(WizardEventCollection::class, $events);
+        $this->assertCount(5, $events->all());
+    }
+
+    #[Test]
+    public function testCivieleProcedureRejectsAnEventBeforeTheReceipt(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createCivieleProcedureSetup();
+
+        $response = $this->beUser($user, true, $department)
+            ->post(route(RouteName::PETITION_EVENTS_WIZARD_SUBMIT_FORM, [
+                'department' => $department,
+                'petition' => $petition,
+            ]), [
+                'type' => PetitionEventType::COURT_SESSION->value,
+                'date' => '2025-01-09',
+            ]);
+
+        $response->assertSessionHasErrors('date');
+    }
+
+    #[Test]
+    public function testCivieleProcedureOffersOnlyItsOwnEventTypes(): void
+    {
+        ['department' => $department, 'petition' => $petition, 'user' => $user] = $this->createCivieleProcedureSetup();
+
+        $response = $this->beUser($user, true, $department)
+            ->get(route(RouteName::PETITION_EVENTS_WIZARD_STEP, [
+                'department' => $department,
+                'petition' => $petition,
+            ]));
+
+        $this->assertSame(
+            [PetitionEventType::FINAL_RESULT, PetitionEventType::COURT_SESSION, PetitionEventType::STATEMENT_OF_DEFENCE],
+            $response->viewData('availableTypes'),
+        );
+    }
+
+    private function createCivieleProcedureSetup(): array
+    {
+        $department = Department::factory()->create();
+        $petitionType = PetitionType::factory()->recycle($department)->create(['type' => PetitionVariant::CIVIELE_PROCEDURE]);
+        PetitionStatus::factory()->recycle($department)->for($petitionType)->create();
+        $petition = Petition::factory()->recycle($department)->for($petitionType)->create([
+            'date_of_entry' => '2025-01-10',
+        ]);
+        Session::put(
+            sprintf('wizard.petition.%s.events', $petition->id),
+            WizardEventCollection::make()->add(new PetitionEventData(
+                type: PetitionEventType::RECEIPT_OF_CIVIL_PROCEEDING,
+                date: CalendarDate::create('2025-01-10'),
+                createdAt: CarbonImmutable::now()->subMinute(),
+            )),
+        );
+
+        $user = User::factory()
+            ->withPermissionsAndDepartment($department, Permission::PETITION_WRITE)
+            ->fullyVerified()
+            ->create();
+
+        return ['department' => $department, 'petition' => $petition, 'user' => $user];
+    }
+
+    #[Test]
     public function testStoreCreatesTimelineItem(): void
     {
         $department = Department::factory()->create();
@@ -1932,8 +2200,9 @@ final class PetitionEventWizardControllerTest extends FeatureTestCase
         $this->assertNotNull($createdItem);
         $this->assertEquals('petition_events_created', $createdItem->type->value);
         $this->assertEquals($user->id, $createdItem->user_id);
-        $this->assertCount(2, $createdItem->data['event_types']);
+        $this->assertCount(2, $createdItem->data['events']);
         $this->assertEquals(2, $createdItem->data['count']);
+        $this->assertEquals(['added', 'added'], array_column($createdItem->data['events'], 'change'));
     }
 
     #[Test]

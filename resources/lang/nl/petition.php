@@ -62,6 +62,9 @@ return [
     'deadline_notice_of_default' => 'Deadline IGS',
     'deadline_notice_of_default_penalty_period_end' => 'Einde dwangsomtermijn IGS',
     'igs_forfeited' => 'Dwangsom IGS',
+    'financial_interest' => 'Financieel belang',
+    'edit_financial_interest' => 'Financieel belang aanpassen',
+    'amount_in_dispute' => 'Bedrag in geschil',
     'deadline_appeal_not_timely' => 'Deadline BNT',
     'deadline_appeal_not_timely_penalty_period_end' => 'Einde dwangsomtermijn BNT',
     'deadline_override_at' => 'Afwijkende deadline',
@@ -129,6 +132,8 @@ return [
         PetitionVariant::BEZWAAR->value => 'Ontvangstdatum',
         PetitionVariant::KLACHT->value => 'Ontvangstdatum',
         PetitionVariant::BEROEP->value => 'Ontvangstdatum',
+        PetitionVariant::VERZET->value => 'Datum verzet',
+        PetitionVariant::CIVIELE_PROCEDURE->value => 'Datum civiele procedure',
         PetitionVariant::WOO_VERZOEK->value => 'Ontvangstdatum',
     ],
 
@@ -136,6 +141,8 @@ return [
         PetitionVariant::BEZWAAR->value => 'Datum besluit waartegen bezwaar wordt gemaakt',
         PetitionVariant::KLACHT->value => 'Ontvangstdatum',
         PetitionVariant::BEROEP->value => 'Ontvangstdatum',
+        PetitionVariant::VERZET->value => 'Datum verzet',
+        PetitionVariant::CIVIELE_PROCEDURE->value => 'Datum civiele procedure',
         PetitionVariant::WOO_VERZOEK->value => 'Ontvangstdatum',
     ],
 ];

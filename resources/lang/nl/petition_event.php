@@ -5,6 +5,8 @@ declare(strict_types=1);
 return [
     'event' => 'Gebeurtenis',
     'events' => 'Gebeurtenissen',
+    'added' => 'toegevoegd',
+    'removed' => 'verwijderd',
     'calendar_changed' => 'Kalender aangepast.',
     'create' => 'Gebeurtenis aanmaken',
     'details' => 'Gebeurtenis details',
@@ -33,6 +35,10 @@ return [
         'receipt_appeal_not_timely' => 'Datum ontvangst',
         'receipt_of_objection' => 'Datum ontvangst',
         'receipt_of_complaint' => 'Datum klacht',
+        'receipt_of_opposition' => 'Datum verzet',
+        'court_session' => 'Datum zitting',
+        'statement_of_defence' => 'Deadline',
+        'receipt_of_civil_proceeding' => 'Datum civiele procedure',
         'suspension_end' => 'Datum einde',
         'unspecified_adjournment_end' => 'Datum einde',
         'unspecified_adjournment' => 'Datum brief verzonden',
@@ -86,6 +92,10 @@ return [
             'receipt_appeal_not_timely' => 'Ontvangstdatum BNT',
             'receipt_of_objection' => 'Ontvangst bezwaar',
             'receipt_of_complaint' => 'Ontvangst klacht',
+            'receipt_of_opposition' => 'Ontvangst verzet',
+            'court_session' => 'Datum van de zitting',
+            'statement_of_defence' => 'Deadline indienen verweerschrift',
+            'receipt_of_civil_proceeding' => 'Ontvangst civiele procedure',
             'sent_partial_decision' => 'Verzonden deelbesluit',
             'referred_to_department' => 'Doorgestuurd naar afdeling',
             'answer_received' => 'Antwoord ontvangen',
@@ -111,6 +121,10 @@ return [
             'receipt_appeal_not_timely' => 'Dit is de datum waarop het BNT is ontvangen.',
             'receipt_of_objection' => 'Dit is de datum waarop het bezwaar is ontvangen. Dit kan buiten de bezwaartermijn liggen.',
             'receipt_of_complaint' => 'Dit is de datum waarop de klacht is ontvangen.',
+            'receipt_of_opposition' => 'Dit is de datum waarop het verzet is ontvangen.',
+            'court_session' => 'Dit is de datum van de zitting.',
+            'statement_of_defence' => 'Dit is de uiterste datum waarop het verweerschrift moet zijn ingediend.',
+            'receipt_of_civil_proceeding' => 'Dit is de datum waarop de civiele procedure is ontvangen.',
             'sent_partial_decision' => 'Dit is de datum waarop een deelbesluit is verzonden.',
             'referred_to_department' => 'Dit is de datum waarop het verzoek is doorgestuurd naar een andere afdeling of organisatie.',
             'answer_received' => 'Dit is de datum waarop het antwoord van de andere afdeling of organisatie is ontvangen.',
@@ -147,6 +161,30 @@ return [
         ],
         'description' => [
             'meeting_scheduled' => 'Datum die in de plaats komt van de oorspronkelijke einddatum van de beslistermijn en waarmee de indiener van de klacht schriftelijk heeft ingestemd.',
+        ],
+    ],
+
+    'verzet' => [
+        'label' => [
+            'court_session' => 'Zitting',
+            'final_result' => 'Verzet afgehandeld',
+            'statement_of_defence' => 'Indienen verweerschrift',
+        ],
+        'description' => [
+            'court_session' => 'Dit is de datum van de zitting.',
+            'statement_of_defence' => 'Dit is de deadline voor het indienen van het verweerschrift.',
+        ],
+    ],
+
+    'civiele_procedure' => [
+        'label' => [
+            'court_session' => 'Zitting',
+            'final_result' => 'Civiele procedure afgehandeld',
+            'statement_of_defence' => 'Indienen verweerschrift',
+        ],
+        'description' => [
+            'court_session' => 'Dit is de datum van de zitting.',
+            'statement_of_defence' => 'Dit is de deadline voor het indienen van het verweerschrift.',
         ],
     ],
 
